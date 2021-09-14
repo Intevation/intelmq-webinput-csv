@@ -2,7 +2,7 @@
   <div>
     <b-navbar toggleable="lg" type="dark" variant="info">
       <b-navbar-brand href="#">IntelMQ - Webinput CSV</b-navbar-brand>
-      <b-navbar-nav class="ml-auto">
+      <b-navbar-nav v-if="hasAuth" class="ml-auto">
         <b-button v-if="!loggedIn" v-b-modal.login-popup size="sm" class="my-2 my-sm-0" type="submit">Login</b-button>
         <b-button v-if="loggedIn" size="sm" class="my-2 my-sm-0" @click="signOut">Logout</b-button>
       </b-navbar-nav>
@@ -160,44 +160,29 @@ export default ({
     }
   },
   computed: {
-    ...mapState(['user', 'loggedIn']),
+    ...mapState(['user', 'loggedIn', 'hasAuth']),
   },
   mounted() {
   },
   methods: {
     signIn: function () {
-      fetch('api/login', {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          username: this.username,
-          password: this.password
-        })
-      }).then(response => response.json().then(data => {
-        if (data
-	  && data.login_token !== null
-	  && data.login_token !== undefined
-	  && data.username !== undefined && data.username !== ''
-	) {
-          this.$store.state.user = data.username
-          this.$store.state.token = data.login_token
-          this.$store.state.loggedIn = true
-          this.wrongCredentials = false
-          this.$bvModal.hide("login-popup")
-        } else {
+      this.$store.dispatch("login", {
+        username: this.username,
+        password: this.password
+      }).then(() => {
+        this.wrongCredentials = false
+        this.$bvModal.hide("login-popup")
+        this.$store.dispatch("fetchClassificationTypes");
+        this.$store.dispatch("fetchHarmonizationFields");
+      }, () => {
           this.wrongCredentials = true
-        }
-      }))
+      })
     },
     signOut: function () {
       this.username = ''
       this.password = ''
       this.wrongCredentials = false
-      this.$store.state.token = null
-      this.$store.state.user = null
-      this.$store.state.loggedIn = false
+      this.$store.dispatch("logout")
     },  
   }
 })

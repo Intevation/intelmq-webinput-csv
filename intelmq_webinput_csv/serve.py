@@ -32,9 +32,16 @@ Author(s):
 """
 
 import hug
+import json
 import os
 import logging
 from session import config, session
+from intelmq import HARMONIZATION_CONF_FILE, CONFIG_DIR, VAR_STATE_PATH
+from intelmq.lib.harmonization import DateTime, IPAddress
+from intelmq.bots.experts.taxonomy.expert import TAXONOMY
+
+with open(HARMONIZATION_CONF_FILE) as handle:
+    EVENT_FIELDS = json.load(handle)
 
 # Logging
 logging.basicConfig(format='%(asctime)s %(name)s %(levelname)s - %(message)s')
@@ -65,14 +72,22 @@ def login(username: str, password: str):
         else:
             return "Invalid username and/or password"
     else:
-        return {"login_token": None,
-                "username": ""
+        return {"login_token": "none",
+                "username": "none"
                 }
 
 @hug.post(ENDPOINT_PREFIX + '/api/upload', requires=session.token_authentication)
 def uploadCSV(body, request, response):
     log.debug(body)
     return
+@hug.get(ENDPOINT_PREFIX + '/api/classification/types', requires=session.token_authentication)
+def classification_types():
+    return TAXONOMY
+
+
+@hug.get(ENDPOINT_PREFIX + '/api/harmonization/event/fields', requires=session.token_authentication)
+def harmonization_event_fields():
+    return EVENT_FIELDS['event']
 
 #  TODO for now show the full api documentation that hug generates
 # @hug.get("/")

@@ -13,15 +13,14 @@ export default {
     Main
   },
   mounted () {
-    this.$http.post('login', {
-      username: '',
-      password: ''
-    }).then(response => response.json().then(data => {
-      if (data && data.login_token === null) {
-        this.$store.state.loggedIn = true
-        this.$store.state.user = ''
-      }
-    }))
+    this.$store.dispatch('login', {
+        username: '',
+        password: ''
+    }).then(() => {
+        this.$store.commit("HAS_AUTH", false);
+        this.$store.dispatch("fetchClassificationTypes");
+        this.$store.dispatch("fetchHarmonizationFields");
+    })
   }
 }
 </script>
