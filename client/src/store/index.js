@@ -10,7 +10,9 @@ export default new Vuex.Store({
     loggedIn: false,
     hasAuth: true,
     classificationTypes: [],
-    harmonizationFields: []
+    classificationTypeMapping: [],
+    harmonizationFields: [],
+    harmonizationFieldMapping: []
   },
   mutations: {
     SET_USER (state, user) {
@@ -25,8 +27,14 @@ export default new Vuex.Store({
     SET_TYPES (state, data) {
       state.classificationTypes = data;
     },
+    SET_TYPE_MAPPING (state, data) {
+      state.classificationTypeMapping = data;
+    },
     SET_FIELDS (state, data) {
       state.harmonizationFields = data;
+    },
+    SET_FIELD_MAPPING (state, data) {
+      state.harmonizationFieldMapping = data;
     },
     HAS_AUTH (state, hasAuth) {
       state.hasAuth = hasAuth;
@@ -62,7 +70,8 @@ export default new Vuex.Store({
       Vue.http.get("api/classification/types").then(
         response => response.json().then(data => {
           if (data) {
-            context.commit("SET_TYPES", data);
+            context.commit("SET_TYPES", Object.keys(data));
+            context.commit("SET_TYPE_MAPPING", data);
           }
         })
       )
@@ -71,7 +80,8 @@ export default new Vuex.Store({
       Vue.http.get("/api/harmonization/event/fields").then(
         response => response.json().then(data => {
           if (data) {
-            context.commit("SET_FIELDS", data);
+            context.commit("SET_FIELDS", Object.keys(data));
+            context.commit("SET_FIELD_MAPPING", data);
           }
         })
       )
