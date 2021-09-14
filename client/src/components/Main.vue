@@ -158,6 +158,7 @@
                         v-model="dryrun"
                       ></b-form-checkbox>
                     </b-form-group>
+                    <b-button @click="sendData">Send data</b-button>
                   </b-col>
                   <b-col>
                     <label>Constant fields(fallback)</label>
@@ -189,14 +190,14 @@
                     :id="data.label"
                     v-model="data.field.field"
                     :options="harmonizationFields"
-                    @change="update"
+                    @change="update(data)"
                   ></b-form-select>
                   <b-tooltip :target="data.label" triggers="hover">
                     {{ data.field.field }}
                   </b-tooltip>
                   <b-form-checkbox
                     v-model="data.field.selected"
-                    @change="update"
+                    @change="update(data)"
                   ></b-form-checkbox>
                 </template>
                 <template #foot(name)="data">
@@ -313,8 +314,15 @@ export default ({
     }
   },
   methods: {
-    update: function() {
-      console.log(this.$refs);
+    sendData: function() {
+    },
+    update: function(value) {
+      let ndx = this.tableHeader.findIndex(item => {
+        if (item.key === value.column) {
+          return true;
+        }
+      })
+      this.tableHeader[ndx] = value.field;
       this.$refs.table.refresh();
     },
     signIn: function () {
@@ -342,7 +350,6 @@ export default ({
         if (this.csvText === "" && this.csvFile) {
           var reader = new FileReader();
           reader.onload = function(event) {
-            console.log('File content:', event.target.result);
             me.csvText = event.target.result;
             me.parseCSV();
             resolve();
@@ -359,27 +366,23 @@ export default ({
         header: this.hasHeader
       });
       if (this.parserResult.meta.aborted) {
-        console.log("abort.")
         return;
       }
       if (this.parserResult.data.length === 0) {
-        console.log("no data.")
         return;
       }
       this.lines = this.parserResult.data.length;
       this.errors = this.parserResult.errors.length;
-      console.log(this.parserResult);
       let columns;
       if (this.hasHeader
         && this.parserResult.meta.fields
       ) {
         columns = this.parserResult.meta.fields;
       } else  {
-        columns = Array.apply("", { length: this.parserResult.data[0].length });
+        columns = Array.apply(null, { length: this.parserResult.data[0].length }).map(Number.call, Number);
       }
-      console.log(columns);
+      this.tableHeader.length = 0;
       for (let i in columns) {
-        console.log(i);
         this.tableHeader.push({
           key: columns[i],
           label: columns[i],
