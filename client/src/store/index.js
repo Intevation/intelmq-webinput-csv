@@ -12,7 +12,8 @@ export default new Vuex.Store({
     classificationTypes: [],
     classificationTypeMapping: [],
     harmonizationFields: [],
-    harmonizationFieldMapping: []
+    harmonizationFieldMapping: [],
+    customFields: []
   },
   mutations: {
     SET_USER (state, user) {
@@ -38,6 +39,9 @@ export default new Vuex.Store({
     },
     HAS_AUTH (state, hasAuth) {
       state.hasAuth = hasAuth;
+    },
+    SET_CUSTOM_FIELDS (state, data) {
+      state.customFields = data;
     }
   },
   actions: {
@@ -82,6 +86,15 @@ export default new Vuex.Store({
           if (data) {
             context.commit("SET_FIELDS", Object.keys(data));
             context.commit("SET_FIELD_MAPPING", data);
+          }
+        })
+      )
+    },
+    fetchCustomFields(context) {
+      Vue.http.get("/api/custom/fields").then(
+        response => response.json().then(data => {
+          if (data) {
+            context.commit("SET_CUSTOM_FIELDS", data);
           }
         })
       )

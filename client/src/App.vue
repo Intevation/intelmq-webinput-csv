@@ -20,6 +20,7 @@ export default {
         this.$store.commit("HAS_AUTH", false);
         this.$store.dispatch("fetchClassificationTypes");
         this.$store.dispatch("fetchHarmonizationFields");
+        this.$store.dispatch("fetchCustomFields");
     })
   }
 }

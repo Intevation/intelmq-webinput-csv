@@ -334,9 +334,10 @@ export default ({
         data: data,
         custom: {
           "classification.type": this.classificationType,
-          "classification.identifier": this.identifier,
-          "feed.code": this.code
-        }
+          "custom_classification.identifier": this.identifier,
+          "custom_feed.code": this.code
+        },
+        dryrun: this.dryrun
       }
       this.$http.post('api/upload', send);
     },

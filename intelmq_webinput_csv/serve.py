@@ -187,6 +187,10 @@ def classification_types():
 def harmonization_event_fields():
     return EVENT_FIELDS['event']
 
+@hug.get(ENDPOINT_PREFIX + '/api/custom/fields', requires=session.token_authentication)
+def custom_fields():
+    return CONFIG.get('custom_input_fields', '{}')
+
 #  TODO for now show the full api documentation that hug generates
 # @hug.get("/")
 # def get_endpoints():
