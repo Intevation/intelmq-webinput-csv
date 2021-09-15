@@ -286,6 +286,7 @@ export default ({
     ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields']),
   },
   mounted() {
+    // Create timezone strings
     for (var i = -12; i <= 12; i++) {
       var timeZoneString = '';
       if (i < 0) {
@@ -309,6 +310,9 @@ export default ({
     }
   },
   methods: {
+    /**
+     * Prepare and aggregate data and send the post request.
+     */
     sendData: function() {
       let data = []
       for (let item of this.parserResult.data) {
@@ -324,7 +328,7 @@ export default ({
             } else {
               value = item[ndx];
             }
-            sendItem[this.tableHeader[ndx].field] = value;//this.prepare(this.tableHeader[ndx].field, value)
+            sendItem[this.tableHeader[ndx].field] = this.prepare(this.tableHeader[ndx].field, value)
           }
         }
         data.push(sendItem);
@@ -341,6 +345,9 @@ export default ({
       }
       this.$http.post('api/upload', send);
     },
+    /**
+     * Function to preprocess values.
+     */
     prepare: function(field, value) {
       if (field === "extra") {
         try {
@@ -355,6 +362,9 @@ export default ({
       }
       return value;
     },
+    /**
+     * Update the table header and refresh view.
+     */
     update: function(value) {
       let ndx = this.tableHeader.findIndex(item => {
         if (item.key === value.column) {
@@ -364,6 +374,9 @@ export default ({
       this.tableHeader[ndx] = value.field;
       this.$refs.table.refresh();
     },
+    /**
+     * Trigger login.
+     */
     signIn: function () {
       this.$store.dispatch("login", {
         username: this.username,
@@ -377,12 +390,18 @@ export default ({
           this.wrongCredentials = true
       })
     },
+    /**
+     * Trigger logout.
+     */
     signOut: function () {
       this.username = ''
       this.password = ''
       this.wrongCredentials = false
       this.$store.dispatch("logout")
     },
+    /**
+     * Read the uploaded csv file and trigger parsing the content.
+     */
     readFromFile() {
       if (!this.csvFile) {
         this.csvText = "";
@@ -402,6 +421,9 @@ export default ({
         }
       });
     },
+    /**
+     * Parse the csv data and apply user options.
+     */
     parseCSV() {
       // Option to trim whitespaces.
       if (this.initialWhitespace) {
@@ -419,10 +441,6 @@ export default ({
         escapeChar: this.escapeChar,
         header: this.hasHeader,
         skipEmptyLines: true,
-        // beforeFristChunk: function(chunk) {
-        //   console.log(chunk);
-        //   return chunk;
-        // },
         step: function(row) {
           if (me.skipLines > 0 && count < me.skipLines) {
             count++
@@ -433,11 +451,6 @@ export default ({
           me.parserResult.meta = row.meta;
           return;
         }
-        // Option to post process header and data
-        // transformHeader: function(header) {
-        // },
-        // transform: function(value) {
-        // }
       });
       if (this.parserResult.meta.aborted) {
         return;
@@ -467,7 +480,6 @@ export default ({
       }
       this.tableHeader.length = 0;
       for (let i in columns) {
-        console.log(columns[i])
         this.tableHeader.push({
           key: columns[i].key,
           label: columns[i].label,
