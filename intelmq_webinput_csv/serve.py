@@ -109,11 +109,14 @@ def uploadCSV(body, request, response):
     line = 0;
     lines_valid = 0
     for item in data:
-        log.debug(item)
+        event = Event()
+        # Ensure dryrun has priority
+        if body['dryrun']:
+            event.add('classification.identifier', 'test')
+            event.add('classification.type', 'test')
         for key in item:
             log.debug(key)
             log.debug(item[key])
-            event = Event()
             line_valid = True
             value = item[key]
             if key.startswith('time.'):
@@ -131,23 +134,23 @@ def uploadCSV(body, request, response):
                     retval.append((key, value, str(exc)))
                     line_valid = False
                 col = col+1
-    #         for key, value in parameters.get('constant_fields', {}).items():
-    #             if key not in event:
-    #                 try:
-    #                     event.add(key, value)
-    #                 except InvalidValue as exc:
-    #                     retval.append((lineindex, -1, value, str(exc)))
-    #                     line_valid = False
-    #         for key, value in request.form.items():
-    #             if not key.startswith('custom_'):
-    #                 continue
-    #             key = key[7:]
-    #             if key not in event:
-    #                 try:
-    #                     event.add(key, value)
-    #                 except InvalidValue as exc:
-    #                     retval.append((lineindex, -1, value, str(exc)))
-    #                     line_valid = False
+            for key in CONSTANTS:
+                if key not in event:
+                    try:
+                        event.add(key, CONSTANTS[key])
+                    except InvalidValue as exc:
+                        retval.append((key, CONSTANTS[key], str(exc)))
+                        line_valid = False
+            for key in customs:
+                if not key.startswith('custom_'):
+                    continue
+                key = key[7:]
+                if key not in event:
+                    try:
+                        event.add(key, customs[key])
+                    except InvalidValue as exc:
+                        retval.append((key, customs[key], str(exc)))
+                        line_valid = False
             try:
                 if CONFIG.get('destination_pipeline_queue_formatted', False):
                     CONFIG['destination_pipeline_queue'].format(ev=event)
@@ -159,11 +162,11 @@ def uploadCSV(body, request, response):
                 lines_valid += 1
         line = line+1
         if 'classification.type' not in event:
-            event.add('classification.type', customs['classification.type'])
+            event.add('classification.type', 'test')
         if 'classification.identifier' not in event:
-            event.add('classification.identifier', customs['classification.identifier'])
+            event.add('classification.identifier', 'test')
         if 'feed.code' not in event:
-            event.add('feed.code', customs['feed.code'])
+            event.add('feed.code', 'oneshot')
         if 'time.observation' not in event:
             event.add('time.observation', time_observation, sanitize=False)
         # if 'raw' not in event:
@@ -174,9 +177,7 @@ def uploadCSV(body, request, response):
               "lines_invalid": line-lines_valid,
               "errors": retval}
     return retval
-    # return create_response(retval)
 
-    return
 @hug.get(ENDPOINT_PREFIX + '/api/classification/types', requires=session.token_authentication)
 def classification_types():
     return TAXONOMY
