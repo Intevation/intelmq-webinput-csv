@@ -310,6 +310,49 @@ export default ({
   },
   methods: {
     sendData: function() {
+      let data = []
+      for (let item of this.parserResult.data) {
+        let sendItem = {};
+        for (let ndx in this.tableHeader) {
+          // check for header in csv. data is array or object
+          if (this.tableHeader[ndx].selected
+            && this.tableHeader[ndx].field !== ""
+          ) {
+            let value;
+            if (this.hasHeader) {
+              value = item[this.tableHeader[ndx].key]
+            } else {
+              value = item[ndx];
+            }
+            sendItem[this.tableHeader[ndx].field] = value;//this.prepare(this.tableHeader[ndx].field, value)
+          }
+        }
+        data.push(sendItem);
+      }
+      let send = {
+        timezone: this.timezone,
+        data: data,
+        custom: {
+          "classification.type": this.classificationType,
+          "classification.identifier": this.identifier,
+          "feed.code": this.code
+        }
+      }
+      this.$http.post('api/upload', send);
+    },
+    prepare: function(field, value) {
+      if (field === "extra") {
+        try {
+          value = JSON.parse(value)
+        }
+        catch(e) {
+          return {data: value};
+        }
+        if (Array.isArray(value)) {
+          return {data: value};
+        }
+      }
+      return value;
     },
     update: function(value) {
       let ndx = this.tableHeader.findIndex(item => {
