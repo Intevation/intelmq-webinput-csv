@@ -48,16 +48,24 @@
               </b-form-group>
               <b-form-group >
                 <b-form-textarea
+                  v-if="!csvFile"
                   id="textarea"
                   v-model="csvText"
                   placeholder="Or paste CSV data here"
+                  rows="5"
+                  @change="parseCSV"
+                ></b-form-textarea>
+                <b-form-textarea
+                  v-if="!!csvFile"
+                  id="textareaPreview"
+                  v-model="csvPreviewText"
                   rows="5"
                 ></b-form-textarea>
               </b-form-group>
               <b-container fluid>
                 <b-row>
                   <b-col>
-                    <b-form-group label-cols=4 label="Delimiter">
+                    <b-form-group label-cols=7 label="Delimiter">
                       <b-form-select
                         v-model="delimiter"
                         :options="delimiterOptions"
@@ -66,7 +74,7 @@
                     </b-form-group>
                   </b-col>
                   <b-col>
-                    <b-form-group label-cols=4 label="Quote char">
+                    <b-form-group label-cols=7 label="Quote char">
                       <b-form-input
                         v-model="quoteChar"
                         type="text"
@@ -76,7 +84,7 @@
                     </b-form-group>
                   </b-col>
                   <b-col>
-                    <b-form-group label-cols=4 label="Escape char">
+                    <b-form-group label-cols=7 label="Escape char">
                       <b-form-input
                         v-model="escapeChar"
                         type="text"
@@ -86,30 +94,19 @@
                     </b-form-group>
                   </b-col>
                   <b-col>
-                    <b-form-group label-cols=4 label="Has Header">
+                    <b-form-group label-cols=7 label="Has Header">
                       <b-form-checkbox
                         v-model="hasHeader"
                         @change="parseCSV"
                       ></b-form-checkbox>
                     </b-form-group>
                   </b-col>
-                </b-row>
-              </b-container>
-            </b-card-body>
-          </b-collapse>
-        </b-card>
-
-        <b-card no-body class="mb-1">
-          <b-card-header header-tag="header" class="p-1" role="tab">
-            <b-button :disabled="!csvFile && csvText === ''" block v-b-toggle.accordion-2 variant="info">Options</b-button>
-          </b-card-header>
-          <b-collapse id="accordion-2" accordion="my-accordion" role="tabpanel">
-            <b-card-body>
-              <b-container fluid>
-                <b-row>
                   <b-col>
-                    <b-form-group id="option1" label-cols=7 label="Skip initial Whitespace">
-                      <b-form-checkbox v-model="initialWhitespace"></b-form-checkbox>
+                    <b-form-group id="option1" label-cols=9 label="Skip initial Whitespace">
+                      <b-form-checkbox
+                        v-model="initialWhitespace"
+                        @change="parseCSV"
+                      ></b-form-checkbox>
                     </b-form-group>
                     <b-tooltip target="option1" triggers="hover">
                       When True, whitespace immediately following the delimiter is ignored.
@@ -117,18 +114,14 @@
                   </b-col>
                   <b-col>
                     <b-form-group id="option2" label-cols=7 label="Skip initial N lines">
-                      <b-form-input v-model="skipLines" type="number"></b-form-input>
+                      <b-form-input
+                        v-model="skipLines"
+                        type="number"
+                        @change="parseCSV"
+                      ></b-form-input>
                     </b-form-group>
                     <b-tooltip target="option2" triggers="hover">
                       Skip initial N lines after the header.
-                    </b-tooltip>
-                  </b-col>
-                  <b-col>
-                    <b-form-group id="option3" label-cols=7 label="Show N lines maximum in preview">
-                      <b-form-input v-model="maxPreview" type="number"></b-form-input>
-                    </b-form-group>
-                    <b-tooltip target="option3" triggers="hover">
-                      Do not show more than N lines in the preview. All the data is processed by the backend.
                     </b-tooltip>
                   </b-col>
                 </b-row>
@@ -179,6 +172,8 @@
               </b-container>
               <b-table sticky-header="600px"
                 ref="table"
+                striped
+                bordered
                 :current-page="currentPage"
                 :per-page="perPage"
                 :fields="tableHeader"
@@ -257,6 +252,7 @@ export default ({
       wrongCredentials: false,
       csvFile: null,
       csvText: "",
+      csvPreviewText: "",
       csvData: [],
       delimiter: ";",
       delimiterOptions: [
@@ -269,7 +265,6 @@ export default ({
       hasHeader: false,
       initialWhitespace: false,
       skipLines: 0,
-      maxPreview: 0,
       parserResult: {},
       lines: 0,
       errors: 0,
@@ -345,12 +340,17 @@ export default ({
       this.$store.dispatch("logout")
     },
     readFromFile() {
+      if (!this.csvFile) {
+        this.csvText = "";
+        this.parseCSV();
+      }
       const me = this;
       return new Promise((resolve) => {
         if (this.csvText === "" && this.csvFile) {
           var reader = new FileReader();
           reader.onload = function(event) {
             me.csvText = event.target.result;
+            me.csvPreviewText = event.target.result.substring(0, 2000) + "\n\u2026";
             me.parseCSV();
             resolve();
           };
@@ -359,11 +359,41 @@ export default ({
       });
     },
     parseCSV() {
-      this.parserResult = parse.parse(this.csvText, {
+      // Option to trim whitespaces.
+      if (this.initialWhitespace) {
+        var regEx = "\\s*" + this.delimiter + "\\s*";
+        var re = new RegExp(regEx,"g");
+        this.csvText = this.csvText.replace(re, this.delimiter);
+      }
+      let count = 0;
+      const me = this;
+      this.parserResult.data = [];
+      this.parserResult.errors = [];
+      parse.parse(this.csvText, {
         delimiter: this.delimiter,
         quoteChar: this.quoteChar,
         escapeChar: this.escapeChar,
-        header: this.hasHeader
+        header: this.hasHeader,
+        skipEmptyLines: true,
+        // beforeFristChunk: function(chunk) {
+        //   console.log(chunk);
+        //   return chunk;
+        // },
+        step: function(row) {
+          if (me.skipLines > 0 && count < me.skipLines) {
+            count++
+            return;
+          }
+          me.parserResult.data.push(row.data);
+          me.parserResult.errors.concat(row.errors);
+          me.parserResult.meta = row.meta;
+          return row;
+        }
+        // Option to post process header and data
+        // transformHeader: function(header) {
+        // },
+        // transform: function(value) {
+        // }
       });
       if (this.parserResult.meta.aborted) {
         return;
