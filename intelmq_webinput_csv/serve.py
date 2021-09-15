@@ -32,13 +32,17 @@ Author(s):
 """
 
 import hug
+import dateutil.parser
 import json
 import os
 import logging
 from session import config, session
-from intelmq import HARMONIZATION_CONF_FILE, CONFIG_DIR, VAR_STATE_PATH
+from intelmq import HARMONIZATION_CONF_FILE, CONFIG_DIR
+from intelmq.lib.pipeline import PipelineFactory
 from intelmq.lib.harmonization import DateTime, IPAddress
+from intelmq.lib.message import Event, MessageFactory
 from intelmq.bots.experts.taxonomy.expert import TAXONOMY
+from intelmq.lib.exceptions import InvalidValue, KeyExists
 
 with open(HARMONIZATION_CONF_FILE) as handle:
     EVENT_FIELDS = json.load(handle)
@@ -53,6 +57,18 @@ session_config: config.Config = config.Config(os.environ.get("WEBINPUT_CSV_SESSI
 
 ENDPOINTS = {}
 ENDPOINT_PREFIX = '/webinput'
+
+CONFIG_FILE = os.path.join(CONFIG_DIR, 'webinput_csv.conf')
+log.info('Reading configuration from %r.', CONFIG_FILE)
+with open(CONFIG_FILE) as handle:
+    CONFIG = json.load(handle)
+
+
+class PipelineParameters(object):
+    def __init__(self):
+        for key, value in CONFIG['intelmq'].items():
+            setattr(self, key, value)
+
 
 @hug.startup()
 def setup(api):
@@ -78,7 +94,88 @@ def login(username: str, password: str):
 
 @hug.post(ENDPOINT_PREFIX + '/api/upload', requires=session.token_authentication)
 def uploadCSV(body, request, response):
-    log.debug(body)
+    destination_pipeline = PipelineFactory.create(PipelineParameters(),
+                                                logger=log,
+                                                direction='destination')
+    if not CONFIG.get('destination_pipeline_queue_formatted', False):
+        destination_pipeline.set_queues(CONFIG['destination_pipeline_queue'], "destination")
+        destination_pipeline.connect()
+    time_observation = DateTime().generate_datetime_now()
+
+    data = body["data"]
+    customs = body["custom"]
+    retval = []
+    col = 0;
+    line = 0;
+    lines_valid = 0
+    for item in data:
+        log.debug(item)
+        for key in item:
+            log.debug(key)
+            log.debug(item[key])
+            event = Event()
+            line_valid = True
+            value = item[key]
+            if key.startswith('time.'):
+                try:
+                    parsed = dateutil.parser.parse(value, fuzzy=True)
+                    if not parsed.tzinfo:
+                        value += body['timezone']
+                        parsed = dateutil.parser.parse(value)
+                    value = parsed.isoformat()
+                except ValueError:
+                    line_valid = False
+                try:
+                    event.add(key, value)
+                except (InvalidValue, KeyExists) as exc:
+                    retval.append((key, value, str(exc)))
+                    line_valid = False
+                col = col+1
+    #         for key, value in parameters.get('constant_fields', {}).items():
+    #             if key not in event:
+    #                 try:
+    #                     event.add(key, value)
+    #                 except InvalidValue as exc:
+    #                     retval.append((lineindex, -1, value, str(exc)))
+    #                     line_valid = False
+    #         for key, value in request.form.items():
+    #             if not key.startswith('custom_'):
+    #                 continue
+    #             key = key[7:]
+    #             if key not in event:
+    #                 try:
+    #                     event.add(key, value)
+    #                 except InvalidValue as exc:
+    #                     retval.append((lineindex, -1, value, str(exc)))
+    #                     line_valid = False
+            try:
+                if CONFIG.get('destination_pipeline_queue_formatted', False):
+                    CONFIG['destination_pipeline_queue'].format(ev=event)
+            except Exception as exc:
+                retval.append((line, -1,
+                               CONFIG['destination_pipeline_queue'], repr(exc)))
+                line_valid = False
+            if line_valid:
+                lines_valid += 1
+        line = line+1
+        if 'classification.type' not in event:
+            event.add('classification.type', customs['classification.type'])
+        if 'classification.identifier' not in event:
+            event.add('classification.identifier', customs['classification.identifier'])
+        if 'feed.code' not in event:
+            event.add('feed.code', customs['feed.code'])
+        if 'time.observation' not in event:
+            event.add('time.observation', time_observation, sanitize=False)
+        # if 'raw' not in event:
+        #     event.add('raw', ''.join(raw_header + [handle_rewindable.current_line]))
+        raw_message = MessageFactory.serialize(event)
+        destination_pipeline.send(raw_message)
+    retval = {"total": line,
+              "lines_invalid": line-lines_valid,
+              "errors": retval}
+    return retval
+    # return create_response(retval)
+
     return
 @hug.get(ENDPOINT_PREFIX + '/api/classification/types', requires=session.token_authentication)
 def classification_types():
