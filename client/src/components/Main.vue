@@ -387,7 +387,7 @@ export default ({
           me.parserResult.data.push(row.data);
           me.parserResult.errors.concat(row.errors);
           me.parserResult.meta = row.meta;
-          return row;
+          return;
         }
         // Option to post process header and data
         // transformHeader: function(header) {
@@ -407,15 +407,26 @@ export default ({
       if (this.hasHeader
         && this.parserResult.meta.fields
       ) {
-        columns = this.parserResult.meta.fields;
+        columns = this.parserResult.meta.fields.map(function(i) {
+          return {
+            key: i,
+            label: i
+          }
+        });
       } else  {
-        columns = Array.apply(null, { length: this.parserResult.data[0].length }).map(Number.call, Number);
+        columns = Array.apply(null, { length: this.parserResult.data[0].length }).map(function(i, ndx) {
+          return {
+            key: ""+ndx,
+            label: "column-"+ndx
+          }
+        });
       }
       this.tableHeader.length = 0;
       for (let i in columns) {
+        console.log(columns[i])
         this.tableHeader.push({
-          key: columns[i],
-          label: columns[i],
+          key: columns[i].key,
+          label: columns[i].label,
           selected: false,
           field: ""
         })
