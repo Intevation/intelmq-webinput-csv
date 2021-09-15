@@ -14,7 +14,7 @@ needed to submit data to IntelMQ. There is no internal default.
 
 ## Usual configuration parameters
 
-* `base_url`: can be a full URL (optionally with ports) or only a path.
+* `prefix`: can only be a path.
   Needed if the program is run not in `/` but a sub-path.
 * `intelmq`: the parameters in this array are used to set-up the intelmq pipeline. `destination_pipeline_*` inside the array can be used to configure the pipeline, see the user-guide of intelmq for details.
 * `destination_pipeline_queue`: It is the queue/routing key to push the messages into.
@@ -25,7 +25,7 @@ needed to submit data to IntelMQ. There is no internal default.
 Usage
 -----
 
-Empty lines and empty values (columns) are always ignored.
+Empty lines are always ignored.
 
 ### Parameters
 
@@ -37,7 +37,6 @@ Empty lines and empty values (columns) are always ignored.
 * skip initial space: ignore whitespace after delimiter
 * has header: If checked, the first line of the file will be shown in the preview, but will not be used for submission.
 * skip initial N lines: number of lines (*after* the header) which should be ignored for preview and submission.
-* load N lines maximum: number of lines for the preview, plus the header.
 
 #### Preview
 
@@ -53,13 +52,6 @@ Additional fields with default values are configurable.
 
 ### Upload
 
-To submit the data to intelmq click *Submit*. All lines not failing will be submitted.
+To submit the data to intelmq click *Send*. All lines not failing will be submitted.
 
-After submission, the total number of submitted lines is given. It should be the same as the counter in the left top corner.
-
-#### extra fields
-
-To use a column as an extra field simply write `extra.whateveryouwant` into the column header's dropdown. If you have data that is already a JSON-encoded dictionary, you can set `extra` directly.
-
-
-
+After submission, the total number of submitted lines is given.

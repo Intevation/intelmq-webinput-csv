@@ -3,6 +3,10 @@
 ## Run locally
 
 ```bash
-PYTHONPATH=. FLASK_APP=intelmq_webinput_csv/bin/backend.py flask run
+WEBINPUT_CSV_SESSION_CONFIG=/path/to/config.file hug -f intelmq_webinput_csv/serve.py -p 8002
 ```
-All dependencies need to be installed (intelmq, flask).
+Intelmq needs to be installed as it is a dependency.
+
+## Using docker
+
+TODO
