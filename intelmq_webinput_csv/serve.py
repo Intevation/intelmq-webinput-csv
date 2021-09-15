@@ -58,11 +58,15 @@ session_config: config.Config = config.Config(os.environ.get("WEBINPUT_CSV_SESSI
 ENDPOINTS = {}
 ENDPOINT_PREFIX = '/webinput'
 
+# Read parameters from config
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'webinput_csv.conf')
 log.info('Reading configuration from %r.', CONFIG_FILE)
 with open(CONFIG_FILE) as handle:
     CONFIG = json.load(handle)
-
+    ENDPOINT_PREFIX = CONFIG.get('prefix', '/webinput')
+    if ENDPOINT_PREFIX.endswith('/'):
+        ENDPOINT_PREFIX = ENDPOINT_PREFIX[:-1]
+    CONSTANTS = CONFIG.get('constant_fields', '{}')
 
 class PipelineParameters(object):
     def __init__(self):
@@ -72,7 +76,6 @@ class PipelineParameters(object):
 
 @hug.startup()
 def setup(api):
-    log.debug(os.environ.get("WEBINPUT_CSV_SESSION_CONFIG"))
     session.initialize_sessions(session_config)
     pass
 
