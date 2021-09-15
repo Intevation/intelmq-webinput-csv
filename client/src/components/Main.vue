@@ -151,7 +151,16 @@
                         v-model="dryrun"
                       ></b-form-checkbox>
                     </b-form-group>
-                    <b-button @click="sendData">Send data</b-button>
+                    <b-container>
+                      <b-row>
+                        <b-col>
+                          <b-button @click="sendData">Send data</b-button>
+                        </b-col>
+                        <b-col>
+                          <label style="margin-left: 10px;" :class="transferStatus">{{ transfered }}</label>
+                        </b-col>
+                      </b-row>
+                    </b-container>
                   </b-col>
                   <b-col>
                     <label>Constant fields(fallback)</label>
@@ -279,7 +288,9 @@ export default ({
       currentPage: 1,
       pageOptions: [5, 10, 25, 100],
       perPage: 25,
-      totalRows: 1
+      totalRows: 1,
+      transfered: "",
+      transferStatus: "text-danger"
     }
   },
   computed: {
@@ -343,7 +354,20 @@ export default ({
         },
         dryrun: this.dryrun
       }
-      this.$http.post('api/upload', send);
+      var me = this;
+      this.$http.post('api/upload', send)
+        .then(response => {
+          console.log(response);
+          if (response.status !== 200) {
+            me.trasferStatus = "text-danger";
+            me.transfered = "Send failed!";
+            return;
+          }
+          response.json().then(data => {
+            me.transfered = "Injected " + data.total + " lines. " + data.lines_invalid + " were invalid."
+            me.transferStatus = "text-black"
+          })
+        });
     },
     /**
      * Function to preprocess values.
