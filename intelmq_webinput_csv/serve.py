@@ -132,8 +132,6 @@ def uploadCSV(body, request, response):
             event.add('classification.identifier', 'test')
             event.add('classification.type', 'test')
         for key in item:
-            log.debug(key)
-            log.debug(item[key])
             line_valid = True
             value = item[key]
             if key.startswith('time.'):
@@ -151,32 +149,31 @@ def uploadCSV(body, request, response):
                     retval.append((key, value, str(exc)))
                     line_valid = False
                 col = col+1
-            for key in CONSTANTS:
-                if key not in event:
-                    try:
-                        event.add(key, CONSTANTS[key])
-                    except InvalidValue as exc:
-                        retval.append((key, CONSTANTS[key], str(exc)))
-                        line_valid = False
-            for key in customs:
-                if not key.startswith('custom_'):
-                    continue
-                key = key[7:]
-                if key not in event:
-                    try:
-                        event.add(key, customs[key])
-                    except InvalidValue as exc:
-                        retval.append((key, customs[key], str(exc)))
-                        line_valid = False
-            try:
-                if CONFIG.get('destination_pipeline_queue_formatted', False):
-                    CONFIG['destination_pipeline_queue'].format(ev=event)
-            except Exception as exc:
-                retval.append((line, -1,
-                               CONFIG['destination_pipeline_queue'], repr(exc)))
-                line_valid = False
-            if line_valid:
-                lines_valid += 1
+        for key in CONSTANTS:
+            if key not in event:
+                try:
+                    event.add(key, CONSTANTS[key])
+                except InvalidValue as exc:
+                    retval.append((key, CONSTANTS[key], str(exc)))
+                    line_valid = False
+        for key in customs:
+            if not key.startswith('custom_'):
+                continue
+            if key[7:] not in event:
+                try:
+                    event.add(key[7:], customs[key])
+                except InvalidValue as exc:
+                    retval.append((key, customs[key], str(exc)))
+                    line_valid = False
+        try:
+            if CONFIG.get('destination_pipeline_queue_formatted', False):
+                CONFIG['destination_pipeline_queue'].format(ev=event)
+        except Exception as exc:
+            retval.append((line, -1,
+                            CONFIG['destination_pipeline_queue'], repr(exc)))
+            line_valid = False
+        if line_valid:
+            lines_valid += 1
         line = line+1
         if 'classification.type' not in event:
             event.add('classification.type', 'test')
