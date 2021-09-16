@@ -38,30 +38,41 @@
           </b-card-header>
           <b-collapse id="accordion-1" visible accordion="my-accordion" role="tabpanel">
             <b-card-body>
-              <b-form-group >
-                <b-form-file
-                  v-model="csvFile"
-                  placeholder="Choose a file or drop it here..."
-                  drop-placeholder="Drop file here..."
-                  @input="readFromFile"
-                ></b-form-file>
-              </b-form-group>
-              <b-form-group >
-                <b-form-textarea
-                  v-if="!csvFile"
-                  id="textarea"
-                  v-model="csvText"
-                  placeholder="Or paste CSV data here"
-                  rows="5"
-                  @change="parseCSV"
-                ></b-form-textarea>
-                <b-form-textarea
-                  v-if="!!csvFile"
-                  id="textareaPreview"
-                  v-model="csvPreviewText"
-                  rows="5"
-                ></b-form-textarea>
-              </b-form-group>
+              <b-container fluid>
+                <b-row>
+                  <b-col cols="11">
+                    <b-form-group >
+                      <b-form-file
+                        v-model="csvFile"
+                        placeholder="Choose a file or drop it here..."
+                        drop-placeholder="Drop file here..."
+                        @input="readFromFile"
+                      ></b-form-file>
+                    </b-form-group>
+                  </b-col>
+                  <b-col>
+                    <b-button @click="reset">Clear</b-button>
+                  </b-col>
+                </b-row>
+              </b-container>
+              <b-container fluid>
+                <b-form-group >
+                  <b-form-textarea
+                    v-if="!csvFile"
+                    id="textarea"
+                    v-model="csvText"
+                    placeholder="Or paste CSV data here"
+                    rows="5"
+                    @change="parseCSV"
+                  ></b-form-textarea>
+                  <b-form-textarea
+                    v-if="!!csvFile"
+                    id="textareaPreview"
+                    v-model="csvPreviewText"
+                    rows="5"
+                  ></b-form-textarea>
+                </b-form-group>
+              </b-container>
               <b-container fluid>
                 <b-row>
                   <b-col>
@@ -384,6 +395,10 @@ export default ({
         }
       }
       return value;
+    },
+    reset: function() {
+      this.csvFile = null;
+      this.csvText = "";
     },
     /**
      * Update the table header and refresh view.
