@@ -172,9 +172,11 @@ def uploadCSV(body, request, response):
             retval.append((line, -1,
                             CONFIG['destination_pipeline_queue'], repr(exc)))
             line_valid = False
+        line = line+1
         if line_valid:
             lines_valid += 1
-        line = line+1
+        else:
+            continue
         if 'classification.type' not in event:
             event.add('classification.type', 'test')
         if 'classification.identifier' not in event:
