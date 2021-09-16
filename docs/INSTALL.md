@@ -1,45 +1,90 @@
-**Table of Contents**
+# Installation Guide
+
+## Table of Contents
 
 1. [Requirements](#requirements)
-2. [Installation](#installation)
+1. [Installation](#installation)
    * [Native packages](#native-packages)
    * [With pip](#with-pip)
      * [From PyPi](#from-pypi)
      * [From the repository](#from-the-repository)
-3. [Afterwards](#afterwards)
+1. [Afterwards](#afterwards)
 
 
 Please report any errors you encounter at https://github.com/Intevation/intelmq-webinput-csv/issues
 
 For upgrade instructions, see [UPGRADING.md](UPGRADING.md).
 
-# Requirements
+## Requirements
 
+### Backend
 * An installed python3 [hug](https://www.hug.rest/)
-* An installed [intelmq](https://intelmq.org) installation on the same machine.
+* An installed [intelmq](https://intelmq.org) (<=v2.3.3) installation on the
+  same machine.
+* Optional [sqlite3](https://www.sqlite.org/) for authentication
 
-# Installation
+### Frontend
+* An installed [yarn](https://yarnpkg.com)
+## Installation
 
-Please note that the pip3 installation method does not (and cannot) create /opt/intelmq/etc/examples/webinput_csv.conf.
-As workaround you need to move the file from the site-packages directory to /opt/intelmq manually.
-The location of this directory varies, it could be `/usr/lib/python3.4/site-packages`, `/usr/local/lib/python3.5/dist-packages/` or similar.
+Currently the only way to install Webinput-CSV is to clone the repository and
+do a manual installation.
+The following steps will guide through the installtion from source.
 
-## From the repository
+1. Clone the repository
 
-Clone the repository if not already done:
-```bash
-git clone https://github.com/Intevation/intelmq-webinput-csv.git
-```
+   ```bash
+   git clone https://github.com/Intevation/intelmq-webinput-csv.git
+   ```
 
-If you have a local repository and you have or will do local modification, consider using an editable installation (`pip install -e .`).
-```
-pip3 install .
-```
+1. Install using pip3
 
-### Webserver configuration and permissions
+   ```bash
+   cd intelmq-webinput-csv
+   pip3 install .
+   ```
 
-Configure your server to use the intelmq_webinput_csv executable as WSGI script. A configuration snippet for Apache can be found in `contrib/apache/002_intelmq_webinput_csv.conf`. Adapt the WSGIScriptAlias URL and path to your needs. On Debian systems the required wsgi package is called `libapache2-mod-wsgi-py3`
+1. Build the client
 
-# Afterwards
+   ```bash
+   cd client
+   yarn && yarn build
+   ```
 
-Now continue with the [User Guide](User-Guide.md).
+1. Configuration files
+
+   Webinput-CSV is searching for config files in the following order:
+    * A file specified via enviroment varibale
+      (WEBINPUT_CSV_CONFIG=/my/folder/webinput_csv.conf)
+    * The IntelMQ config folder (e.g. /opt/intelmq/etc)
+    * The system wide config folder (/etc/intelmq/)
+
+1. **(Optional)** Authentication
+
+   To integrate and activate the authentication for Webinput-CSV create a
+   config file similar to
+   [the example](../config/backend/webinput-session.conf).
+   Webinput-CSV is searching for session configs in the following order:
+
+    * A file specified via enviroment varibale
+      (WEBINPUT_CSV_SESSION_CONFIG=/my/folder/webinput-session.conf)
+    * The IntelMQ config folder (e.g. /opt/intelmq/etc)
+    * The system wide config folder (/etc/intelmq/)
+
+   The configured path to the sqlite3 database has to be read and writeable
+   by the user running the backend. If the file does not exist it will be created on startup.
+
+   To insert users into the database, there is a script called ```webinput-adduser```.
+
+1. Create Apache2 configuration
+
+   Make sure the Apache2 (or intelmq or the configured) user has read access
+   to the folders containing the front- and backend.
+   A configuration snippet for Apache can be found in
+   `contrib/apache/003_intelmq_webinput_csv.conf`. Adapt the WSGIScriptAlias
+   URL and path to your needs. On Debian systems the required wsgi package is
+   called `libapache2-mod-wsgi-py3`. For the backend the apache has to listen
+   on port 8667. The path prefix for the backend must be used in the apache config!
+
+The application is now available via browser on the machine and the configured
+path prefix, e.g. http://localhost/webinput
