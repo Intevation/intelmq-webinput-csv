@@ -24,8 +24,8 @@ class Config:
         config = False
 
         configfiles = [
-            Path('/etc/intelmq/fody-session.conf'),
-            Path(__file__).parent.parent / 'etc/intelmq/fody-session.conf'
+            Path('/etc/intelmq/webinput-session.conf'),
+            Path(__file__).parent.parent / 'etc/intelmq/webinput-session.conf'
         ]
 
         if filename:

@@ -36,6 +36,7 @@ import dateutil.parser
 import json
 import os
 import logging
+from pathlib import Path
 from session import config, session
 from intelmq import HARMONIZATION_CONF_FILE, CONFIG_DIR
 from intelmq.lib.pipeline import PipelineFactory
@@ -60,13 +61,26 @@ ENDPOINT_PREFIX = '/webinput'
 
 # Read parameters from config
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'webinput_csv.conf')
-log.info('Reading configuration from %r.', CONFIG_FILE)
-with open(CONFIG_FILE) as handle:
-    CONFIG = json.load(handle)
-    ENDPOINT_PREFIX = CONFIG.get('prefix', '/webinput')
-    if ENDPOINT_PREFIX.endswith('/'):
-        ENDPOINT_PREFIX = ENDPOINT_PREFIX[:-1]
-    CONSTANTS = CONFIG.get('constant_fields', '{}')
+ENV_CONFIG_FILE = os.environ.get("WEBINPUT_CSV_CONFIG")
+config = False
+
+configfiles = [
+    Path(CONFIG_FILE),
+    Path('/etc/intelmq/webinput_csv.conf')
+]
+if ENV_CONFIG_FILE:
+    configfiles.insert(0, Path(ENV_CONFIG_FILE).resolve())
+
+for path in configfiles:
+    if path and path.exists() and path.is_file():
+        print(f"Loading config from {path}")
+        config = True
+        with path.open() as f:
+            CONFIG = json.load(f)
+            ENDPOINT_PREFIX = CONFIG.get('prefix', '/webinput')
+            if ENDPOINT_PREFIX.endswith('/'):
+                ENDPOINT_PREFIX = ENDPOINT_PREFIX[:-1]
+            CONSTANTS = CONFIG.get('constant_fields', '{}')
 
 class PipelineParameters(object):
     def __init__(self):
