@@ -4,12 +4,6 @@
 
 1. [Requirements](#requirements)
 1. [Installation](#installation)
-   * [Native packages](#native-packages)
-   * [With pip](#with-pip)
-     * [From PyPi](#from-pypi)
-     * [From the repository](#from-the-repository)
-1. [Afterwards](#afterwards)
-
 
 Please report any errors you encounter at https://github.com/Intevation/intelmq-webinput-csv/issues
 
@@ -25,6 +19,7 @@ For upgrade instructions, see [UPGRADING.md](UPGRADING.md).
 
 ### Frontend
 * An installed [yarn](https://yarnpkg.com)
+
 ## Installation
 
 Currently the only way to install Webinput-CSV is to clone the repository and
