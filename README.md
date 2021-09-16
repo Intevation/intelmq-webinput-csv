@@ -21,7 +21,7 @@ $ hug -f intelmq_webinput_csv/serve.py -p 8002
 [//]: <> (TODO: Package installation)
 [//]: <> (TODO: Apache integration)
 
-For more details see the [Installation guide](./docs/INSTALLATION.md).
+For more details see the [Installation guide](./docs/INSTALL.md).
 
 ## User Guide
 
