@@ -131,8 +131,8 @@ def uploadCSV(body, request, response):
         if body['dryrun']:
             event.add('classification.identifier', 'test')
             event.add('classification.type', 'test')
+        line_valid = True
         for key in item:
-            line_valid = True
             value = item[key]
             if key.startswith('time.'):
                 try:

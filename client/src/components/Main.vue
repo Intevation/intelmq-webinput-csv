@@ -374,7 +374,7 @@ export default ({
             return;
           }
           response.json().then(data => {
-            me.transfered = "Injected " + data.total + " lines. " + data.lines_invalid + " were invalid."
+            me.transfered = "Injected " + (data.total - data.lines_invalid) + " lines. " + data.lines_invalid + " were invalid."
             me.transferStatus = "text-black"
           })
         });
