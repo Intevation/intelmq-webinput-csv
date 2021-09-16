@@ -357,7 +357,6 @@ export default ({
       var me = this;
       this.$http.post('api/upload', send)
         .then(response => {
-          console.log(response);
           if (response.status !== 200) {
             me.trasferStatus = "text-danger";
             me.transfered = "Send failed!";
@@ -433,7 +432,7 @@ export default ({
       }
       const me = this;
       return new Promise((resolve) => {
-        if (this.csvText === "" && this.csvFile) {
+        if (this.csvFile) {
           var reader = new FileReader();
           reader.onload = function(event) {
             me.csvText = event.target.result;
