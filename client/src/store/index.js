@@ -13,7 +13,8 @@ export default new Vuex.Store({
     classificationTypeMapping: [],
     harmonizationFields: [],
     harmonizationFieldMapping: [],
-    customFields: []
+    customFields: [],
+    customFieldsMapping: []
   },
   mutations: {
     SET_USER (state, user) {
@@ -42,6 +43,9 @@ export default new Vuex.Store({
     },
     SET_CUSTOM_FIELDS (state, data) {
       state.customFields = data;
+    },
+    SET_CUSTOM_FIELDS_MAPPING (state, data) {
+      state.customFieldsMapping = data;
     }
   },
   actions: {
@@ -95,6 +99,15 @@ export default new Vuex.Store({
         response => response.json().then(data => {
           if (data) {
             context.commit("SET_CUSTOM_FIELDS", data);
+            let keys = Object.keys(data);
+            let mapping = [];
+            for (let key of keys) {
+              mapping.push({
+                key: key,
+                value: data[key]
+              })
+            }
+            context.commit("SET_CUSTOM_FIELDS_MAPPING", mapping)
           }
         })
       )

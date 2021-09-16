@@ -12,14 +12,11 @@ Vue.use(Resource);
 
 Vue.http.interceptors.push((request, next) => {
   var headers = request.headers
-  console.log(request);
   if (request.url !== 'api/login'
     && !Object.prototype.hasOwnProperty.call(headers, 'Authorization')
   ) {
     headers.map.Authorization = [store.state.token]
   }
-  console.log(headers)
-
   // continue to next interceptor without modifying the response
   next()
 })

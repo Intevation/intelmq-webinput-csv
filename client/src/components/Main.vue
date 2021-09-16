@@ -181,11 +181,8 @@
                         :options="classificationTypes"
                       ></b-form-select>
                     </b-form-group>
-                    <b-form-group id="option3" label-cols=4 label="classification.identifier">
-                      <b-form-input v-model="identifier" type="text"></b-form-input>
-                    </b-form-group>
-                    <b-form-group id="option3" label-cols=4 label="feed.code">
-                      <b-form-input v-model="code" type="text"></b-form-input>
+                    <b-form-group v-for="field in customFieldsMapping" :key="field.key" :id="field.key" label-cols=4 :label="field.key">
+                      <b-form-input v-model="field.value" type="text"></b-form-input>
                     </b-form-group>
                   </b-col>
                 </b-row>
@@ -305,7 +302,7 @@ export default ({
     }
   },
   computed: {
-    ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields']),
+    ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping']),
   },
   mounted() {
     // Create timezone strings
@@ -355,14 +352,16 @@ export default ({
         }
         data.push(sendItem);
       }
+      let custom = {
+          "classification.type": this.classificationType,
+      };
+      for (let field of this.customFieldsMapping) {
+        custom["custom_"+field.key] = field.value;
+      }
       let send = {
         timezone: this.timezone,
         data: data,
-        custom: {
-          "classification.type": this.classificationType,
-          "custom_classification.identifier": this.identifier,
-          "custom_feed.code": this.code
-        },
+        custom: custom,
         dryrun: this.dryrun
       }
       var me = this;
