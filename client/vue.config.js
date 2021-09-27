@@ -4,7 +4,7 @@ module.exports = {
     disableHostCheck: true,
     proxy: {
       "/api": {
-        target: "http://localhost:8002/webinput"
+        target: "http://localhost:8002"
       }
     }
   }
