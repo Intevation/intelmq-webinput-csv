@@ -353,7 +353,7 @@ export default ({
         data.push(sendItem);
       }
       let custom = {
-          "classification.type": this.classificationType,
+          "custom_classification.type": this.classificationType,
       };
       for (let field of this.customFieldsMapping) {
         custom["custom_"+field.key] = field.value;
