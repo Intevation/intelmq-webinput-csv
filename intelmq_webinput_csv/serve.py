@@ -143,12 +143,12 @@ def uploadCSV(body, request, response):
                     value = parsed.isoformat()
                 except ValueError:
                     line_valid = False
-                try:
-                    event.add(key, value)
-                except (InvalidValue, KeyExists) as exc:
-                    retval.append((key, value, str(exc)))
-                    line_valid = False
-                col = col+1
+            try:
+                event.add(key, value)
+            except (InvalidValue, KeyExists) as exc:
+                retval.append((key, value, str(exc)))
+                line_valid = False
+            col = col+1
         for key in CONSTANTS:
             if key not in event:
                 try:
