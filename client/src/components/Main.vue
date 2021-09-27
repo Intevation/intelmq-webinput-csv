@@ -423,6 +423,7 @@ export default ({
         this.$bvModal.hide("login-popup")
         this.$store.dispatch("fetchClassificationTypes");
         this.$store.dispatch("fetchHarmonizationFields");
+        this.$store.dispatch("fetchCustomFields");
       }, () => {
           this.wrongCredentials = true
       })
