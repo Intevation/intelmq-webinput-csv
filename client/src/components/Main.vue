@@ -454,9 +454,31 @@ export default ({
      * Trigger logout.
      */
     signOut: function () {
-      this.username = ''
-      this.password = ''
-      this.wrongCredentials = false
+      this.username = "";
+      this.password = "";
+      this.wrongCredentials = false;
+      this.csvText = "";
+      this.csvFile = null;
+      this.csvPreviewText = "",
+      this.tableData = []
+      this.tableHeader = []
+      this.overlay = false;
+      this.inProgress = false;
+      this.transfered = "";
+      this.delimiter = ";";
+      this.quoteChar = '"';
+      this.escapeChar = "\\";
+      this.hasHeader = false;
+      this.initialWhitespace = false;
+      this.skipLines = 0;
+      this.parserResult = {};
+      this.timezone = '+00:00';
+      this.dryrun = true;
+      this.classificationType = "blacklist";
+      this.identifier = "test";
+      this.code = "oneshot";
+      this.currentPage = 1;
+      this.perPage = 25;
       this.$store.dispatch("logout")
     },
     /**
