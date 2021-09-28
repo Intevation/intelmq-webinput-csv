@@ -9,7 +9,7 @@
     </b-navbar>
     <div>
       <b-modal v-model="showLogin" id="login-popup" title="IntelMQ - Webinput-CSV - Sign in">
-        <label v-if="wrongCredentials" class="text-danger">Wrong username or password</label>
+        <label v-if="wrongCredentials" class="text-danger">{{ loginErrorText }}</label>
         <b-form>
           <div>
             <label for="username">Username</label>
@@ -311,7 +311,8 @@ export default ({
       perPage: 25,
       totalRows: 1,
       transfered: "",
-      transferStatus: "text-danger"
+      transferStatus: "text-danger",
+      loginErrorText: "Wrong username or password"
     }
   },
   computed: {
@@ -446,8 +447,14 @@ export default ({
         this.$store.dispatch("fetchClassificationTypes");
         this.$store.dispatch("fetchHarmonizationFields");
         this.$store.dispatch("fetchCustomFields");
-      }, () => {
-          this.wrongCredentials = true
+      }, (response) => {
+        if (response.status !== 200) {
+          this.loginErrorText = "Server not reachable.";
+        }
+        else {
+          this.loginErrorText = "Wrong username or password.";
+        }
+        this.wrongCredentials = true
       })
     },
     /**

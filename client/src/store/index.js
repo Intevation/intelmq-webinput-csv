@@ -63,9 +63,9 @@ export default new Vuex.Store({
               context.commit("SET_LOGGED_IN", true);
               resolve();
             } else {
-              reject();
+              reject(response);
             }
-          })
+          }), (response) => reject(response)
         )
       })
     },
