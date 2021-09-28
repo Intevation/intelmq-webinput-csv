@@ -32,114 +32,116 @@
     </div>
     <div v-if="loggedIn">
       <div class="accordion" role="tablist">
-        <b-card no-body class="mb-1">
-          <b-card-header header-tag="header" class="p-1" role="tab">
-            <b-button block v-b-toggle.accordion-1 variant="info">CSV Content</b-button>
-          </b-card-header>
-          <b-collapse id="accordion-1" visible accordion="my-accordion" role="tabpanel">
-            <b-card-body>
-              <b-container fluid>
-                <b-row>
-                  <b-col cols="11">
-                    <b-form-group >
-                      <b-form-file
-                        v-model="csvFile"
-                        placeholder="Choose a file or drop it here..."
-                        drop-placeholder="Drop file here..."
-                        @input="readFromFile"
-                      ></b-form-file>
-                    </b-form-group>
-                  </b-col>
-                  <b-col>
-                    <b-button @click="reset">Clear</b-button>
-                  </b-col>
-                </b-row>
-              </b-container>
-              <b-container fluid>
-                <b-form-group >
-                  <b-form-textarea
-                    v-if="!csvFile"
-                    id="textarea"
-                    v-model="csvText"
-                    placeholder="Or paste CSV data here"
-                    rows="5"
-                    @change="parseCSV"
-                  ></b-form-textarea>
-                  <b-form-textarea
-                    v-if="!!csvFile"
-                    id="textareaPreview"
-                    v-model="csvPreviewText"
-                    rows="5"
-                  ></b-form-textarea>
-                </b-form-group>
-              </b-container>
-              <b-container fluid>
-                <b-row>
-                  <b-col>
-                    <b-form-group label-cols=7 label="Delimiter">
-                      <b-form-select
-                        v-model="delimiter"
-                        :options="delimiterOptions"
-                        @change="parseCSV"
-                      ></b-form-select>
-                    </b-form-group>
-                  </b-col>
-                  <b-col>
-                    <b-form-group label-cols=7 label="Quote char">
-                      <b-form-input
-                        v-model="quoteChar"
-                        type="text"
-                        placeholder='"'
-                        @change="parseCSV"
-                      ></b-form-input>
-                    </b-form-group>
-                  </b-col>
-                  <b-col>
-                    <b-form-group label-cols=7 label="Escape char">
-                      <b-form-input
-                        v-model="escapeChar"
-                        type="text"
-                        placeholder="\"
-                        @change="parseCSV"
-                      ></b-form-input>
-                    </b-form-group>
-                  </b-col>
-                  <b-col>
-                    <b-form-group label-cols=7 label="Has Header">
-                      <b-form-checkbox
-                        v-model="hasHeader"
-                        @change="parseCSV"
-                      ></b-form-checkbox>
-                    </b-form-group>
-                  </b-col>
-                  <b-col>
-                    <b-form-group id="option1" label-cols=9 label="Skip initial Whitespace">
-                      <b-form-checkbox
-                        v-model="initialWhitespace"
-                        @change="parseCSV"
-                      ></b-form-checkbox>
-                    </b-form-group>
-                    <b-tooltip target="option1" triggers="hover">
-                      When True, whitespace immediately following the delimiter is ignored.
-                    </b-tooltip>
-                  </b-col>
-                  <b-col>
-                    <b-form-group id="option2" label-cols=7 label="Skip initial N lines">
-                      <b-form-input
-                        v-model="skipLines"
-                        type="number"
-                        @change="parseCSV"
-                      ></b-form-input>
-                    </b-form-group>
-                    <b-tooltip target="option2" triggers="hover">
-                      Skip initial N lines after the header.
-                    </b-tooltip>
-                  </b-col>
-                </b-row>
-              </b-container>
-            </b-card-body>
-          </b-collapse>
-        </b-card>
+        <b-overlay :show="overlay" opacity="0.5" @shown="parseCSV">
+          <b-card no-body class="mb-1">
+            <b-card-header header-tag="header" class="p-1" role="tab">
+              <b-button block v-b-toggle.accordion-1 variant="info">CSV Content</b-button>
+            </b-card-header>
+            <b-collapse id="accordion-1" visible accordion="my-accordion" role="tabpanel">
+              <b-card-body>
+                <b-container fluid>
+                  <b-row>
+                    <b-col cols="11">
+                      <b-form-group >
+                        <b-form-file
+                          v-model="csvFile"
+                          placeholder="Choose a file or drop it here..."
+                          drop-placeholder="Drop file here..."
+                          @input="readFromFile"
+                        ></b-form-file>
+                      </b-form-group>
+                    </b-col>
+                    <b-col>
+                      <b-button @click="reset">Clear</b-button>
+                    </b-col>
+                  </b-row>
+                </b-container>
+                <b-container fluid>
+                  <b-form-group >
+                    <b-form-textarea
+                      v-if="!csvFile"
+                      id="textarea"
+                      v-model="csvText"
+                      placeholder="Or paste CSV data here"
+                      rows="5"
+                      @change="parseCSV"
+                    ></b-form-textarea>
+                    <b-form-textarea
+                      v-if="!!csvFile"
+                      id="textareaPreview"
+                      v-model="csvPreviewText"
+                      rows="5"
+                    ></b-form-textarea>
+                  </b-form-group>
+                </b-container>
+                <b-container fluid>
+                  <b-row>
+                    <b-col>
+                      <b-form-group label-cols=7 label="Delimiter">
+                        <b-form-select
+                          v-model="delimiter"
+                          :options="delimiterOptions"
+                          @change="showOverlay"
+                        ></b-form-select>
+                      </b-form-group>
+                    </b-col>
+                    <b-col>
+                      <b-form-group label-cols=7 label="Quote char">
+                        <b-form-input
+                          v-model="quoteChar"
+                          type="text"
+                          placeholder='"'
+                          @change="showOverlay"
+                        ></b-form-input>
+                      </b-form-group>
+                    </b-col>
+                    <b-col>
+                      <b-form-group label-cols=7 label="Escape char">
+                        <b-form-input
+                          v-model="escapeChar"
+                          type="text"
+                          placeholder="\"
+                          @change="showOverlay"
+                        ></b-form-input>
+                      </b-form-group>
+                    </b-col>
+                    <b-col>
+                      <b-form-group label-cols=7 label="Has Header">
+                        <b-form-checkbox
+                          v-model="hasHeader"
+                          @change="showOverlay"
+                        ></b-form-checkbox>
+                      </b-form-group>
+                    </b-col>
+                    <b-col>
+                      <b-form-group id="option1" label-cols=9 label="Skip initial Whitespace">
+                        <b-form-checkbox
+                          v-model="initialWhitespace"
+                          @change="showOverlay"
+                        ></b-form-checkbox>
+                      </b-form-group>
+                      <b-tooltip target="option1" triggers="hover">
+                        When True, whitespace immediately following the delimiter is ignored.
+                      </b-tooltip>
+                    </b-col>
+                    <b-col>
+                      <b-form-group id="option2" label-cols=7 label="Skip initial N lines">
+                        <b-form-input
+                          v-model="skipLines"
+                          type="number"
+                          @change="showOverlay"
+                        ></b-form-input>
+                      </b-form-group>
+                      <b-tooltip target="option2" triggers="hover">
+                        Skip initial N lines after the header.
+                      </b-tooltip>
+                    </b-col>
+                  </b-row>
+                </b-container>
+              </b-card-body>
+            </b-collapse>
+          </b-card>
+        </b-overlay>
 
         <b-card no-body class="mb-1">
           <b-card-header header-tag="header" class="p-1" role="tab">
@@ -165,7 +167,17 @@
                     <b-container>
                       <b-row>
                         <b-col>
-                          <b-button @click="sendData">Send data</b-button>
+                          <b-overlay
+                            :show="inProgress"
+                            rounded
+                            opacity="0.5"
+                            spinner-small
+                            spinner-variant="primary"
+                            class="d-inline-block"
+                            @hidden="onHidden"
+                          >
+                            <b-button @click="sendData">Send data</b-button>
+                          </b-overlay>
                         </b-col>
                         <b-col>
                           <label style="margin-left: 10px;" :class="transferStatus">{{ transfered }}</label>
@@ -267,10 +279,11 @@ export default ({
       password: "",
       showLogin: false,
       wrongCredentials: false,
+      overlay: false,
+      inProgress: false,
       csvFile: null,
       csvText: "",
       csvPreviewText: "",
-      csvData: [],
       delimiter: ";",
       delimiterOptions: [
         {value: ";", text: ";"},
@@ -333,6 +346,8 @@ export default ({
      * Prepare and aggregate data and send the post request.
      */
     sendData: function() {
+      this.inProgress = true;
+      this.transfered = "in progress..."
       let data = []
       for (let item of this.parserResult.data) {
         let sendItem = {};
@@ -370,12 +385,19 @@ export default ({
           if (response.status !== 200) {
             me.trasferStatus = "text-danger";
             me.transfered = "Send failed!";
+            me.inProgress = false;
             return;
           }
           response.json().then(data => {
             me.transfered = "Injected " + (data.total - data.lines_invalid) + " lines. " + data.lines_invalid + " were invalid."
             me.transferStatus = "text-black"
+            me.inProgress = false;
           })
+        }, (response) => {
+            me.trasferStatus = "text-danger";
+            me.transfered = response.body;
+            me.inProgress = false;
+            return;
         });
     },
     /**
@@ -441,6 +463,7 @@ export default ({
      * Read the uploaded csv file and trigger parsing the content.
      */
     readFromFile() {
+      this.overlay = true;
       if (!this.csvFile) {
         this.csvText = "";
         this.parseCSV();
@@ -458,6 +481,9 @@ export default ({
           reader.readAsText(this.csvFile);
         }
       });
+    },
+    showOverlay() {
+      this.overlay = true;
     },
     /**
      * Parse the csv data and apply user options.
@@ -527,6 +553,7 @@ export default ({
 
       }
       this.tableData = this.parserResult.data;
+      this.overlay = false;
     }
   }
 })
