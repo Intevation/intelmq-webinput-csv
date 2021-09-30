@@ -1,6 +1,11 @@
 NEWS
 ====
 
+0.4.0 (2021-09-30)
+------------------
+
+Rewrite using hug in the backend and bootstrap-vue for the Frontend.
+
 
 0.2.0 (2020-01-17)
 ------------------

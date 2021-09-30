@@ -7,7 +7,7 @@
 # SPDX-License-Identifier: AGPL-3.0
 import os
 
-from setuptools import find_packages, setup
+from setuptools import setup
 
 exec(open(os.path.join(os.path.dirname(__file__),
                        'intelmq_webinput_csv/version.py')).read())  # defines __version__
@@ -18,7 +18,10 @@ setup(
     author_email='info@intevation.de',
     maintainer='Raimund Renkert',
     maintainer_email='raimund.renkert@intevation.de',
-    packages=find_packages(),
+    packages=[
+    'intelmq_webinput_csv',
+    'session',
+    ],
     install_requires=[
         'hug',
         ],
