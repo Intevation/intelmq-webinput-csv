@@ -1,0 +1,4 @@
+#!/usr/bin/dh-exec
+config/apache-example/003_intelmq_webinput_csv.conf etc/apache2/sites-available/
+config/backend/*.conf etc/intelmq/
+config/backend/session.sql => /usr/share/dbconfig-common/data/intelmq-webinput-csv-backend/install/sqlite3

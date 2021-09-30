@@ -1,0 +1,2 @@
+client/dist/* usr/share/intelmq-webinput-csv/www
+config/apache-example/intelmq-webinput.conf etc/apache2/conf-available/

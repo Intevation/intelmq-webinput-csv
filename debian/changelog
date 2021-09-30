@@ -1,0 +1,5 @@
+intelmq-webinput-csv (0.4.0) experimental; urgency=medium
+
+  * Rewrite of certat/intelmq-webinput-csv by Sebastian Wagner.
+
+ -- Sascha Wilde <wilde@intevation.de>  Mon, 27 Sep 2021 18:00:14 +0200
