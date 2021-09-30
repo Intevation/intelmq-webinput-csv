@@ -85,7 +85,7 @@ export default new Vuex.Store({
       )
     },
     fetchHarmonizationFields(context) {
-      Vue.http.get("/api/harmonization/event/fields").then(
+      Vue.http.get("api/harmonization/event/fields").then(
         response => response.json().then(data => {
           if (data) {
             context.commit("SET_FIELDS", Object.keys(data));
@@ -95,7 +95,7 @@ export default new Vuex.Store({
       )
     },
     fetchCustomFields(context) {
-      Vue.http.get("/api/custom/fields").then(
+      Vue.http.get("api/custom/fields").then(
         response => response.json().then(data => {
           if (data) {
             context.commit("SET_CUSTOM_FIELDS", data);
