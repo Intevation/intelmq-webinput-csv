@@ -51,8 +51,8 @@ from falcon import HTTP_BAD_REQUEST, HTTP_NOT_FOUND
 import hug
 import sqlite3
 
-import session.config
-import session.files as files
+import webinput_session.config
+import webinput_session.files as files
 
 INIT_DB_SQL = """
 BEGIN;
