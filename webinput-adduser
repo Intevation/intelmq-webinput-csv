@@ -9,8 +9,8 @@ import getpass
 import os
 import sys
 
-import session.session
-import session.config
+import webinput_session.session
+import webinput_session.config
 
 session_config: session.config.Config = session.config.Config(os.environ.get("WEBINPUT_CSV_SESSION_CONFIG"))
 
