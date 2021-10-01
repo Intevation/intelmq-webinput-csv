@@ -6,4 +6,24 @@ if [ "$1" = "configure" ] ; then
     apache2_invoke ensite 003_intelmq_webinput_csv.conf
 fi
 
+# Source debconf library.
+. /usr/share/debconf/confmodule
+. /usr/share/dbconfig-common/dpkg/postinst.sqlite3
+
+dbc_dbfile_owner="intelmq:intelmq"
+
+dbc_go intelmq-webinput-csv-backend "$@"
+
+db_get intelmq-webinput-csv-backend/setup
+if [ "$RET" = "true" ]; then
+	db_get intelmq-webinput-csv-backend/user
+	ACCOUNT=$RET
+	db_get intelmq-webinput-csv-backend/password
+	PASSWORD=$RET
+
+	webinput-adduser --user "$ACCOUNT" --password "$PASSWORD"
+	echo "Done Configuring IntelMQ webinput..." >&2
+fi
+db_stop
+
 #DEBHELPER#
