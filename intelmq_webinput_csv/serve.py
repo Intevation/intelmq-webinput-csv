@@ -37,7 +37,7 @@ import json
 import os
 import logging
 from pathlib import Path
-from session import config, session
+from webinput_session import config, session
 from intelmq import HARMONIZATION_CONF_FILE, CONFIG_DIR
 from intelmq.lib.pipeline import PipelineFactory
 from intelmq.lib.harmonization import DateTime, IPAddress
