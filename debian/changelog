@@ -1,3 +1,10 @@
+intelmq-webinput-csv (0.4.1) experimental; urgency=medium
+
+  * Changed name of session module to webinput_session so it does not
+  clash with Fody's session module.
+
+ -- Sascha Wilde <wilde@intevation.de>  Fri, 01 Oct 2021 18:51:06 +0200
+
 intelmq-webinput-csv (0.4.0) experimental; urgency=medium
 
   * Rewrite of certat/intelmq-webinput-csv by Sebastian Wagner.

@@ -1,6 +1,12 @@
 NEWS
 ====
 
+0.4.1 (2021-10-01)
+------------------
+
+Changed name of session module to webinput_session so it does not
+clash with Fody's session module.
+
 0.4.0 (2021-09-30)
 ------------------
 

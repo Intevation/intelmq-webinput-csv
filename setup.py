@@ -20,7 +20,7 @@ setup(
     maintainer_email='raimund.renkert@intevation.de',
     packages=[
     'intelmq_webinput_csv',
-    'session',
+    'webinput_session',
     ],
     install_requires=[
         'hug',
