@@ -97,7 +97,7 @@ LOOKUP_USER_SQL = """
 SELECT username, password, salt FROM user WHERE username = ?;
 """
 
-config = session.config.Config
+config = webinput_session.config.Config
 
 file_access = files.FileAccess
 
@@ -117,15 +117,15 @@ def token_authentication(*args, **kw):
     else:
         return True
 
-def initialize_sessions(c: session.config.Config):
+def initialize_sessions(c: webinput_session.config.Config):
     global config, file_access, session_store
     config = c
     file_access = files.FileAccess(config)
 
     session_file = config.session_store
     if session_file is not None:
-        session_store = session.session.SessionStore(str(session_file),
-                                             config.session_duration)
+        session_store = webinput_session.session.SessionStore(str(session_file),
+                                                              config.session_duration)
 
 class SessionStore:
     """Session store based on SQLite

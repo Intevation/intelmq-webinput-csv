@@ -1,4 +1,4 @@
-"""A minimal setupfile for session."""
+"""A minimal setupfile for webinput_session."""
 
 from setuptools import setup, find_packages
 
