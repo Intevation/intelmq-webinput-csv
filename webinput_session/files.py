@@ -15,7 +15,7 @@ import string
 from pathlib import PurePath, Path
 from typing import Optional, Tuple, Union, Dict, Any, Iterable, BinaryIO
 
-from session.config import Config
+from webinput_session.config import Config
 
 
 def path_starts_with(path: PurePath, prefix: PurePath) -> bool:
