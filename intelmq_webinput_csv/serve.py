@@ -90,15 +90,15 @@ class PipelineParameters(object):
 
 @hug.startup()
 def setup(api):
-    session.initialize_sessions(session_config)
+    webinput_session.initialize_sessions(session_config)
     pass
 
 @hug.post(ENDPOINT_PREFIX + '/api/login')
 def login(username: str, password: str):
-    if session.session_store is not None:
-        known = session.session_store.verify_user(username, password)
+    if webinput_session.session_store is not None:
+        known = webinput_session.session_store.verify_user(username, password)
         if known is not None:
-            token = session.session_store.new_session({"username": username})
+            token = webinput_session.session_store.new_session({"username": username})
             return {"login_token": token,
                     "username": username,
                     }

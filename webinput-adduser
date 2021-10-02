@@ -12,7 +12,7 @@ import sys
 import webinput_session.session
 import webinput_session.config
 
-session_config: session.config.Config = session.config.Config(os.environ.get("WEBINPUT_CSV_SESSION_CONFIG"))
+session_config: webinput_session.config.Config = webinput_session.config.Config(os.environ.get("WEBINPUT_CSV_SESSION_CONFIG"))
 
 parser = argparse.ArgumentParser(description='Add a user account to the Webinput CSV session store.')
 parser.add_argument('--user', required=True, help='The username of the account.', type=str)
@@ -24,7 +24,7 @@ if session_config.session_store is None:
     print("Could not add user- no session store configured in configuration!", file=sys.stderr)
     exit(1)
 
-session_store = session.session.SessionStore(str(session_config.session_store), session_config.session_duration)
+session_store = webinput_session.session.SessionStore(str(session_config.session_store), session_config.session_duration)
 
 if args.password is None:
     password = getpass.getpass()
