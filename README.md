@@ -1,8 +1,11 @@
 # IntelMQ Webinput CSV
 
-This is a rewrite of the Flask-based web interface for inserting CSV data
-into intelmq's pipelines developed by certat. The rewrite uses hug in the
-backend and bootstrap-vue for the Frontend.
+A web interface for interactively inserting one-off CSV data into 
+[IntelMQ](https://intelmq.org/)'s pipelines.
+
+It is implemented in Python with [hug](https://www.hug.rest/) in the backend
+and Javascript with bootstrap-vue in the frontend.
+This is a rewrite of the original Flask-based web interface by CERT.at.
 
 ## Table of Contents
 
