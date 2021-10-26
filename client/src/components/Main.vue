@@ -284,7 +284,7 @@ export default ({
       csvFile: null,
       csvText: "",
       csvPreviewText: "",
-      delimiter: ";",
+      delimiter: ",",
       delimiterOptions: [
         {value: ";", text: ";"},
         {value: ",", text: ","},
@@ -472,7 +472,7 @@ export default ({
       this.overlay = false;
       this.inProgress = false;
       this.transfered = "";
-      this.delimiter = ";";
+      this.delimiter = ",";
       this.quoteChar = '"';
       this.escapeChar = "\\";
       this.hasHeader = false;
