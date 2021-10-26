@@ -518,6 +518,9 @@ export default ({
      * Parse the csv data and apply user options.
      */
     parseCSV() {
+      if (this.csvText === "") {
+        this.overlay = false;
+      }
       // Option to trim whitespaces.
       if (this.initialWhitespace) {
         var regEx = "\\s*" + this.delimiter + "\\s*";
