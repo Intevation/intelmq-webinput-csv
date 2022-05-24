@@ -1,3 +1,9 @@
+intelmq-webinput-csv (0.4.2) experimental; urgency=medium
+
+  * Lift intelmq<3 version restriction.
+
+ -- Sebastian Wagner <sebix@sebix.at>  Tue, 24 May 2022 17:40:19 +0200
+
 intelmq-webinput-csv (0.4.1) experimental; urgency=medium
 
   * Changed name of session module to webinput_session so it does not
