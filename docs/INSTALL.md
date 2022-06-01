@@ -41,6 +41,7 @@ The following steps will guide through the installation from source.
 
 1. Build the client
 
+   Eventuelly adapt `publicPath` in `client/vue.config.js` to your needs if needed, e.g. `'/intelmq-webinput/'`.
    ```bash
    cd client
    yarn && yarn build
@@ -50,9 +51,8 @@ The following steps will guide through the installation from source.
 
    Webinput-CSV is searching for config files in the following order:
     * A file specified via environment variable
-      (WEBINPUT_CSV_CONFIG=/my/folder/webinput_csv.conf)
-    * The IntelMQ config folder (e.g. /opt/intelmq/etc)
-    * The system wide config folder (/etc/intelmq/)
+      (`WEBINPUT_CSV_CONFIG=/my/folder/webinput_csv.conf`)
+    * The IntelMQ config folder (`/etc/intelmq/` or `/opt/intelmq/etc` depending on your installation)
 
 1. **(Optional)** Authentication
 
@@ -63,10 +63,9 @@ The following steps will guide through the installation from source.
 
     * A file specified via environment variable
       (WEBINPUT_CSV_SESSION_CONFIG=/my/folder/webinput-session.conf)
-    * The IntelMQ config folder (e.g. /opt/intelmq/etc)
-    * The system wide config folder (/etc/intelmq/)
+    * The IntelMQ config folder (`/etc/intelmq/` or `/opt/intelmq/etc` depending on your installation)
 
-   The configured path to the sqlite3 database has to be read and writeable
+   The configured path to the sqlite3 database has to be read- and writeable
    by the user running the backend. If the file does not exist it will be created on startup.
 
    To insert users into the database, there is a script called ```webinput-adduser```.
@@ -82,4 +81,4 @@ The following steps will guide through the installation from source.
    on port 8667. The path prefix for the backend must be used in the apache config!
 
 The application is now available via browser on the machine and the configured
-path prefix, e.g. http://localhost/webinput
+path prefix, e.g. http://localhost/intelmq-webinput
