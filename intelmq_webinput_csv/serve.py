@@ -82,11 +82,6 @@ for path in configfiles:
                 ENDPOINT_PREFIX = ENDPOINT_PREFIX[:-1]
             CONSTANTS = CONFIG.get('constant_fields', '{}')
 
-class PipelineParameters(object):
-    def __init__(self):
-        for key, value in CONFIG['intelmq'].items():
-            setattr(self, key, value)
-
 
 @hug.startup()
 def setup(api):
@@ -109,11 +104,12 @@ def login(username: str, password: str):
                 "username": "none"
                 }
 
+
 @hug.post(ENDPOINT_PREFIX + '/api/upload', requires=session.token_authentication)
 def uploadCSV(body, request, response):
-    destination_pipeline = PipelineFactory.create(PipelineParameters(),
-                                                logger=log,
-                                                direction='destination')
+    destination_pipeline = PipelineFactory.create(pipeline_args=CONFIG['intelmq'],
+                                                  logger=log,
+                                                  direction='destination')
     if not CONFIG.get('destination_pipeline_queue_formatted', False):
         destination_pipeline.set_queues(CONFIG['destination_pipeline_queue'], "destination")
         destination_pipeline.connect()

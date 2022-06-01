@@ -13,7 +13,7 @@ For upgrade instructions, see [UPGRADING.md](UPGRADING.md).
 
 ### Backend
 * An installed python3 [hug](https://www.hug.rest/)
-* An installed [intelmq](https://intelmq.org) (<=v2.3.3) installation on the
+* An installed [intelmq](https://intelmq.org) (>= 3.0.0) installation on the
   same machine.
 * Optional [sqlite3](https://www.sqlite.org/) for authentication
 

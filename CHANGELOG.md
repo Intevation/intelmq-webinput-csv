@@ -2,6 +2,12 @@ CHANGELOG
 =========
 
 
+0.5.0 (unreleased)
+------------------
+
+## Backend
+- Compatibility with only IntelMQ 3.0.0.
+
 0.4.1 (2021-10-02)
 ------------------
 
