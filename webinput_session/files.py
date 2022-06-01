@@ -9,9 +9,6 @@ allows direct read and write access to some of the files used by
 IntelMQ.
 """
 
-import json
-import re
-import string
 from pathlib import PurePath, Path
 from typing import Optional, Tuple, Union, Dict, Any, Iterable, BinaryIO
 
@@ -56,10 +53,10 @@ class FileAccess:
                 content_type = "text/html"
             return (content_type, open(normalized, "rb"))
 
-        result = {"files": {}} # type: Dict[str, Any]
+        result = {"files": {}}  # type: Dict[str, Any]
         if normalized.is_dir():
             result["directory"] = str(normalized)
-            files = normalized.iterdir() # type: Iterable[Path]
+            files = normalized.iterdir()  # type: Iterable[Path]
         else:
             files = [normalized]
 
@@ -67,7 +64,7 @@ class FileAccess:
             stat = path.stat()
             if stat.st_size < 2000:
                 # FIXME: don't hardwire this size
-                obj = {"contents": path.read_text()} # type: Dict[str, Any]
+                obj = {"contents": path.read_text()}  # type: Dict[str, Any]
             else:
                 obj = {"size": stat.st_size, "path": str(path.resolve())}
             result["files"][path.name] = obj

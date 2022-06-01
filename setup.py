@@ -19,8 +19,8 @@ setup(
     maintainer='Raimund Renkert',
     maintainer_email='raimund.renkert@intevation.de',
     packages=[
-    'intelmq_webinput_csv',
-    'webinput_session',
+        'intelmq_webinput_csv',
+        'webinput_session',
     ],
     install_requires=[
         # 'intelmq' is not listed here as this causes a re-installation of intelmq on development installations
@@ -33,5 +33,5 @@ setup(
                 'preview from the parser.',
 
     keywords='incident handling cert csirt',
-    scripts = ['webinput-adduser']
+    scripts=['webinput-adduser'],
 )

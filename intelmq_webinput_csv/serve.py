@@ -28,7 +28,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Author(s):
-    * Raimund Renkert<raimund.renkert@intevation.de>
+    * Raimund Renkert <raimund.renkert@intevation.de>
 """
 
 import hug
@@ -40,7 +40,7 @@ from pathlib import Path
 from webinput_session import config, session
 from intelmq import HARMONIZATION_CONF_FILE, CONFIG_DIR
 from intelmq.lib.pipeline import PipelineFactory
-from intelmq.lib.harmonization import DateTime, IPAddress
+from intelmq.lib.harmonization import DateTime
 from intelmq.lib.message import Event, MessageFactory
 from intelmq.bots.experts.taxonomy.expert import TAXONOMY
 from intelmq.lib.exceptions import InvalidValue, KeyExists
@@ -88,6 +88,7 @@ def setup(api):
     session.initialize_sessions(session_config)
     pass
 
+
 @hug.post(ENDPOINT_PREFIX + '/api/login')
 def login(username: str, password: str):
     if session.session_store is not None:
@@ -118,8 +119,8 @@ def uploadCSV(body, request, response):
     data = body["data"]
     customs = body["custom"]
     retval = []
-    col = 0;
-    line = 0;
+    col = 0
+    line = 0
     lines_valid = 0
     for item in data:
         event = Event()
@@ -166,7 +167,7 @@ def uploadCSV(body, request, response):
                 CONFIG['destination_pipeline_queue'].format(ev=event)
         except Exception as exc:
             retval.append((line, -1,
-                            CONFIG['destination_pipeline_queue'], repr(exc)))
+                           CONFIG['destination_pipeline_queue'], repr(exc)))
             line_valid = False
         line = line+1
         if line_valid:
@@ -190,6 +191,7 @@ def uploadCSV(body, request, response):
               "errors": retval}
     return retval
 
+
 @hug.get(ENDPOINT_PREFIX + '/api/classification/types', requires=session.token_authentication)
 def classification_types():
     return TAXONOMY
@@ -198,6 +200,7 @@ def classification_types():
 @hug.get(ENDPOINT_PREFIX + '/api/harmonization/event/fields', requires=session.token_authentication)
 def harmonization_event_fields():
     return EVENT_FIELDS['event']
+
 
 @hug.get(ENDPOINT_PREFIX + '/api/custom/fields', requires=session.token_authentication)
 def custom_fields():

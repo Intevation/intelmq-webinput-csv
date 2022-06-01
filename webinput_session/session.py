@@ -103,19 +103,23 @@ file_access = files.FileAccess
 
 session_store = None
 
+
 def verify_token(token):
     if session_store is not None:
         return session_store.verify_token(token)
     else:
         return None
 
+
 hug_token_authentication = hug.authentication.token(verify_token)
+
 
 def token_authentication(*args, **kw):
     if session_store is not None:
         return hug_token_authentication(*args, **kw)
     else:
         return True
+
 
 def initialize_sessions(c: webinput_session.config.Config):
     global config, file_access, session_store
@@ -126,6 +130,7 @@ def initialize_sessions(c: webinput_session.config.Config):
     if session_file is not None:
         session_store = webinput_session.session.SessionStore(str(session_file),
                                                               config.session_duration)
+
 
 class SessionStore:
     """Session store based on SQLite
@@ -167,7 +172,6 @@ class SessionStore:
         except sqlite3.OperationalError as exc:
             print(f"SQLite3-Error ({exc}): Possibly missing write permissions to session file (or the folder it is located in).")
             return None
-
 
     #
     # Methods for session data

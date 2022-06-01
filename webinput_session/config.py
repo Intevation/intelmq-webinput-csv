@@ -6,9 +6,10 @@ Author(s):
   * Raimund Renkert <raimund.renkert@intevation.de>
 """
 
-from typing import List, Optional
+from typing import Optional
 import json
 from pathlib import Path
+
 
 class Config:
 

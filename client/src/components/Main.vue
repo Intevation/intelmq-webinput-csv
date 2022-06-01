@@ -186,7 +186,7 @@
                     </b-container>
                   </b-col>
                   <b-col>
-                    <label>Constant fields(fallback)</label>
+                    <label>Constant fields (fallback)</label>
                     <b-form-group label-cols=4 label="classification type">
                       <b-form-select
                         v-model="classificationType"
