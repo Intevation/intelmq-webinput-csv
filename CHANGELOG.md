@@ -2,22 +2,39 @@ CHANGELOG
 =========
 
 
+0.4.1 (2021-10-02)
+------------------
+
+## Backend
+- Renamed session package to `webinput_session` to avoid name clash with fodys session package
+
+
+0.4.0 (2021-10-01)
+------------------
+
+## Backend
+- Rewritten backend based on hug instead of flask.
+- Session database and handling is identical to fody.
+
+### Configuration
+- New separate configuration file for the session configuration (`webinput-session.conf`).
+
+### Documentation
+- Updated installation documentation.
+
+### Frontend
+- Rewritten frontend based on bootstrap-vue.
+
+### Packaging
+- Added Debian packaging.
+
+
 0.3.0 (unreleased)
 ------------------
 
 ## Backend
 - For errors during parsing, also show the affected line after the traceback.
 - Log which configuration file is read.
-
-### Configuration
-
-### Documentation
-
-### Frontend
-
-#### Preview
-
-### Packaging
 
 
 0.2.0 (2020-01-17)

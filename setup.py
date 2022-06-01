@@ -23,6 +23,8 @@ setup(
     'webinput_session',
     ],
     install_requires=[
+        # 'intelmq' is not listed here as this causes a re-installation of intelmq on development installations
+        # https://github.com/pypa/pip/issues/10805
         'hug',
         ],
     license='AGPLv3',
