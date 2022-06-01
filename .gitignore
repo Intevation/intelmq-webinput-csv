@@ -18,6 +18,8 @@ htmlcov/
 *.pem
 *.key
 .eggs
+.vscode/
+client/node_modules/
 
 # Debian build filed
 debian/files
