@@ -27,7 +27,7 @@
             >
               Login
             </b-button>
-        </template>   
+        </template>
       </b-modal>
     </div>
     <div v-if="loggedIn">
@@ -219,10 +219,6 @@
                   <b-tooltip :target="data.label" triggers="hover">
                     {{ data.field.field }}
                   </b-tooltip>
-                  <b-form-checkbox
-                    v-model="data.field.selected"
-                    @change="update(data)"
-                  ></b-form-checkbox>
                 </template>
                 <template #foot(name)="data">
                   <span class="text-danger">{{ data.label }}</span>
@@ -354,9 +350,7 @@ export default ({
         let sendItem = {};
         for (let ndx in this.tableHeader) {
           // check for header in csv. data is array or object
-          if (this.tableHeader[ndx].selected
-            && this.tableHeader[ndx].field !== ""
-          ) {
+          if (this.tableHeader[ndx].field !== "") {
             let value;
             if (this.hasHeader) {
               value = item[this.tableHeader[ndx].key]
@@ -579,7 +573,6 @@ export default ({
         this.tableHeader.push({
           key: columns[i].key,
           label: columns[i].label,
-          selected: false,
           field: ""
         })
 

@@ -8,6 +8,10 @@ CHANGELOG
 ## Backend
 - Compatibility with only IntelMQ 3.0.0.
 
+## Frontend
+- Preview: removed the "selected" checkbox per column, the field selector is sufficient.
+
+
 0.4.1 (2021-10-02)
 ------------------
 
