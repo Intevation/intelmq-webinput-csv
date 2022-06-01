@@ -38,7 +38,7 @@ class FileAccess:
         return
 
     def file_name_allowed(self, filename: str) -> Optional[Tuple[bool, Path]]:
-        """Determine wether the API should allow access to a file."""
+        """Determine whether the API should allow access to a file."""
         resolved = Path(filename).resolve()
         return (False, resolved)
 

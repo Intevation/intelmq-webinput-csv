@@ -24,7 +24,7 @@ For upgrade instructions, see [UPGRADING.md](UPGRADING.md).
 
 Currently the only way to install Webinput-CSV is to clone the repository and
 do a manual installation.
-The following steps will guide through the installtion from source.
+The following steps will guide through the installation from source.
 
 1. Clone the repository
 
@@ -49,7 +49,7 @@ The following steps will guide through the installtion from source.
 1. Configuration files
 
    Webinput-CSV is searching for config files in the following order:
-    * A file specified via enviroment varibale
+    * A file specified via environment variable
       (WEBINPUT_CSV_CONFIG=/my/folder/webinput_csv.conf)
     * The IntelMQ config folder (e.g. /opt/intelmq/etc)
     * The system wide config folder (/etc/intelmq/)
@@ -61,7 +61,7 @@ The following steps will guide through the installtion from source.
    [the example](../config/backend/webinput-session.conf).
    Webinput-CSV is searching for session configs in the following order:
 
-    * A file specified via enviroment varibale
+    * A file specified via environment variable
       (WEBINPUT_CSV_SESSION_CONFIG=/my/folder/webinput-session.conf)
     * The IntelMQ config folder (e.g. /opt/intelmq/etc)
     * The system wide config folder (/etc/intelmq/)

@@ -99,7 +99,7 @@ CHANGELOG
 
 ### Frontend
 - Show version including link to upstream in footer (#49).
-- Use Vue-Select for chosing the columns' fields, allows setting fields as `extra.*` (#50).
+- Use Vue-Select for choosing the columns' fields, allows setting fields as `extra.*` (#50).
 - Show the taxonomy resulting from the selected type (#45).
 
 #### Preview
