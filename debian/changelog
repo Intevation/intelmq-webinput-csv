@@ -1,8 +1,16 @@
+intelmq-webinput-csv (0.5.0-1) unstable; urgency=medium
+
+  * Compatibility with only IntelMQ 3.0.0.
+  * Preview: removed the "selected" checkbox per column, the field selector is sufficient.
+  * ',' is the default delimiter.
+
+ -- Sebastian Wagner <sebastian.wagner@intevation.de>  Mon, 13 Jun 2022 17:27:10 +0200
+
 intelmq-webinput-csv (0.4.2) experimental; urgency=medium
 
   * Lift intelmq<3 version restriction.
 
- -- Sebastian Wagner <sebix@sebix.at>  Tue, 24 May 2022 17:40:19 +0200
+ -- Sebastian Wagner <sebastian.wagner@intevation.de>  Tue, 24 May 2022 17:40:19 +0200
 
 intelmq-webinput-csv (0.4.1) experimental; urgency=medium
 

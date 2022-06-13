@@ -2,7 +2,7 @@ CHANGELOG
 =========
 
 
-0.5.0 (unreleased)
+0.5.0 (2022-06-13)
 ------------------
 
 ## Backend
@@ -10,6 +10,7 @@ CHANGELOG
 
 ## Frontend
 - Preview: removed the "selected" checkbox per column, the field selector is sufficient.
+- ',' is the default delimiter.
 
 
 0.4.1 (2021-10-02)

@@ -1,7 +1,6 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Copyright (c) 2017-2018 nic.at GmbH <wagner@cert.at>
-# Copyright (c) 2021 Bundesamt für Sicherheit in der Informationstechnik
+# Copyright (c) 2021-2022 Bundesamt für Sicherheit in der Informationstechnik
 # Authors:
 #   Sascha Wilde <wilde@intevation.de>
 # SPDX-License-Identifier: AGPL-3.0
