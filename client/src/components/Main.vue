@@ -174,7 +174,6 @@
                             spinner-small
                             spinner-variant="primary"
                             class="d-inline-block"
-                            @hidden="onHidden"
                           >
                             <b-button @click="sendData">Send data</b-button>
                           </b-overlay>
