@@ -13,9 +13,9 @@
         <b-form>
           <div>
             <label for="username">Username</label>
-            <b-form-input v-model="username" type="text" id="username"  placeholder="Name"></b-form-input>
+            <b-form-input v-model="username" type="text" id="username"  placeholder="Name" @keyup.enter="signIn"></b-form-input>
             <label for="password">Password</label>
-            <b-form-input v-model="password" type="password" id="password"  placeholder="Password"></b-form-input>
+            <b-form-input v-model="password" type="password" id="password"  placeholder="Password" @keyup.enter="signIn"></b-form-input>
           </div>
         </b-form>
         <template #modal-footer>
