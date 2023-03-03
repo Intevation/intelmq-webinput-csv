@@ -36,6 +36,7 @@ import dateutil.parser
 import json
 import os
 import logging
+from collections import defaultdict
 from pathlib import Path
 from webinput_session import config, session
 from intelmq import HARMONIZATION_CONF_FILE, CONFIG_DIR
@@ -118,11 +119,14 @@ def uploadCSV(body, request, response):
 
     data = body["data"]
     customs = body["custom"]
-    retval = []
+    retval = defaultdict(list)
     col = 0
-    line = 0
     lines_valid = 0
-    for item in data:
+    for lineno, item in enumerate(data):
+        if not item:
+            retval[lineno] = ('Line is empty', )
+            line_valid = False
+            continue
         event = Event()
         # Ensure dryrun has priority
         if body['dryrun']:
@@ -143,7 +147,7 @@ def uploadCSV(body, request, response):
             try:
                 event.add(key, value)
             except (InvalidValue, KeyExists) as exc:
-                retval.append((key, value, str(exc)))
+                retval[lineno].append(f"Failed to add data {value!r} as field {key!r}: {exc!s}")
                 line_valid = False
             col = col+1
         for key in CONSTANTS:
@@ -151,7 +155,7 @@ def uploadCSV(body, request, response):
                 try:
                     event.add(key, CONSTANTS[key])
                 except InvalidValue as exc:
-                    retval.append((key, CONSTANTS[key], str(exc)))
+                    retval[lineno].append(f"Failed to add data {CONSTANTS[key]!r} as field {key!r}: {exc!s}")
                     line_valid = False
         for key in customs:
             if not key.startswith('custom_'):
@@ -160,16 +164,14 @@ def uploadCSV(body, request, response):
                 try:
                     event.add(key[7:], customs[key])
                 except InvalidValue as exc:
-                    retval.append((key, customs[key], str(exc)))
+                    retval[lineno].append(f"Failed to add data {customs[key]!r} as field {key!r}: {exc!s}")
                     line_valid = False
         try:
             if CONFIG.get('destination_pipeline_queue_formatted', False):
                 CONFIG['destination_pipeline_queue'].format(ev=event)
         except Exception as exc:
-            retval.append((line, -1,
-                           CONFIG['destination_pipeline_queue'], repr(exc)))
+            retval[lineno].append(f"Failed to generate destination_pipeline_queue {CONFIG['destination_pipeline_queue']}: {exc!s}")
             line_valid = False
-        line = line+1
         if line_valid:
             lines_valid += 1
         else:
@@ -185,9 +187,12 @@ def uploadCSV(body, request, response):
         # if 'raw' not in event:
         #     event.add('raw', ''.join(raw_header + [handle_rewindable.current_line]))
         raw_message = MessageFactory.serialize(event)
-        destination_pipeline.send(raw_message)
-    retval = {"total": line,
-              "lines_invalid": line-lines_valid,
+        if body.get('submit', True) and line_valid:
+            destination_pipeline.send(raw_message)
+    # lineno is the index, for the number of lines add one
+    total_lines = lineno + 1 if data else 0
+    retval = {"total": total_lines,
+              "lines_invalid": total_lines-lines_valid,
               "errors": retval}
     return retval
 

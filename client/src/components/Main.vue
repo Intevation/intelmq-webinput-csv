@@ -175,7 +175,17 @@
                             spinner-variant="primary"
                             class="d-inline-block"
                           >
-                            <b-button @click="sendData">Send data</b-button>
+                            <b-button @click="sendData(submit=false)">Validate data</b-button>
+                          </b-overlay>
+                          <b-overlay
+                            :show="inProgress"
+                            rounded
+                            opacity="0.5"
+                            spinner-small
+                            spinner-variant="primary"
+                            class="d-inline-block"
+                          >
+                            <b-button @click="sendData(submit=true)">Send data</b-button>
                           </b-overlay>
                         </b-col>
                         <b-col>
@@ -218,6 +228,11 @@
                   <b-tooltip :target="data.label" triggers="hover">
                     {{ data.field.field }}
                   </b-tooltip>
+                </template>
+                <template #cell()="row">
+                  <div :class="getTableCellClass(row)">
+                    <span v-b-tooltip.hover :title="getTooltip(row.index, row.field.key)">{{row.value}}</span>
+                  </div>
                 </template>
                 <template #foot(name)="data">
                   <span class="text-danger">{{ data.label }}</span>
@@ -307,7 +322,8 @@ export default ({
       totalRows: 1,
       transfered: "",
       transferStatus: "text-danger",
-      loginErrorText: "Wrong username or password"
+      loginErrorText: "Wrong username or password",
+      dataErrors: [],
     }
   },
   computed: {
@@ -341,7 +357,7 @@ export default ({
     /**
      * Prepare and aggregate data and send the post request.
      */
-    sendData: function() {
+    sendData: function(submit=true) {
       this.inProgress = true;
       this.transfered = "in progress..."
       let data = []
@@ -371,24 +387,31 @@ export default ({
         timezone: this.timezone,
         data: data,
         custom: custom,
-        dryrun: this.dryrun
+        dryrun: this.dryrun,
+        submit: submit
       }
       var me = this;
       this.$http.post('api/upload', send)
         .then(response => {
           if (response.status !== 200) {
-            me.trasferStatus = "text-danger";
+            me.transferStatus = "text-danger";
             me.transfered = "Send failed!";
             me.inProgress = false;
             return;
           }
           response.json().then(data => {
-            me.transfered = "Injected " + (data.total - data.lines_invalid) + " lines. " + data.lines_invalid + " were invalid."
-            me.transferStatus = "text-black"
+            const num_errors = Object.keys(data.errors).length;
+            me.transfered = (submit ? "Submitted " : "Validated ") + (data.total) + " lines. " + num_errors + " errors, " + data.lines_invalid + " invalid lines.";
+            this.dataErrors = data.errors;
+            if (num_errors) {
+              me.transferStatus = "text-danger";
+            } else {
+              me.transferStatus = "text-black";
+            }
             me.inProgress = false;
           })
         }, (response) => {
-            me.trasferStatus = "text-danger";
+            me.transferStatus = "text-danger";
             me.transfered = response.body;
             me.inProgress = false;
             return;
@@ -578,6 +601,20 @@ export default ({
       }
       this.tableData = this.parserResult.data;
       this.overlay = false;
+    },
+    getTableCellClass(row) {
+      console.log("getTableCellClass called with rowIndex", row.index, row.field.key)
+      if (this.dataErrors[row.index]) {
+        return "table-danger"; // add a danger class to the row
+      }
+      return ""; // return an empty string for other rows
+    },
+    getTooltip(rowIndex, columnIndex) {
+      console.log("getTooltip called with rowIndex", rowIndex, "columnIndex", columnIndex, "errors", this.dataErrors[rowIndex])
+      if (this.dataErrors[rowIndex]) {
+        return this.dataErrors[rowIndex].join('. ');
+      }
+      return "";
     }
   }
 })
