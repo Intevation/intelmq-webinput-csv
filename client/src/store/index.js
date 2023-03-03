@@ -14,7 +14,8 @@ export default new Vuex.Store({
     harmonizationFields: [],
     harmonizationFieldMapping: [],
     customFields: [],
-    customFieldsMapping: []
+    customFieldsMapping: [],
+    requiredFields: [],
   },
   mutations: {
     SET_USER (state, user) {
@@ -46,7 +47,10 @@ export default new Vuex.Store({
     },
     SET_CUSTOM_FIELDS_MAPPING (state, data) {
       state.customFieldsMapping = data;
-    }
+    },
+    SET_REQUIRED_FIELDS (state, data) {
+      state.requiredFields = data;
+    },
   },
   actions: {
     login(context, credentials) {
@@ -108,6 +112,16 @@ export default new Vuex.Store({
               })
             }
             context.commit("SET_CUSTOM_FIELDS_MAPPING", mapping)
+          }
+        })
+      )
+    },
+    fetchRequiredFields(context) {
+      Vue.http.get("api/custom/required_fields").then(
+        response => response.json().then(data => {
+          if (data) {
+            console.log("SET_REQUIRED_FIELDS", data);
+            context.commit("SET_REQUIRED_FIELDS", data);
           }
         })
       )
