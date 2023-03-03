@@ -193,14 +193,16 @@
                         </b-col>
                       </b-row>
                       <b-row>
-                        <label title="These fields need to be present in the data. Data lines not containing them will not be submitted. Can be configured by the server administrator in the configuration.">
-                          Required fields:
-                          <span v-for="(field, index) in requiredFields" :key="index" style="margin-right: 3px">
-                            <span v-if="index !== 0">, </span>
-                            <code>{{ field }}</code>
-                          </span>
-                          <span v-if="!requiredFields.length">None</span>
+                        <b-col>
+                          <label title="These fields need to be present in the data. Data lines not containing them will not be submitted. Can be configured by the server administrator in the configuration.">
+                            Required fields:
+                            <span v-for="(field, index) in requiredFields" :key="index" style="margin-right: 3px">
+                              <span v-if="index !== 0">, </span>
+                              <code>{{ field }}</code>
+                            </span>
+                            <span v-if="!requiredFields.length">None</span>
                           </label>
+                        </b-col>
                       </b-row>
                     </b-container>
                   </b-col>
