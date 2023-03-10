@@ -157,7 +157,20 @@
                         Skip initial N lines after the header.
                       </b-tooltip>
                     </b-col>
+                    <b-col>
+                      <b-button v-b-toggle.template variant="primary">Template</b-button>
+                    </b-col>
                   </b-row>
+                  <b-collapse id="template" class="mt-2">
+                    <b-form-group>
+                      <b-form-textarea
+                        id="template"
+                        v-model="template"
+                        placeholder="E-Mail Template for Mailgen"
+                        rows="5"
+                      ></b-form-textarea>
+                    </b-form-group>
+                  </b-collapse>
                 </b-container>
               </b-card-body>
             </b-collapse>
@@ -359,6 +372,7 @@ export default ({
       loginErrorText: "Wrong username or password",
       dataErrors: [],
       authConfirmErrorText: '',
+      template: '',
     }
   },
   computed: {
@@ -426,6 +440,7 @@ export default ({
         submit: submit,
         username: this.username,
         password: this.password,
+        template: this.template,
       }
       var me = this;
       this.$http.post('api/upload', send)
