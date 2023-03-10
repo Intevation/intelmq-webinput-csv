@@ -696,8 +696,10 @@ export default ({
       }
       return "";
     },
+    /**
+     * when the user submits data, show the login form
+     */
     onSendData() {
-      // when the user submits data, show the login form
       // clear any previous error text
       this.authConfirmErrorText = null;
       this.showAuthConfirm = true;
