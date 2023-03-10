@@ -29,6 +29,27 @@
             </b-button>
         </template>
       </b-modal>
+      <b-modal v-model="showAuthConfirm" id="authconfirm-popup" title="Confirm Authentication for Submission">
+        <label v-if="authConfirmErrorText" class="text-danger">{{ authConfirmErrorText }}</label>
+        <b-form>
+          <div>
+            <label for="username">Username</label>
+            <b-form-input v-model="username" type="text" id="username"  placeholder="Name"></b-form-input>
+            <label for="password">Password</label>
+            <b-form-input v-model="password" type="password" id="password"  placeholder="Password"></b-form-input>
+          </div>
+        </b-form>
+        <template #modal-footer>
+            <b-button
+              variant="primary"
+              size="sm"
+              class="float-right"
+              @click="sendData(submit=true);"
+            >
+              Submit
+            </b-button>
+        </template>
+      </b-modal>
     </div>
     <div v-if="loggedIn">
       <div class="accordion" role="tablist">
@@ -185,7 +206,7 @@
                             spinner-variant="primary"
                             class="d-inline-block"
                           >
-                            <b-button @click="sendData(submit=true)">Send data</b-button>
+                            <b-button @click="onSendData">Send data</b-button>
                           </b-overlay>
                         </b-col>
                         <b-col>
@@ -300,6 +321,7 @@ export default ({
       username: "",
       password: "",
       showLogin: false,
+      showAuthConfirm: false,
       wrongCredentials: false,
       overlay: false,
       inProgress: false,
@@ -400,11 +422,17 @@ export default ({
         data: data,
         custom: custom,
         dryrun: this.dryrun,
-        submit: submit
+        submit: submit,
+        username: this.username,
+        password: this.password,
       }
       var me = this;
       this.$http.post('api/upload', send)
         .then(response => {
+          // authentication was successful, auth errors are treated below (401)
+          me.authConfirmSubmit = false;
+          me.authConfirmErrorText = null;
+          me.$bvModal.hide("authconfirm-popup");
           if (response.status !== 200) {
             me.transferStatus = "text-danger";
             me.transfered = "Send failed!";
@@ -414,7 +442,7 @@ export default ({
           response.json().then(data => {
             const num_errors = Object.keys(data.errors).length;
             me.transfered = (submit ? "Submitted " : "Validated ") + (data.total) + " lines. " + num_errors + " errors, " + data.lines_invalid + " invalid lines.";
-            this.dataErrors = data.errors;
+            me.dataErrors = data.errors;
             if (num_errors) {
               me.transferStatus = "text-danger";
             } else {
@@ -422,9 +450,19 @@ export default ({
             }
             me.inProgress = false;
           })
-        }, (response) => {
-            me.transferStatus = "text-danger";
-            me.transfered = response.body;
+        }, (response) => { // error
+            if (response.status == 401) {
+              // authentication error
+              me.authConfirmErrorText = response.body;
+            } else {
+              // other error
+              me.transferStatus = "text-danger";
+              me.transfered = response.body;
+              // auth was successful nevertheless, close the login and clear errors
+              me.authConfirmSubmit = false;
+              me.authConfirmErrorText = null;
+              me.$bvModal.hide("authconfirm-popup");
+            }
             me.inProgress = false;
             return;
         });
@@ -628,6 +666,12 @@ export default ({
         return this.dataErrors[rowIndex].join('. ');
       }
       return "";
+    },
+    onSendData() {
+      // when the user submits data, show the login form
+      // clear any previous error text
+      this.authConfirmErrorText = null;
+      this.showAuthConfirm = true;
     }
   }
 })

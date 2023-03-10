@@ -10,7 +10,7 @@ Development: call like
 Several configuration methods are shown within the code.
 
 
-Copyright (C) 2016, 2017 by Bundesamt für Sicherheit in der Informationstechnik
+Copyright (C) 2016, 2017, 2022-2023 by Bundesamt für Sicherheit in der Informationstechnik
 
 Software engineering by Intevation GmbH
 
@@ -32,6 +32,7 @@ Author(s):
 """
 
 import hug
+import falcon
 import dateutil.parser
 import json
 import os
@@ -109,6 +110,15 @@ def login(username: str, password: str):
 
 @hug.post(ENDPOINT_PREFIX + '/api/upload', requires=session.token_authentication)
 def uploadCSV(body, request, response):
+    # additional authentication is requried for this call
+    if body.get('submit', True) and session.session_store is not None:
+        username = body.get('username')
+        password = body.get('password')
+        known = session.session_store.verify_user(username, password)
+        if known is None:
+            response.status = falcon.HTTP_401
+            return "Invalid username and/or password"
+
     destination_pipeline = PipelineFactory.create(pipeline_args=CONFIG['intelmq'],
                                                   logger=log,
                                                   direction='destination')
