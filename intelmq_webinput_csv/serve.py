@@ -47,6 +47,11 @@ from intelmq.lib.message import Event, MessageFactory
 from intelmq.bots.experts.taxonomy.expert import TAXONOMY
 from intelmq.lib.exceptions import InvalidValue, KeyExists
 
+try:
+    import intelmqmail.cb
+except ImportError:
+    intelmqmail = None
+
 with open(HARMONIZATION_CONF_FILE) as handle:
     EVENT_FIELDS = json.load(handle)
 
@@ -235,6 +240,26 @@ def custom_fields():
 # @hug.get("/")
 # def get_endpoints():
 #     return ENDPOINTS
+
+
+@hug.post(ENDPOINT_PREFIX + '/api/mailgen/run', requires=session.token_authentication)
+def mailgen_run(body, request, response):
+    """
+    Start mailgen
+    """
+    template = body.get('template')
+    if intelmqmail is None:
+        response.status = falcon.status.HTTP_500
+        return "intelmqmail is not available on this system."
+    class args:
+        all = True
+    mailgen_config = intelmqmail.cb.read_configuration()
+    scripts = intelmqmail.cb.load_script_entry_points(config)
+    if not scripts:
+        response.status = falcon.status.HTTP_500
+        return f"Could not load any scripts from {mailgen_config['script_directory']!r}"
+
+    intelmqmail.cb.mailgen(args, mailgen_config, scripts)
 
 
 if __name__ == '__main__':

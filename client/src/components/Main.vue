@@ -211,6 +211,8 @@
                           >
                             <b-button @click="sendData(submit=false)">Validate data</b-button>
                           </b-overlay>
+                        </b-col>
+                        <b-col>
                           <b-overlay
                             :show="inProgress"
                             rounded
@@ -220,6 +222,18 @@
                             class="d-inline-block"
                           >
                             <b-button @click="onSendData">Send data</b-button>
+                          </b-overlay>
+                        </b-col>
+                        <b-col>
+                          <b-overlay
+                            :show="inProgress"
+                            rounded
+                            opacity="0.5"
+                            spinner-small
+                            spinner-variant="primary"
+                            class="d-inline-block"
+                          >
+                            <b-button @click="runMailgen">Start Mailgen</b-button>
                           </b-overlay>
                         </b-col>
                         <b-col>
@@ -440,7 +454,6 @@ export default ({
         submit: submit,
         username: this.username,
         password: this.password,
-        template: this.template,
       }
       var me = this;
       this.$http.post('api/upload', send)
@@ -688,6 +701,23 @@ export default ({
       // clear any previous error text
       this.authConfirmErrorText = null;
       this.showAuthConfirm = true;
+    },
+    /**
+     * Trigger a mailgen run
+     */
+    runMailgen() {
+      //var me = this;
+      this.$http.post('api/mailgen/run', {template: this.template})
+        .then(response => {
+          this.transferStatus = "text-black";
+          this.inProgress = false;
+          this.transferred = response.body;
+        }, (response) => { // error
+          this.transferStatus = "text-danger";
+          this.transferred = response.body;
+          this.inProgress = false;
+          return;
+        });
     }
   }
 })
