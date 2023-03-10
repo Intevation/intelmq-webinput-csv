@@ -358,6 +358,7 @@ export default ({
       transferStatus: "text-danger",
       loginErrorText: "Wrong username or password",
       dataErrors: [],
+      authConfirmErrorText: '',
     }
   },
   computed: {
