@@ -110,3 +110,49 @@ The user can use two different mailgen-instance, a "normal" one and one for the 
    ```
    Filtering by events-data decreases the performance, it is recommended to use filters on the directives only when possible.
    Documentation: https://github.com/Intevation/intelmq-mailgen#user-content-database-1
+
+### Mailgen Templates
+
+The CERTBund Rules expert bases its decision which Template to use solely on the event itself.
+Additional information can be added by the Webinput operator.
+
+Add a new input field to the Webinput Configuration like this:
+```json
+    "custom_input_fields": {
+        "extra.template_prefix": ""
+    }
+```
+
+A rule of the CERTBund Contact rules expert may look like this:
+
+```python
+def determine_directives(context):
+    ...
+    template = context.get("extra.template_prefix", "oneshot_fallback")
+    # Remove the field
+    context.pop("extra.template_prefix", None)
+    add_directives_to_context(context, msm, template)
+    return True
+
+...
+
+def create_directive(notification_format, matter, target_group, interval, data_format):
+    """
+    This method creates Directives looking like:
+    template_name: openportmapper_provider
+    notification_format: vulnerable-service
+    notification_interval: 86400
+    data_format: openportmapper_csv_inline
+
+    """
+    return Directive(template_name=matter + "_" + target_group,
+                     notification_format=notification_format,
+                     event_data_format=data_format,
+                     notification_interval=interval)
+
+```
+
+In this example, the template will be `$event[extra.template_prefix]_$target_group`.
+More complex rules can be used of course.
+
+Keep in mind that the templates files need to exist beforehand.
