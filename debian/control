@@ -25,7 +25,7 @@ Description: Full expanded source of intelmq-webinput-csv client.
  contain most of the sources actually used to build the binary
  package.
  .
- This package contains the full tree witrh all dependencies installed
+ This package contains the full tree with all dependencies installed
  turing build time.  It is installed below /usr/src and mainly intended
  for reference.
  .

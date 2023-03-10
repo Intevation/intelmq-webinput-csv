@@ -28,4 +28,4 @@ jobs:
     - name: Install codespell
       run: pip install codespell
     - name: Run codespell
-      run: /home/runner/.local/bin/codespell -S "./client/yarn.lock,./client/src/components/*"
+      run: /home/runner/.local/bin/codespell -S "./client/yarn.lock,./client/src/components/*,.git/*"

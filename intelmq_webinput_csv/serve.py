@@ -110,7 +110,7 @@ def login(username: str, password: str):
 
 @hug.post(ENDPOINT_PREFIX + '/api/upload', requires=session.token_authentication)
 def uploadCSV(body, request, response):
-    # additional authentication is requried for this call
+    # additional authentication is required for this call
     if body.get('submit', True) and session.session_store is not None:
         username = body.get('username')
         password = body.get('password')

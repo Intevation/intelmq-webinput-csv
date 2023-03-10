@@ -210,7 +210,7 @@
                           </b-overlay>
                         </b-col>
                         <b-col>
-                          <label style="margin-left: 10px;" :class="transferStatus">{{ transfered }}</label>
+                          <label style="margin-left: 10px;" :class="transferStatus">{{ transferred }}</label>
                         </b-col>
                       </b-row>
                       <b-row>
@@ -354,7 +354,7 @@ export default ({
       pageOptions: [5, 10, 25, 100],
       perPage: 25,
       totalRows: 1,
-      transfered: "",
+      transferred: "",
       transferStatus: "text-danger",
       loginErrorText: "Wrong username or password",
       dataErrors: [],
@@ -393,7 +393,7 @@ export default ({
      */
     sendData: function(submit=true) {
       this.inProgress = true;
-      this.transfered = "in progress..."
+      this.transferred = "in progress..."
       let data = []
       for (let item of this.parserResult.data) {
         let sendItem = {};
@@ -435,13 +435,13 @@ export default ({
           me.$bvModal.hide("authconfirm-popup");
           if (response.status !== 200) {
             me.transferStatus = "text-danger";
-            me.transfered = "Send failed!";
+            me.transferred = "Send failed!";
             me.inProgress = false;
             return;
           }
           response.json().then(data => {
             const num_errors = Object.keys(data.errors).length;
-            me.transfered = (submit ? "Submitted " : "Validated ") + (data.total) + " lines. " + num_errors + " errors, " + data.lines_invalid + " invalid lines.";
+            me.transferred = (submit ? "Submitted " : "Validated ") + (data.total) + " lines. " + num_errors + " errors, " + data.lines_invalid + " invalid lines.";
             me.dataErrors = data.errors;
             if (num_errors) {
               me.transferStatus = "text-danger";
@@ -457,7 +457,7 @@ export default ({
             } else {
               // other error
               me.transferStatus = "text-danger";
-              me.transfered = response.body;
+              me.transferred = response.body;
               // auth was successful nevertheless, close the login and clear errors
               me.authConfirmSubmit = false;
               me.authConfirmErrorText = null;
@@ -538,7 +538,7 @@ export default ({
       this.tableHeader = []
       this.overlay = false;
       this.inProgress = false;
-      this.transfered = "";
+      this.transferred = "";
       this.delimiter = ",";
       this.quoteChar = '"';
       this.escapeChar = "\\";
