@@ -56,3 +56,57 @@ Additional fields with default values are configurable.
 To submit the data to intelmq click *Send*. All lines not failing will be submitted.
 
 After submission, the total number of submitted lines is given.
+
+Integration with Mailgen
+------------------------
+
+In IntelMQ-setups, which use IntelMQ Mailgen to create and deliver notifications to network owners, some additional tweaks add more value and flexibility to the system.
+
+### Applying different bots on one-shot data
+
+In a typical IntelMQ setup, all collectors and parsers feed the data into a consecutive queue of expert bots and finally into one or more output bots.
+Running different bots (or the same bots but with other parameters) may be necessary for one-shot data.
+
+The parameter `destination_pipeline_queue` defines where the IntelMQ Webinput injects the data into the IntelMQ pipeline.
+
+Further, setting a unique attribute in the events itself (typically in the `extra` or `feed` section) allows applying "switches" (like rail switches) in the IntelMQ pipeline, by routing the one-shot data to different bots. The configuration parameters `constant_fields` and `custom_input_fields` are ideal for achieving this. For example:
+```json
+    "constant_fields": {
+        "feed.provider": "my-organization"
+    }
+```
+
+If a CERTBund Rules expert may receive data from IntelMQ Webinput, but should ignore it, a rule similar to this example can be used:
+```python
+from intelmq_certbund_contact.rulesupport import Directive
+
+
+def determine_directives(context):
+    if context.section == "destination":
+        return
+    feed = context.get("feed.name")
+    if feed.startswith('oneshot-csv'):
+        context.logger.info('Oneshot detected!')
+        return True
+    return
+```
+In this example `feed.name = 'oneshot-csv'` is the ignore-criteria.
+
+### Using a differing IntelMQ Mailgen
+
+Normally the data from the normal IntelMQ pipeline and the one-shot data end in the same database, resulting in a mix again. For sending the notifications, IntelMQ Mailgen needs to filter by the criteria again when querying the database.
+
+The user can use two different mailgen-instance, a "normal" one and one for the one-shot data. Two features are useful for this:
+1. intelmqcbmail has a command line parameter `--config` / `-c` to read alternative configuration files instead of the default `/etc/intelmq/intelmq-mailgen.conf`. For example:
+   > intelmqcbmail -c /etc/intelmq/intelmq-mailgen-oneshot.conf
+  See for more details: https://github.com/Intevation/intelmq-mailgen#user-content-configuration
+2. The configuration parameter `additional_directive_where`, adding additional conditions to the WHERE-clause of the SQL-statement for the directives:
+   ```sql
+       "additional_directive_where": "\"template_name\" = 'qakbot_provider'"
+   ```
+   It is also possible to filter by the event's attributes. For this purpose, the events-table will be joined automatically.
+   ```sql
+       "additional_directive_where": "events.\"feed.provider\" = 'my-organization'"
+   ```
+   Filtering by events-data decreases the performance, it is recommended to use filters on the directives only when possible.
+   Documentation: https://github.com/Intevation/intelmq-mailgen#user-content-database-1
