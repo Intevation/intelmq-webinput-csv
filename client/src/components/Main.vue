@@ -237,7 +237,16 @@
                           </b-overlay>
                         </b-col>
                         <b-col>
-                          <label style="margin-left: 10px;" :class="transferStatus">{{ transferred }}</label>
+                          <b-overlay
+                            :show="inProgress"
+                            rounded
+                            opacity="0.5"
+                            spinner-small
+                            spinner-variant="primary"
+                            class="d-inline-block"
+                          >
+                            <label style="margin-left: 10px;" :class="transferStatus">{{ transferred }}</label>
+                          </b-overlay>
                         </b-col>
                       </b-row>
                       <b-row>
@@ -709,6 +718,7 @@ export default ({
      */
     runMailgen() {
       //var me = this;
+      this.inProgress = true;
       this.$http.post('api/mailgen/run', {template: this.template})
         .then(response => {
           this.transferStatus = "text-black";
