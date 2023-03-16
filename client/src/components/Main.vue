@@ -50,6 +50,18 @@
             </b-button>
         </template>
       </b-modal>
+      <b-modal v-model="showMailgenLog" scrollable centered size="xl" id="mailgenLog-popup" title="Mailgen Log">
+        <code class="text-black"><pre>{{ mailgenLog }}</pre></code>
+        <template #modal-footer>
+          <b-button
+            variant="primary"
+            class="float-right"
+            @click="showMailgenLog=false"
+          >
+            Close
+          </b-button>
+        </template>
+      </b-modal>
     </div>
     <div v-if="loggedIn">
       <div class="accordion" role="tablist">
@@ -245,7 +257,8 @@
                             spinner-variant="primary"
                             class="d-inline-block"
                           >
-                            <label style="margin-left: 10px;" :class="transferStatus">{{ transferred }}</label>
+                            <label style="margin-left: 10px;" :class="transferStatus">{{ transferred }}</label><br />
+                            <b-button @click="showMailgenLog=true" v-b-modal.mailgenLog-popup v-if="mailgenLog">Show log</b-button>
                           </b-overlay>
                         </b-col>
                       </b-row>
@@ -396,6 +409,8 @@ export default ({
       dataErrors: [],
       authConfirmErrorText: '',
       template: '',
+      showMailgenLog: false,
+      mailgenLog: ''
     }
   },
   computed: {
@@ -719,11 +734,20 @@ export default ({
     runMailgen() {
       //var me = this;
       this.inProgress = true;
+      this.mailgenLog = '';
       this.$http.post('api/mailgen/run', {template: this.template})
         .then(response => {
-          this.transferStatus = "text-black";
           this.inProgress = false;
           this.transferred = response.body;
+          response.json().then(data => {
+            this.transferStatus = "text-black";
+            this.transferred = data.result;
+            this.mailgenLog = data.log;
+          }).catch(err => {
+            // body was not JSON
+            this.transferStatus = "text-danger";
+            this.transferred = err;
+        });
         }, (response) => { // error
           this.transferStatus = "text-danger";
           this.transferred = response.body;

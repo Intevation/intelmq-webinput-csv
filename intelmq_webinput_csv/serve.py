@@ -34,6 +34,7 @@ Author(s):
 import hug
 import falcon
 import dateutil.parser
+import io
 import json
 import os
 import sys
@@ -251,20 +252,25 @@ def mailgen_run(body, request, response):
     Start mailgen
     """
     template = body.get('template')
+
+    log = io.StringIO()
+    log_handler = logging.StreamHandler(stream=log)
+    logging.getLogger('intelmqmail').addHandler(log_handler)
+
     if cb is None:
         response.status = falcon.status.HTTP_500
-        return "intelmqmail is not available on this system."
+        return {"result": "intelmqmail is not available on this system."}
 
     try:
         mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
         template_dir = Path(mailgen_config['template_dir'])
         with open(template_dir / CONFIG['mailgen_temporary_template_name'], 'w') as template_handle:
             template_handle.write(template)
-        return cb.start(mailgen_config, process_all=True)
+        return {"result": cb.start(mailgen_config, process_all=True), "log": log.getvalue()}
     except Exception as exc:
         response.status = falcon.status.HTTP_500
         traceback.print_exc(file=sys.stderr)
-        return str(traceback.format_exc())
+        return {"result": str(traceback.format_exc()), "log": log.getvalue()}
 
 
 if __name__ == '__main__':
