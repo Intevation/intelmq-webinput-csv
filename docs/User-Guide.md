@@ -170,12 +170,12 @@ Keep in mind that the templates files need to exist beforehand.
 
 The Webinput operator can set the template directly in user interface with the *Template* button in the *CSV Content* section.
 When clicking *Start Mailgen*, places the template under the file name configured in `mailgen_temporary_template_name` in mailgen's template path (parameter `template_dir` of mailgen).
-For this to work, a mailgen *script* (also called *format*) must be active which sets the template to the same value, for example:
+For this to work, a mailgen *script* (also called *format*) must be active which sets the *template name* to the same value, for example:
 ```python
 ...
 
 def create_notifications(context):
-    return context.mail_format_as_csv(table_format, template='oneshot',
+    return context.mail_format_as_csv(table_format, template_name='oneshot',
                                       substitutions={})
 ```
 
