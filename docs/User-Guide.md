@@ -23,6 +23,11 @@ needed to submit data to IntelMQ. There is no internal default.
 * `constant_fields`: Similar to above, but not shown to the user and added to all processed events.
 * `required_fields`: A list of IntelMQ field names. If set (not empty list), all lines need to have these fields, otherwise they are marked as invalid and not submitted to IntelMQ. Example: `required_fields: ["time.source", "source.ip"]`
 
+### Mailgen configuration parameters
+
+* `mailgen_config_file`: Optional path to the mailgen configuration file.
+* `mailgen_temporary_template_name`: Name of the temporary mailgen template.
+
 Usage
 -----
 
@@ -116,6 +121,10 @@ The user can use two different mailgen-instance, a "normal" one and one for the 
 The CERTBund Rules expert bases its decision which Template to use solely on the event itself.
 Additional information can be added by the Webinput operator.
 
+#### With system-defined templates
+
+The templates are already configured on the server by the system administrator and the Webinput Operator chooses influences/chooses which template mailgen will use.
+
 Add a new input field to the Webinput Configuration like this:
 ```json
     "custom_input_fields": {
@@ -156,3 +165,21 @@ In this example, the template will be `$event[extra.template_prefix]_$target_gro
 More complex rules can be used of course.
 
 Keep in mind that the templates files need to exist beforehand.
+
+### With operator-defined templates
+
+The Webinput operator can set the template directly in user interface with the *Template* button in the *CSV Content* section.
+When clicking *Start Mailgen*, places the template under the file name configured in `mailgen_temporary_template_name` in mailgen's template path (parameter `template_dir` of mailgen).
+For this to work, a mailgen *script* (also called *format*) must be active which sets the template to the same value, for example:
+```python
+...
+
+def create_notifications(context):
+    return context.mail_format_as_csv(table_format, template='oneshot',
+                                      substitutions={})
+```
+
+### Starting Mailgen
+
+If `mailgen_config_file` is not set, mailgen loads the default configuration file (`'/etc/intelmq/intelmq-mailgen.conf'`).
+Mailgen, as always, additionally reads the user (the webserver user) configuration file (`'~/.intelmq/intelmq-mailgen.conf'`).

@@ -36,6 +36,8 @@ import falcon
 import dateutil.parser
 import json
 import os
+import sys
+import traceback
 import logging
 from collections import defaultdict
 from pathlib import Path
@@ -48,9 +50,9 @@ from intelmq.bots.experts.taxonomy.expert import TAXONOMY
 from intelmq.lib.exceptions import InvalidValue, KeyExists
 
 try:
-    import intelmqmail.cb
+    from intelmqmail import cb
 except ImportError:
-    intelmqmail = None
+    cb = None
 
 with open(HARMONIZATION_CONF_FILE) as handle:
     EVENT_FIELDS = json.load(handle)
@@ -249,18 +251,20 @@ def mailgen_run(body, request, response):
     Start mailgen
     """
     template = body.get('template')
-    if intelmqmail is None:
+    if cb is None:
         response.status = falcon.status.HTTP_500
         return "intelmqmail is not available on this system."
-    class args:
-        all = True
-    mailgen_config = intelmqmail.cb.read_configuration()
-    scripts = intelmqmail.cb.load_script_entry_points(config)
-    if not scripts:
-        response.status = falcon.status.HTTP_500
-        return f"Could not load any scripts from {mailgen_config['script_directory']!r}"
 
-    intelmqmail.cb.mailgen(args, mailgen_config, scripts)
+    try:
+        mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
+        template_dir = Path(mailgen_config['template_dir'])
+        with open(template_dir / CONFIG['mailgen_temporary_template_name'], 'w') as template_handle:
+            template_handle.write(template)
+        return cb.start(mailgen_config, process_all=True)
+    except Exception as exc:
+        response.status = falcon.status.HTTP_500
+        traceback.print_exc(file=sys.stderr)
+        return str(traceback.format_exc())
 
 
 if __name__ == '__main__':
