@@ -31,24 +31,26 @@ Author(s):
     * Raimund Renkert <raimund.renkert@intevation.de>
 """
 
-import hug
-import falcon
-import dateutil.parser
 import io
 import json
+import logging
 import os
 import sys
 import traceback
-import logging
 from collections import defaultdict
 from pathlib import Path
-from webinput_session import config, session
-from intelmq import HARMONIZATION_CONF_FILE, CONFIG_DIR
-from intelmq.lib.pipeline import PipelineFactory
-from intelmq.lib.harmonization import DateTime
-from intelmq.lib.message import Event, MessageFactory
+
+import dateutil.parser
+import falcon
+import hug
+from intelmq import CONFIG_DIR, HARMONIZATION_CONF_FILE
 from intelmq.bots.experts.taxonomy.expert import TAXONOMY
 from intelmq.lib.exceptions import InvalidValue, KeyExists
+from intelmq.lib.harmonization import DateTime
+from intelmq.lib.message import Event, MessageFactory
+from intelmq.lib.pipeline import PipelineFactory
+
+from webinput_session import config, session
 
 try:
     from intelmqmail import cb
@@ -168,7 +170,7 @@ def uploadCSV(body, request, response):
             except (InvalidValue, KeyExists) as exc:
                 retval[lineno].append(f"Failed to add data {value!r} as field {key!r}: {exc!s}")
                 line_valid = False
-            col = col+1
+            col = col + 1
         for key in CONSTANTS:
             if key not in event:
                 try:
@@ -212,11 +214,13 @@ def uploadCSV(body, request, response):
         #     event.add('raw', ''.join(raw_header + [handle_rewindable.current_line]))
         raw_message = MessageFactory.serialize(event)
         if body.get('submit', True) and line_valid:
+            log.error('Would send now')
+            log.error('PRINT: Would send now')
             destination_pipeline.send(raw_message)
     # lineno is the index, for the number of lines add one
     total_lines = lineno + 1 if data else 0
     retval = {"total": total_lines,
-              "lines_invalid": total_lines-lines_valid,
+              "lines_invalid": total_lines - lines_valid,
               "errors": retval}
     return retval
 
@@ -247,7 +251,7 @@ def required_fields():
 
 
 @hug.get(ENDPOINT_PREFIX + '/api/mailgen/available', requires=session.token_authentication)
-def mailgen_run():
+def mailgen_available():
     """
     Returns true/false if mailgen is installed on the system.
     """
@@ -275,7 +279,7 @@ def mailgen_run(body, request, response):
         with open(template_dir / CONFIG['mailgen_temporary_template_name'], 'w') as template_handle:
             template_handle.write(template)
         return {"result": cb.start(mailgen_config, process_all=True), "log": log.getvalue()}
-    except Exception as exc:
+    except Exception:
         response.status = falcon.status.HTTP_500
         traceback.print_exc(file=sys.stderr)
         return {"result": str(traceback.format_exc()), "log": log.getvalue()}

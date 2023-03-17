@@ -124,7 +124,6 @@ export default new Vuex.Store({
       Vue.http.get("api/custom/required_fields").then(
         response => response.json().then(data => {
           if (data) {
-            console.log("SET_REQUIRED_FIELDS", data);
             context.commit("SET_REQUIRED_FIELDS", data);
           }
         })

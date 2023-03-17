@@ -410,7 +410,7 @@ export default ({
       authConfirmErrorText: '',
       template: '',
       showMailgenLog: false,
-      mailgenLog: ''
+      mailgenLog: '',
     }
   },
   computed: {
