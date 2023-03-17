@@ -170,7 +170,7 @@
                       </b-tooltip>
                     </b-col>
                     <b-col>
-                      <b-button v-b-toggle.template variant="primary" :disabled="!mailgenAvailable" :title="mailgenAvailable ? 'Mailgen Template' : 'Mailgen is not installed/available'">Template</b-button>
+                      <b-button v-b-toggle.template v-b-tooltip.hover variant="primary" :disabled="!mailgenAvailable" :title="mailgenAvailable ? 'Mailgen Template' : 'Mailgen is not installed/available'">Template</b-button>
                     </b-col>
                   </b-row>
                   <b-collapse id="template" class="mt-2">
@@ -178,7 +178,7 @@
                       <b-form-textarea
                         id="template"
                         v-model="template"
-                        placeholder="E-Mail Template for Mailgen"
+                        placeholder="E-Mail Template for Mailgen. First line is the subject. Use ${fieldname} to insert aggregated field names and ${events_as_csv} for a CSV attachment."
                         rows="5"
                       ></b-form-textarea>
                     </b-form-group>
@@ -198,14 +198,14 @@
               <b-container fluid>
                 <b-row>
                   <b-col>
-                    <label>Lines: {{ lines }}, Errors: {{ errors }} </label>
+                    <label>CSV Parsing Result: {{ lines }} lines, {{ errors }} errors</label>
                     <b-form-group label-cols=4 label="Timezone">
                       <b-form-select
                         v-model="timezone"
                         :options="timezones"
                       ></b-form-select>
                     </b-form-group>
-                    <b-form-group label-cols=4 label="Dryrun">
+                    <b-form-group v-b-tooltip.hover label-cols=4 label="Dryrun" title="Override the values of Classification Type and Classification Identifier to 'test'.">
                       <b-form-checkbox
                         v-model="dryrun"
                       ></b-form-checkbox>
@@ -221,7 +221,7 @@
                             spinner-variant="primary"
                             class="d-inline-block"
                           >
-                            <b-button @click="sendData(submit=false)">Validate data</b-button>
+                            <b-button @click="sendData(submit=false)" variant="info">Validate data</b-button>
                           </b-overlay>
                         </b-col>
                         <b-col>
@@ -233,7 +233,7 @@
                             spinner-variant="primary"
                             class="d-inline-block"
                           >
-                            <b-button @click="onSendData">Send data</b-button>
+                            <b-button @click="onSendData" variant="primary">Send data</b-button>
                           </b-overlay>
                         </b-col>
                         <b-col>
@@ -245,7 +245,7 @@
                             spinner-variant="primary"
                             class="d-inline-block"
                           >
-                            <b-button @click="runMailgen" variant="primary" :disabled="!mailgenAvailable" :title="mailgenAvailable ? 'Start Mailgen' : 'Mailgen is not installed/available'">Start Mailgen</b-button>
+                            <b-button v-b-tooltip.hover @click="runMailgen" variant="primary" :disabled="!mailgenAvailable" :title="mailgenAvailable ? 'Start Mailgen' : 'Mailgen is not installed/available'">Start Mailgen</b-button>
                           </b-overlay>
                         </b-col>
                         <b-col>
@@ -264,7 +264,7 @@
                       </b-row>
                       <b-row>
                         <b-col>
-                          <label title="These fields need to be present in the data. Data lines not containing them will not be submitted. Can be configured by the server administrator in the configuration.">
+                          <label v-b-tooltip.hover title="These fields need to be present in the data. Data lines not containing them will not be submitted. Can be configured by the server administrator in the configuration.">
                             Required fields:
                             <span v-for="(field, index) in requiredFields" :key="index" style="margin-right: 3px">
                               <span v-if="index !== 0">, </span>
@@ -277,14 +277,14 @@
                     </b-container>
                   </b-col>
                   <b-col>
-                    <label>Constant fields (fallback)</label>
+                    <h4>Constant fields (fallback values)</h4>
                     <b-form-group label-cols=4 label="classification type">
                       <b-form-select
                         v-model="classificationType"
                         :options="classificationTypes"
                       ></b-form-select>
                     </b-form-group>
-                    <b-form-group v-for="field in customFieldsMapping" :key="field.key" :id="field.key" label-cols=4 :label="field.key">
+                    <b-form-group v-for="field in customFieldsMapping" :key="field.key" :id="field.key" label-cols=4 :label="field.key" label-class="text-monospace">
                       <b-form-input v-model="field.value" type="text"></b-form-input>
                     </b-form-group>
                   </b-col>
