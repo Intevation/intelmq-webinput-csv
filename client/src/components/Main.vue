@@ -170,7 +170,7 @@
                       </b-tooltip>
                     </b-col>
                     <b-col>
-                      <b-button v-b-toggle.template variant="primary">Template</b-button>
+                      <b-button v-b-toggle.template variant="primary" :disabled="!mailgenAvailable" :title="mailgenAvailable ? 'Mailgen Template' : 'Mailgen is not installed/available'">Template</b-button>
                     </b-col>
                   </b-row>
                   <b-collapse id="template" class="mt-2">
@@ -245,7 +245,7 @@
                             spinner-variant="primary"
                             class="d-inline-block"
                           >
-                            <b-button @click="runMailgen">Start Mailgen</b-button>
+                            <b-button @click="runMailgen" variant="primary" :disabled="!mailgenAvailable" :title="mailgenAvailable ? 'Start Mailgen' : 'Mailgen is not installed/available'">Start Mailgen</b-button>
                           </b-overlay>
                         </b-col>
                         <b-col>
@@ -414,7 +414,7 @@ export default ({
     }
   },
   computed: {
-    ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields']),
+    ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable']),
   },
   mounted() {
     // Create timezone strings
@@ -567,6 +567,7 @@ export default ({
         this.$store.dispatch("fetchHarmonizationFields");
         this.$store.dispatch("fetchRequiredFields");
         this.$store.dispatch("fetchCustomFields");
+        this.$store.dispatch("fetchMailgenAvailable");
       }, (response) => {
         if (response.status !== 200) {
           this.loginErrorText = "Server not reachable.";

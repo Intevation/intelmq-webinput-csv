@@ -16,6 +16,7 @@ export default new Vuex.Store({
     customFields: [],
     customFieldsMapping: [],
     requiredFields: [],
+    mailgenAvailable: null,
   },
   mutations: {
     SET_USER (state, user) {
@@ -51,6 +52,9 @@ export default new Vuex.Store({
     SET_REQUIRED_FIELDS (state, data) {
       state.requiredFields = data;
     },
+    SET_MAILGEN_AVAILABLE (state, data) {
+      state.mailgenAvailable = data;
+    }
   },
   actions: {
     login(context, credentials) {
@@ -123,6 +127,13 @@ export default new Vuex.Store({
             console.log("SET_REQUIRED_FIELDS", data);
             context.commit("SET_REQUIRED_FIELDS", data);
           }
+        })
+      )
+    },
+    fetchMailgenAvailable(context) {
+      Vue.http.get("api/mailgen/available").then(
+        response => response.json().then(data => {
+          context.commit("SET_MAILGEN_AVAILABLE", data);
         })
       )
     }

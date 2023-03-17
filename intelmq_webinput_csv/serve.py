@@ -246,6 +246,14 @@ def required_fields():
 #     return ENDPOINTS
 
 
+@hug.get(ENDPOINT_PREFIX + '/api/mailgen/available', requires=session.token_authentication)
+def mailgen_run():
+    """
+    Returns true/false if mailgen is installed on the system.
+    """
+    return bool(cb)
+
+
 @hug.post(ENDPOINT_PREFIX + '/api/mailgen/run', requires=session.token_authentication)
 def mailgen_run(body, request, response):
     """
