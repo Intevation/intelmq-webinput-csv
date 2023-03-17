@@ -722,12 +722,18 @@ export default ({
       return "";
     },
     /**
-     * when the user submits data, show the login form
+     * when the user submits data, decide if login form is shown
+     * if dryrun is active, just submit
+     * ottherwise show the login form again
      */
     onSendData() {
-      // clear any previous error text
-      this.authConfirmErrorText = null;
-      this.showAuthConfirm = true;
+      if (this.dryrun) {
+        this.sendData();
+      } else {
+        // clear any previous error text
+        this.authConfirmErrorText = null;
+        this.showAuthConfirm = true;
+      }
     },
     /**
      * Trigger a mailgen run
