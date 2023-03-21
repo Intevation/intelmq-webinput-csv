@@ -269,13 +269,18 @@ def mailgen_run(body, request, response):
     log_handler = logging.StreamHandler(stream=log)
     logging.getLogger('intelmqmail').addHandler(log_handler)
 
+    if body.get('verbose'):
+        logging.getLogger('intelmqmail').setLevel(logging.DEBUG)
+    else:
+        logging.getLogger('intelmqmail').setLevel(logging.INFO)
+
     if cb is None:
         response.status = falcon.status.HTTP_500
         return {"result": "intelmqmail is not available on this system."}
 
     try:
         mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
-        return {"result": cb.start(mailgen_config, process_all=True, template=template), "log": log.getvalue()}
+        return {"result": cb.start(mailgen_config, process_all=True, template=template), "log": log.getvalue().strip()}
     except Exception:
         response.status = falcon.status.HTTP_500
         traceback.print_exc(file=sys.stderr)
