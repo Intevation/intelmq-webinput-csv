@@ -232,20 +232,7 @@
                             spinner-variant="primary"
                             class="d-inline-block"
                           >
-                            <b-button v-b-tooltip.hover @click="runMailgen" variant="primary" :disabled="!mailgenAvailable" :title="mailgenAvailable ? 'Start Mailgen' : 'Mailgen is not installed/available'">Start Mailgen</b-button>
-                          </b-overlay>
-                        </b-col>
-                        <b-col>
-                          <b-overlay
-                            :show="inProgress"
-                            rounded
-                            opacity="0.5"
-                            spinner-small
-                            spinner-variant="primary"
-                            class="d-inline-block"
-                          >
                             <label style="margin-left: 10px;" :class="transferStatus">{{ transferred }}</label><br />
-                            <b-button @click="showMailgenLog=true" v-b-modal.mailgenLog-popup v-if="mailgenLog">Show log</b-button>
                           </b-overlay>
                         </b-col>
                       </b-row>
