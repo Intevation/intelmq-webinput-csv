@@ -149,10 +149,6 @@ def uploadCSV(body, request, response):
             line_valid = False
             continue
         event = Event()
-        # Ensure dryrun has priority
-        if body['dryrun']:
-            event.add('classification.identifier', 'test')
-            event.add('classification.type', 'test')
         line_valid = True
         for key in item:
             value = item[key]
@@ -187,6 +183,10 @@ def uploadCSV(body, request, response):
                 except InvalidValue as exc:
                     retval[lineno].append(f"Failed to add data {customs[key]!r} as field {key!r}: {exc!s}")
                     line_valid = False
+        # Ensure dryrun has priority
+        if body['dryrun']:
+            event.add('classification.identifier', 'test', overwrite=True)
+            event.add('classification.type', 'test', overwrite=True)
         try:
             if CONFIG.get('destination_pipeline_queue_formatted', False):
                 CONFIG['destination_pipeline_queue'].format(ev=event)
