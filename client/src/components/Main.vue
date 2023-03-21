@@ -178,7 +178,7 @@
 
         <b-card no-body class="mb-1">
           <b-card-header header-tag="header" class="p-1" role="tab">
-            <b-button :disabled="!csvFile && csvText === ''" block v-b-toggle.accordion-3 variant="info">Preview</b-button>
+            <b-button :disabled="!csvFile && csvText === ''" block v-b-toggle.accordion-3 variant="info">Data Validation and Submission</b-button>
           </b-card-header>
           <b-collapse id="accordion-3" accordion="my-accordion" role="tabpanel">
             <b-card-body>
@@ -373,6 +373,7 @@
                     </b-container>
                   </b-col>
                   <b-col>
+                    <h4>Notification Template</h4>
                     <b-form-group width="100%">
                       <b-form-textarea
                         id="template"
