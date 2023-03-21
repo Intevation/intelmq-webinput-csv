@@ -373,7 +373,7 @@
                             class="d-inline-block"
                           >
                             <label style="margin-left: 10px;" :class="mailgenStatus">{{ mailgenResult }}</label><br />
-                            <b-button @click="showMailgenLog=true" v-b-modal.mailgenLog-popup v-if="mailgenLog">Show log</b-button>
+                            <b-button @click="showMailgenLog=true" v-b-modal.mailgenLog-popup v-if="mailgenLog && mailgenLog != mailgenResult">Show complete log</b-button>
                           </b-overlay>
                         </b-col>
                       </b-row>
