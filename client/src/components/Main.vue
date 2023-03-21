@@ -169,20 +169,7 @@
                         Skip initial N lines after the header.
                       </b-tooltip>
                     </b-col>
-                    <b-col>
-                      <b-button v-b-toggle.template v-b-tooltip.hover variant="primary" :disabled="!mailgenAvailable" :title="mailgenAvailable ? 'Mailgen Template' : 'Mailgen is not installed/available'">Template</b-button>
-                    </b-col>
                   </b-row>
-                  <b-collapse id="template" class="mt-2">
-                    <b-form-group>
-                      <b-form-textarea
-                        id="template"
-                        v-model="template"
-                        placeholder="E-Mail Template for Mailgen. First line is the subject. Use ${fieldname} to insert aggregated field names and ${events_as_csv} for a CSV attachment."
-                        rows="5"
-                      ></b-form-textarea>
-                    </b-form-group>
-                  </b-collapse>
                 </b-container>
               </b-card-body>
             </b-collapse>
@@ -356,6 +343,64 @@
             </b-card-body>
           </b-collapse>
         </b-card>
+        <b-card no-body class="mb-1">
+
+          <b-card-header header-tag="header" class="p-1" role="tab">
+            <b-button :disabled="!mailgenAvailable" block v-b-toggle.accordion-notifications variant="info" :title="mailgenAvailable ? 'Mailgen Template' : 'Mailgen is not installed/available'">Send Notifications</b-button>
+          </b-card-header>
+          <b-collapse id="accordion-notifications" visible accordion="my-accordion" role="tabpanel">
+            <b-card-body>
+              <b-container fluid>
+                <b-row>
+                  <b-col sm="auto">
+                    <b-container fluid>
+                      <b-row class=".align-items-center .justify-content-center">
+                        <b-col>
+                          <b-overlay
+                            :show="mailgenInProgress"
+                            rounded
+                            opacity="0.5"
+                            spinner-small
+                            spinner-variant="primary"
+                            class="d-inline-block"
+                          >
+                            <b-button v-b-tooltip.hover @click="runMailgen" variant="primary" :disabled="!mailgenAvailable" :title="mailgenAvailable ? 'Start Mailgen' : 'Mailgen is not installed/available'">Start Mailgen</b-button>
+                          </b-overlay>
+                        </b-col>
+                      </b-row>
+                      <b-row>
+                        <b-col>
+                          <b-overlay
+                            :show="mailgenInProgress"
+                            rounded
+                            opacity="0.5"
+                            spinner-small
+                            spinner-variant="primary"
+                            class="d-inline-block"
+                          >
+                            <label style="margin-left: 10px;" :class="mailgenStatus">{{ mailgenResult }}</label><br />
+                            <b-button @click="showMailgenLog=true" v-b-modal.mailgenLog-popup v-if="mailgenLog">Show log</b-button>
+                          </b-overlay>
+                        </b-col>
+                      </b-row>
+                    </b-container>
+                  </b-col>
+                  <b-col>
+                    <b-form-group width="100%">
+                      <b-form-textarea
+                        id="template"
+                        v-model="template"
+                        placeholder="E-Mail Template for Mailgen. First line is the subject. Use ${fieldname} to insert aggregated field names and ${events_as_csv} for a CSV attachment."
+                        rows="10"
+                        width="100%"
+                      ></b-form-textarea>
+                    </b-form-group>
+                  </b-col>
+                </b-row>
+              </b-container>
+            </b-card-body>
+          </b-collapse>
+        </b-card>
       </div>
     </div>
   </div>
@@ -411,6 +456,9 @@ export default ({
       template: '',
       showMailgenLog: false,
       mailgenLog: '',
+      mailgenStatus: '',
+      mailgenInProgress: false,
+      mailgenResult: '',
     }
   },
   computed: {
@@ -740,25 +788,25 @@ export default ({
      */
     runMailgen() {
       //var me = this;
-      this.inProgress = true;
+      this.mailgenInProgress = true;
       this.mailgenLog = '';
       this.$http.post('api/mailgen/run', {template: this.template})
         .then(response => {
-          this.inProgress = false;
-          this.transferred = response.body;
+          this.mailgenInProgress = false;
+          //this.mailgenResult = response.body;
           response.json().then(data => {
-            this.transferStatus = "text-black";
-            this.transferred = data.result;
+            this.mailgenStatus = "text-black";
+            this.mailgenResult = data.result;
             this.mailgenLog = data.log;
           }).catch(err => {
             // body was not JSON
-            this.transferStatus = "text-danger";
-            this.transferred = err;
+            this.mailgenStatus = "text-danger";
+            this.mailgenResult = err;
         });
         }, (response) => { // error
-          this.transferStatus = "text-danger";
-          this.transferred = response.body;
-          this.inProgress = false;
+          this.mailgenStatus = "text-danger";
+          this.mailgenLog = response.body;
+          this.mailgenInProgress = false;
           return;
         });
     }
