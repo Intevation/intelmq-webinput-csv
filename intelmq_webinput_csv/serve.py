@@ -278,7 +278,8 @@ def mailgen_run(body, request, response):
 
     try:
         mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
-        return {"result": cb.start(mailgen_config, process_all=True, template=template), "log": log.getvalue().strip()}
+        return {"result": cb.start(mailgen_config, process_all=True, template=template, dry_run=body.get('dry_run')),
+                "log": log.getvalue().strip()}
     except Exception:
         response.status = falcon.status.HTTP_500
         traceback.print_exc(file=sys.stderr)

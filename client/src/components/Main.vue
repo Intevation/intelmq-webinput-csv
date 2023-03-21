@@ -354,10 +354,19 @@
                             <b-button v-b-tooltip.hover @click="runMailgen" variant="primary" :disabled="!mailgenAvailable" :title="mailgenAvailable ? 'Start Mailgen' : 'Mailgen is not installed/available'">Start Mailgen</b-button>
                           </b-overlay>
                         </b-col>
+                      </b-row>
+                      <b-row>
                         <b-col>
-                          <b-form-group label-cols=7 label="Verbose Logs:">
+                          <b-form-group label-cols=12 label="Verbose Logs:">
                             <b-form-checkbox
                               v-model="mailgenVerbose"
+                            ></b-form-checkbox>
+                          </b-form-group>
+                        </b-col>
+                        <b-col>
+                          <b-form-group label-cols=6 label="Simulate:" title="Do not send notifications">
+                            <b-form-checkbox
+                              v-model="mailgenDryRun"
                             ></b-form-checkbox>
                           </b-form-group>
                         </b-col>
@@ -455,6 +464,7 @@ export default ({
       mailgenInProgress: false,
       mailgenResult: '',
       mailgenVerbose: false,
+      mailgenDryRun: false,
     }
   },
   computed: {
@@ -786,7 +796,7 @@ export default ({
       //var me = this;
       this.mailgenInProgress = true;
       this.mailgenLog = '';
-      this.$http.post('api/mailgen/run', {template: this.template, verbose: this.mailgenVerbose})
+      this.$http.post('api/mailgen/run', {template: this.template, verbose: this.mailgenVerbose, dry_run: this.mailgenDryRun})
         .then(response => {
           this.mailgenInProgress = false;
           //this.mailgenResult = response.body;
