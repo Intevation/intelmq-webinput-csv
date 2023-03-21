@@ -214,8 +214,6 @@ def uploadCSV(body, request, response):
         #     event.add('raw', ''.join(raw_header + [handle_rewindable.current_line]))
         raw_message = MessageFactory.serialize(event)
         if body.get('submit', True) and line_valid:
-            log.error('Would send now')
-            log.error('PRINT: Would send now')
             destination_pipeline.send(raw_message)
     # lineno is the index, for the number of lines add one
     total_lines = lineno + 1 if data else 0
