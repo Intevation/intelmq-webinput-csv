@@ -62,6 +62,18 @@
           </b-button>
         </template>
       </b-modal>
+      <b-modal v-model="showMailgenPreview" scrollable centered size="xl" id="mailgenPreview-popup" title="Mailgen Email Preview">
+        <code class="text-black"><pre>{{ mailgenPreview }}</pre></code>
+        <template #modal-footer>
+          <b-button
+            variant="primary"
+            class="float-right"
+            @click="showMailgenPreview=false"
+          >
+            Close
+          </b-button>
+        </template>
+      </b-modal>
     </div>
     <div v-if="loggedIn">
       <div class="accordion" role="tablist">
@@ -354,6 +366,18 @@
                             <b-button v-b-tooltip.hover @click="runMailgen" variant="primary" :disabled="!mailgenAvailable" :title="mailgenAvailable ? 'Start Mailgen' : 'Mailgen is not installed/available'">Start Mailgen</b-button>
                           </b-overlay>
                         </b-col>
+                        <b-col>
+                          <b-overlay
+                            :show="mailgenInProgress"
+                            rounded
+                            opacity="0.5"
+                            spinner-small
+                            spinner-variant="primary"
+                            class="d-inline-block"
+                          >
+                            <b-button v-b-tooltip.hover @click="previewMailgen" variant="primary" :disabled="!mailgenAvailable" :title="mailgenAvailable ? 'Preview Mailgen Email' : 'Mailgen is not installed/available'">Email Preview</b-button>
+                          </b-overlay>
+                        </b-col>
                       </b-row>
                       <b-row>
                         <b-col>
@@ -383,6 +407,20 @@
                           >
                             <label style="margin-left: 10px;" :class="mailgenStatus">{{ mailgenResult }}</label><br />
                             <b-button @click="showMailgenLog=true" v-b-modal.mailgenLog-popup v-if="mailgenLog && mailgenLog != mailgenResult">Show complete log</b-button>
+                          </b-overlay>
+                        </b-col>
+                      </b-row>
+                      <b-row>
+                        <b-col v-if="mailgenPreview">
+                          <b-overlay
+                            :show="mailgenInProgress"
+                            rounded
+                            opacity="0.5"
+                            spinner-small
+                            spinner-variant="primary"
+                            class="d-inline-block"
+                          >
+                            <b-button @click="showMailgenPreview=true" v-b-modal.mailgenPreview-popup v-if="mailgenPreview">Show Email Preview</b-button>
                           </b-overlay>
                         </b-col>
                       </b-row>
@@ -465,6 +503,8 @@ export default ({
       mailgenResult: '',
       mailgenVerbose: false,
       mailgenDryRun: false,
+      mailgenPreview: '',
+      showMailgenPreview: false,
     }
   },
   computed: {
@@ -799,10 +839,37 @@ export default ({
       this.$http.post('api/mailgen/run', {template: this.template, verbose: this.mailgenVerbose, dry_run: this.mailgenDryRun})
         .then(response => {
           this.mailgenInProgress = false;
-          //this.mailgenResult = response.body;
           response.json().then(data => {
             this.mailgenStatus = "text-black";
             this.mailgenResult = data.result;
+            this.mailgenLog = data.log;
+          }).catch(err => {
+            // body was not JSON
+            this.mailgenStatus = "text-danger";
+            this.mailgenResult = err;
+        });
+        }, (response) => { // error
+          this.mailgenStatus = "text-danger";
+          this.mailgenLog = response.body;
+          this.mailgenInProgress = false;
+          return;
+        });
+    },
+    /**
+     * Show an email preview
+     */
+    previewMailgen() {
+      //var me = this;
+      this.mailgenInProgress = true;
+      this.mailgenLog = '';
+      this.$http.post('api/mailgen/preview', {template: this.template, verbose: this.mailgenVerbose, dry_run: this.mailgenDryRun})
+        .then(response => {
+          this.mailgenInProgress = false;
+          response.json().then(data => {
+            this.mailgenStatus = "text-black";
+            this.mailgenPreview = data.result;
+            // clear the field, not used in case of success
+            this.mailgenResult = '';
             this.mailgenLog = data.log;
           }).catch(err => {
             // body was not JSON

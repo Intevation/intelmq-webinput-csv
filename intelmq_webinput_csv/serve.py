@@ -286,6 +286,36 @@ def mailgen_run(body, request, response):
         return {"result": str(traceback.format_exc()), "log": log.getvalue()}
 
 
+@hug.post(ENDPOINT_PREFIX + '/api/mailgen/preview', requires=session.token_authentication)
+def mailgen_preview(body, request, response):
+    """
+    Show mailgen email preview
+    """
+    template = body.get('template')
+
+    log = io.StringIO()
+    log_handler = logging.StreamHandler(stream=log)
+    logging.getLogger('intelmqmail').addHandler(log_handler)
+
+    if body.get('verbose'):
+        logging.getLogger('intelmqmail').setLevel(logging.DEBUG)
+    else:
+        logging.getLogger('intelmqmail').setLevel(logging.INFO)
+
+    if cb is None:
+        response.status = falcon.status.HTTP_500
+        return {"result": "intelmqmail is not available on this system."}
+
+    try:
+        mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
+        return {"result": cb.start(mailgen_config, process_all=True, template=template, get_preview=True),
+                "log": log.getvalue().strip()}
+    except Exception:
+        response.status = falcon.status.HTTP_500
+        traceback.print_exc(file=sys.stderr)
+        return {"result": str(traceback.format_exc()), "log": log.getvalue()}
+
+
 if __name__ == '__main__':
     # expose only one function to the cli
     setup(hug.API('cli'))
