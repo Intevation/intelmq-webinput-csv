@@ -63,12 +63,32 @@
         </template>
       </b-modal>
       <b-modal v-model="showMailgenPreview" scrollable centered size="xl" id="mailgenPreview-popup" title="Mailgen Email Preview">
+        <h4 title="Subject">{{mailgenPreviewParsed.subject}}</h4>
+        <code class="text-black"><pre>{{ mailgenPreviewParsed.body }}</pre></code>
+        <template #modal-footer>
+          <b-button
+            variant="secondary"
+            class="float-right"
+            @click="showMailgenPreviewRaw=true"
+          >
+            Show Raw
+          </b-button>
+          <b-button
+            variant="primary"
+            class="float-right"
+            @click="showMailgenPreview=false"
+          >
+            Close
+          </b-button>
+        </template>
+      </b-modal>
+      <b-modal v-model="showMailgenPreviewRaw" scrollable centered size="xl" id="mailgenPreviewRaw-popup" title="Mailgen Raw Email">
         <code class="text-black"><pre>{{ mailgenPreview }}</pre></code>
         <template #modal-footer>
           <b-button
             variant="primary"
             class="float-right"
-            @click="showMailgenPreview=false"
+            @click="showMailgenPreviewRaw=false"
           >
             Close
           </b-button>
@@ -505,6 +525,8 @@ export default ({
       mailgenDryRun: false,
       mailgenPreview: '',
       showMailgenPreview: false,
+      showMailgenPreviewRaw: false,
+      mailgenPreviewParsed: {},
     }
   },
   computed: {
@@ -871,6 +893,40 @@ export default ({
             // clear the field, not used in case of success
             this.mailgenResult = '';
             this.mailgenLog = data.log;
+            const splitted = this.mailgenPreview.split('\n')
+            let isHeader = true;
+            let isMimeHeader = false;
+            let isBody = false;
+            let line;
+            let subject;
+            let body = '';
+
+            // very basic MIME parser
+            for(var lineindex = 0; lineindex < splitted.length; lineindex++) {
+              line = splitted[lineindex];
+              if (isHeader) {
+                if (line.slice(0, 2) == '--') {
+                  line = '';
+                  isMimeHeader = true;
+                  isHeader = false;
+                } else if (line.slice(0, 9) == 'Subject: ') {
+                  subject = line.slice(9);
+                }
+              } else if (isMimeHeader) {
+                if (line == '\r') {
+                  isMimeHeader = false;
+                  isBody = true;
+                }
+              } else if (isBody) {
+                if (line.slice(0, 2) == '--') {
+                  isBody = false;
+                } else {
+                  body += line + '\n';
+                }
+              }
+            }
+            this.mailgenPreviewParsed = {subject: subject, body: body}
+            this.showMailgenPreview = true;
           }).catch(err => {
             // body was not JSON
             this.mailgenStatus = "text-danger";
