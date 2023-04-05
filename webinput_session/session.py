@@ -41,14 +41,11 @@ Design rationale:
 """
 import json
 import os
-import sys
 import threading
 import hashlib
-from typing import List, Tuple, Union, Optional
+from typing import Tuple, Union, Optional
 from contextlib import contextmanager
 
-from falcon import HTTP_BAD_REQUEST, HTTP_NOT_FOUND
-import hug
 import sqlite3
 
 import webinput_session.config

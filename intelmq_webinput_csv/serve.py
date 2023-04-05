@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Provides an API for IntelMQ
+"""
+Backend for IntelMQ Webinput
 
-Requires hug (http://www.hug.rest/)
+Requires Flask
 
 Development: call like
-  hug -f serve.py
+  export FLASK_APP=intelmq_webinput_csv/serve.py
+  flask run -p 8000
   connect to http://localhost:8000/
 
 Several configuration methods are shown within the code.
@@ -40,9 +42,10 @@ import traceback
 from collections import defaultdict
 from pathlib import Path
 
+from flask import Flask, request, session
+from markupsafe import escape
+
 import dateutil.parser
-import falcon
-import hug
 from intelmq import CONFIG_DIR, HARMONIZATION_CONF_FILE
 from intelmq.bots.experts.taxonomy.expert import TAXONOMY
 from intelmq.lib.exceptions import InvalidValue, KeyExists
@@ -95,14 +98,16 @@ for path in configfiles:
             CONSTANTS = CONFIG.get('constant_fields', '{}')
 
 
-@hug.startup()
-def setup(api):
-    session.initialize_sessions(session_config)
-    pass
+app = Flask(__name__)
 
 
-@hug.post(ENDPOINT_PREFIX + '/api/login')
-def login(username: str, password: str):
+app.secret_key = os.urandom(16)
+
+
+@app.route(ENDPOINT_PREFIX + '/api/'login, methods=['POST'])
+def login():
+    username = request.form.get('username')
+    password = request.form.get('password')
     if session.session_store is not None:
         known = session.session_store.verify_user(username, password)
         if known is not None:
@@ -118,16 +123,15 @@ def login(username: str, password: str):
                 }
 
 
-@hug.post(ENDPOINT_PREFIX + '/api/upload', requires=session.token_authentication)
-def uploadCSV(body, request, response):
+@app.route(ENDPOINT_PREFIX + '/api/upload', requires=session.token_authentication, methods=['POST'])
+def uploadCSV():
     # additional authentication is required for this call
-    if body.get('submit', True) and session.session_store is not None:
-        username = body.get('username')
-        password = body.get('password')
+    if request.form.get('submit', True) and session.session_store is not None:
+        username = request.form.get('username')
+        password = request.form.get('password')
         known = session.session_store.verify_user(username, password)
         if known is None:
-            response.status = falcon.HTTP_401
-            return "Invalid username and/or password"
+            return "Invalid username and/or password", 401
 
     destination_pipeline = PipelineFactory.create(pipeline_args=CONFIG['intelmq'],
                                                   logger=log,
@@ -138,8 +142,8 @@ def uploadCSV(body, request, response):
     time_observation = DateTime().generate_datetime_now()
     required_fields = CONFIG.get('required_fields')
 
-    data = body["data"]
-    customs = body["custom"]
+    data = request.form["data"]
+    customs = request.form["custom"]
     retval = defaultdict(list)
     col = 0
     lines_valid = 0
@@ -156,7 +160,7 @@ def uploadCSV(body, request, response):
                 try:
                     parsed = dateutil.parser.parse(value, fuzzy=True)
                     if not parsed.tzinfo:
-                        value += body['timezone']
+                        value += request.form['timezone']
                         parsed = dateutil.parser.parse(value)
                     value = parsed.isoformat()
                 except ValueError:
@@ -184,7 +188,7 @@ def uploadCSV(body, request, response):
                     retval[lineno].append(f"Failed to add data {customs[key]!r} as field {key!r}: {exc!s}")
                     line_valid = False
         # Ensure dryrun has priority
-        if body['dryrun']:
+        if request.form.get('dryrun'):
             event.add('classification.identifier', 'test', overwrite=True)
             event.add('classification.type', 'test', overwrite=True)
         try:
@@ -213,7 +217,7 @@ def uploadCSV(body, request, response):
         # if 'raw' not in event:
         #     event.add('raw', ''.join(raw_header + [handle_rewindable.current_line]))
         raw_message = MessageFactory.serialize(event)
-        if body.get('submit', True) and line_valid:
+        if request.form.get('submit', True) and line_valid:
             destination_pipeline.send(raw_message)
     # lineno is the index, for the number of lines add one
     total_lines = lineno + 1 if data else 0
@@ -223,32 +227,32 @@ def uploadCSV(body, request, response):
     return retval
 
 
-@hug.get(ENDPOINT_PREFIX + '/api/classification/types', requires=session.token_authentication)
+@app.route(ENDPOINT_PREFIX + '/api/classification/types', requires=session.token_authentication)
 def classification_types():
     return TAXONOMY
 
 
-@hug.get(ENDPOINT_PREFIX + '/api/harmonization/event/fields', requires=session.token_authentication)
+@app.route(ENDPOINT_PREFIX + '/api/harmonization/event/fields', requires=session.token_authentication)
 def harmonization_event_fields():
     return EVENT_FIELDS['event']
 
 
-@hug.get(ENDPOINT_PREFIX + '/api/custom/fields', requires=session.token_authentication)
+@app.route(ENDPOINT_PREFIX + '/api/custom/fields', requires=session.token_authentication)
 def custom_fields():
     return CONFIG.get('custom_input_fields', {})
 
 
-@hug.get(ENDPOINT_PREFIX + '/api/custom/required_fields', requires=session.token_authentication)
+@app.route(ENDPOINT_PREFIX + '/api/custom/required_fields', requires=session.token_authentication)
 def required_fields():
     return CONFIG.get('required_fields', [])
 
 #  TODO for now show the full api documentation that hug generates
-# @hug.get("/")
+# @app.route("/")
 # def get_endpoints():
 #     return ENDPOINTS
 
 
-@hug.get(ENDPOINT_PREFIX + '/api/mailgen/available', requires=session.token_authentication)
+@app.route(ENDPOINT_PREFIX + '/api/mailgen/available', requires=session.token_authentication)
 def mailgen_available():
     """
     Returns true/false if mailgen is installed on the system.
@@ -256,64 +260,60 @@ def mailgen_available():
     return bool(cb)
 
 
-@hug.post(ENDPOINT_PREFIX + '/api/mailgen/run', requires=session.token_authentication)
-def mailgen_run(body, request, response):
+@app.route(ENDPOINT_PREFIX + '/api/mailgen/run', requires=session.token_authentication, methods=['POST'])
+def mailgen_run():
     """
     Start mailgen
     """
-    template = body.get('template')
+    template = request.form.get('template')
 
     log = io.StringIO()
     log_handler = logging.StreamHandler(stream=log)
     logging.getLogger('intelmqmail').addHandler(log_handler)
 
-    if body.get('verbose'):
+    if request.form.get('verbose'):
         logging.getLogger('intelmqmail').setLevel(logging.DEBUG)
     else:
         logging.getLogger('intelmqmail').setLevel(logging.INFO)
 
     if cb is None:
-        response.status = falcon.status.HTTP_500
-        return {"result": "intelmqmail is not available on this system."}
+        return {"result": "intelmqmail is not available on this system."}, 500
 
     try:
         mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
-        return {"result": cb.start(mailgen_config, process_all=True, template=template, dry_run=body.get('dry_run')),
+        return {"result": cb.start(mailgen_config, process_all=True, template=template, dry_run=request.form.get('dry_run')),
                 "log": log.getvalue().strip()}
     except Exception:
-        response.status = falcon.status.HTTP_500
         traceback.print_exc(file=sys.stderr)
-        return {"result": str(traceback.format_exc()), "log": log.getvalue()}
+        return {"result": str(traceback.format_exc()), "log": log.getvalue()}, 500
 
 
-@hug.post(ENDPOINT_PREFIX + '/api/mailgen/preview', requires=session.token_authentication)
-def mailgen_preview(body, request, response):
+@app.route(ENDPOINT_PREFIX + '/api/mailgen/preview', requires=session.token_authentication, methods=['POST'])
+def mailgen_preview():
     """
     Show mailgen email preview
     """
-    template = body.get('template')
+    template = request.form.get('template')
 
     log = io.StringIO()
     log_handler = logging.StreamHandler(stream=log)
     logging.getLogger('intelmqmail').addHandler(log_handler)
 
-    if body.get('verbose'):
+    if request.form.get('verbose'):
         logging.getLogger('intelmqmail').setLevel(logging.DEBUG)
     else:
         logging.getLogger('intelmqmail').setLevel(logging.INFO)
 
     if cb is None:
-        response.status = falcon.status.HTTP_500
-        return {"result": "intelmqmail is not available on this system."}
+        return {"result": "intelmqmail is not available on this system."}, 500
 
     try:
         mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
         return {"result": cb.start(mailgen_config, process_all=True, template=template, get_preview=True),
                 "log": log.getvalue().strip()}
     except Exception:
-        response.status = falcon.status.HTTP_500
         traceback.print_exc(file=sys.stderr)
-        return {"result": str(traceback.format_exc()), "log": log.getvalue()}
+        return {"result": str(traceback.format_exc()), "log": log.getvalue()}, 500
 
 
 if __name__ == '__main__':
