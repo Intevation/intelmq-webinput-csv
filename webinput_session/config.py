@@ -13,13 +13,13 @@ from pathlib import Path
 
 class Config:
 
-    """Configuration settings for IntelMQ Fody Sessions"""
+    """Configuration settings for IntelMQ Webinput Sessions"""
 
     session_store: Optional[Path] = None
 
     session_duration: int = 24 * 3600
 
-    def __init__(self, filename: Optional[str]):
+    def __init__(self, filename: Optional[str] = None):
         """Load configuration from JSON file"""
         raw = {}
         config = False

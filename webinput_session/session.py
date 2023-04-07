@@ -41,18 +41,17 @@ Design rationale:
 """
 import json
 import os
-import sys
 import threading
 import hashlib
-from typing import List, Tuple, Union, Optional
+from typing import Tuple, Union, Optional
 from contextlib import contextmanager
-
-from falcon import HTTP_BAD_REQUEST, HTTP_NOT_FOUND
-import hug
 import sqlite3
+
+import hug
 
 import webinput_session.config
 import webinput_session.files as files
+from hug.authentication import token
 
 INIT_DB_SQL = """
 BEGIN;
@@ -111,7 +110,7 @@ def verify_token(token):
         return None
 
 
-hug_token_authentication = hug.authentication.token(verify_token)
+hug_token_authentication = token(verify_token)
 
 
 def token_authentication(*args, **kw):
