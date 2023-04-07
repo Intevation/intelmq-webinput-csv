@@ -101,6 +101,7 @@ config = webinput_session.config.Config
 file_access = files.FileAccess
 
 session_store = None
+skip_authentication = False
 
 
 def verify_token(token):
@@ -114,7 +115,7 @@ hug_token_authentication = token(verify_token)
 
 
 def token_authentication(*args, **kw):
-    if session_store is not None:
+    if session_store is not None and not skip_authentication:
         return hug_token_authentication(*args, **kw)
     else:
         return True
