@@ -610,7 +610,7 @@ export default ({
           }
           response.json().then(data => {
             const num_errors = Object.keys(data.errors).length;
-            me.transferred = (submit ? "Submitted " : "Validated ") + (data.total) + " lines. " + num_errors + " errors, " + data.lines_invalid + " invalid lines.";
+            me.transferred = (submit ? "Submitted " : "Validated ") + (data.total) + " lines. This resulted in " + num_errors + " validation errors and in total " + data.lines_invalid + " lines were invalid" + (submit ? ", these were not submitted" : "") + ". Therefore, " + (data.total - data.lines_invalid) + " lines were valid.";
             me.dataErrors = data.errors;
             if (num_errors) {
               me.transferStatus = "text-danger";
