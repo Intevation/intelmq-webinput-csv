@@ -32,6 +32,9 @@ CONFIG = {
 EXAMPLE_DATA = [
     {'source.ip': '127.0.0.1', 'source.asn': '1'},
 ]
+EXAMPLE_DATA_ASNAME = [
+    {'source.ip': '127.0.0.1', 'source.asn': '1', 'source.as_name': 'Example AS'},
+]
 EXAMPLE_DATA_INVALID = [  # bad IP address
     {'source.ip': '1270.0.0.1', 'source.asn': '1'},
 ]
@@ -55,10 +58,54 @@ def test_preview():
     with mock.patch('webinput_session.session.skip_authentication', new=True):
         with mock.patch('intelmq_webinput_csv.serve.CONFIG', new=CONFIG):
             result = test.call('POST', intelmq_webinput_csv.serve, '/api/upload/', body={'submit': False,
-                                                                                         'data': EXAMPLE_DATA,
+                                                                                         'data': EXAMPLE_DATA_ASNAME,
                                                                                          'custom': {},  # TODO
                                                                                          'dryrun': True,
                                                                                          })
+    assert result.status == '200 OK'
+    assert result.data['lines_invalid'] == 0
+
+
+def test_submit_auth_fail():
+    with mock.patch('webinput_session.session.skip_authentication', new=True):
+        with mock.patch('intelmq_webinput_csv.serve.CONFIG', new=CONFIG):
+            result = test.call('POST', intelmq_webinput_csv.serve, '/api/upload/', body={'submit': True,
+                                                                                         'data': EXAMPLE_DATA,
+                                                                                         'dryrun': True,
+                                                                                         })
+    assert result.status == '401 Unauthorized'
+
+
+def test_submit_auth():
+    with mock.patch('intelmq_webinput_csv.serve.session.session_store') as session_mock:
+        with mock.patch('webinput_session.session.skip_verify_user', new=True):
+            with mock.patch('webinput_session.session.skip_authentication', new=True):
+                with mock.patch('intelmq_webinput_csv.serve.CONFIG', new=CONFIG):
+                    result = test.call('POST', intelmq_webinput_csv.serve, '/api/upload/', body={'submit': True,
+                                                                                                 'data': EXAMPLE_DATA,
+                                                                                                 'dryrun': True,
+                                                                                                 'custom': {}
+                                                                                                 })
+    assert result.status == '200 OK'
+
+
+def test_constant_fields():
+    with mock.patch('intelmq_webinput_csv.serve.PipelineFactory') as pipeline_mock:
+        with mock.patch('webinput_session.session.skip_verify_user', new=True):
+            with mock.patch('webinput_session.session.skip_authentication', new=True):
+                with mock.patch('intelmq_webinput_csv.serve.CONFIG', new=CONFIG):
+                    with mock.patch('intelmq_webinput_csv.serve.DateTime.generate_datetime_now') as now:
+                        now.return_value = '1970-01-01T13:37:00+00:00'
+                        result = test.call('POST', intelmq_webinput_csv.serve, '/api/upload/', body={'submit': True,
+                                                                                                     'data': EXAMPLE_DATA_ASNAME,
+                                                                                                     'custom': {},  # TODO
+                                                                                                     "constant_fields": {
+                                                                                                         "feed.provider": "my-organization"
+                                                                                                     },
+                                                                                                     'dryrun': True,
+                                                                                                     })
+        pipeline_mock.create.assert_called()
+        assert mock.call().send('{"source.ip": "127.0.0.1", "source.asn": 1, "source.as_name": "Example AS", "feed.provider": "my-organization", "classification.identifier": "test", "classification.type": "test", "feed.code": "oneshot", "time.observation": "1970-01-01T13:37:00+00:00", "__type": "Event"}') in pipeline_mock.create.mock_calls
     assert result.status == '200 OK'
     assert result.data['lines_invalid'] == 0
 

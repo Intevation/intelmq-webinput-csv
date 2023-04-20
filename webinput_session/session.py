@@ -101,7 +101,10 @@ config = webinput_session.config.Config
 file_access = files.FileAccess
 
 session_store = None
+
+# For testing
 skip_authentication = False
+skip_verify_user = False
 
 
 def verify_token(token):
@@ -212,6 +215,8 @@ class SessionStore:
         self.execute(ADD_USER_SQL, (username, hashed, salt))
 
     def verify_user(self, username: str, password: str) -> Optional[dict]:
+        if skip_verify_user:
+            return {"username": username}
         row = self.execute(LOOKUP_USER_SQL, (username,))
         if row is not None:
             username, stored_hash, salt = row
