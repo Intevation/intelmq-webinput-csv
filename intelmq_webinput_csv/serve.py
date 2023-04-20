@@ -210,6 +210,7 @@ def uploadCSV(body, request, response):
             if diff:
                 line_valid = False
                 retval[lineno].append(f"Line is missing these required fields: {', '.join(diff)}")
+                lines_valid += 1
         # if 'raw' not in event:
         #     event.add('raw', ''.join(raw_header + [handle_rewindable.current_line]))
         raw_message = MessageFactory.serialize(event)
