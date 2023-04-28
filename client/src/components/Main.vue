@@ -307,15 +307,13 @@
               >
                 <template #head()="data">
                   <span class="text-info">{{ data.label }}</span>
-                  <b-form-select
+                  <v-select
                     :id="data.label"
-                    v-model="data.field.field"
+                    :value="data.field"
                     :options="harmonizationFields"
-                    @change="update(data)"
-                  ></b-form-select>
-                  <b-tooltip :target="data.label" triggers="hover">
-                    {{ data.field.field }}
-                  </b-tooltip>
+                    taggable
+                    @input="(fieldname) => update(data.field, fieldname)"
+                  ></v-select>
                 </template>
                 <template #cell()="row">
                   <div :class="getTableCellClass(row)">
@@ -660,13 +658,19 @@ export default ({
     /**
      * Update the table header and refresh view.
      */
-    update: function(value) {
+    update: function(field, fieldname) {
+      console.log('update called with ', field, fieldname)
+      if (fieldname == null) {
+        fieldname = "";
+      }
+      field.label = fieldname;
+      field.field = fieldname;
       let ndx = this.tableHeader.findIndex(item => {
-        if (item.key === value.column) {
+        if (item.key === field.key) {
           return true;
         }
       })
-      this.tableHeader[ndx] = value.field;
+      this.tableHeader[ndx] = field;
       this.$refs.table.refresh();
     },
     /**
@@ -807,7 +811,7 @@ export default ({
         columns = Array.apply(null, { length: this.parserResult.data[0].length }).map(function(i, ndx) {
           return {
             key: ""+ndx,
-            label: "column-"+ndx
+            label: ""
           }
         });
       }
