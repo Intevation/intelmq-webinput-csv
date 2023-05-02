@@ -2,7 +2,7 @@
 Tests for intelmq-webinput-csv
 """
 from unittest import mock
-
+from pathlib import Path
 from hug import test
 
 import intelmq_webinput_csv.serve
@@ -11,7 +11,8 @@ import intelmq_webinput_csv.serve
 CONFIG = {
     "intelmq": {
         "destination_pipeline_db": 2,
-        "destination_pipeline_host": "intelmq-redis",
+        # autodetect if this script is running standalone (-> localhost) or in intelmq-cb-mailgen-docker environment
+        "destination_pipeline_host": "intelmq-redis" if Path('/.dockerenv').exists() else "localhost",
         "destination_pipeline_port": 6379
     },
     "destination_pipeline_queue": "taxonomy-expert-oneshot-queue",
@@ -67,6 +68,9 @@ def test_preview():
 
 
 def test_submit_auth_fail():
+    """
+    Assumes some users are required?
+    """
     with mock.patch('webinput_session.session.skip_authentication', new=True):
         with mock.patch('intelmq_webinput_csv.serve.CONFIG', new=CONFIG):
             result = test.call('POST', intelmq_webinput_csv.serve, '/api/upload/', body={'submit': True,
@@ -77,7 +81,7 @@ def test_submit_auth_fail():
 
 
 def test_submit_auth():
-    with mock.patch('intelmq_webinput_csv.serve.session.session_store') as session_mock:
+    with mock.patch('intelmq_webinput_csv.serve.session.session_store'):
         with mock.patch('webinput_session.session.skip_verify_user', new=True):
             with mock.patch('webinput_session.session.skip_authentication', new=True):
                 with mock.patch('intelmq_webinput_csv.serve.CONFIG', new=CONFIG):

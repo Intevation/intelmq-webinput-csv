@@ -146,7 +146,7 @@ def uploadCSV(body, request, response):
     required_fields = CONFIG.get('required_fields')
 
     data = body["data"]
-    customs = body["custom"]
+    customs = body.get("custom", {})
     retval = defaultdict(list)
     col = 0
     lines_valid = 0
