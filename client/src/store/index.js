@@ -17,6 +17,7 @@ export default new Vuex.Store({
     customFieldsMapping: [],
     requiredFields: [],
     mailgenAvailable: null,
+    botsAvailable: {status: false, reason: "not yet queried"},
   },
   mutations: {
     SET_USER (state, user) {
@@ -54,6 +55,9 @@ export default new Vuex.Store({
     },
     SET_MAILGEN_AVAILABLE (state, data) {
       state.mailgenAvailable = data;
+    },
+    SET_BOTS_AVAILABLE (state, data) {
+      state.botsAvailable = data;
     }
   },
   actions: {
@@ -133,6 +137,13 @@ export default new Vuex.Store({
       Vue.http.get("api/mailgen/available").then(
         response => response.json().then(data => {
           context.commit("SET_MAILGEN_AVAILABLE", data);
+        })
+      )
+    },
+    fetchBotsAvailable(context) {
+      Vue.http.get("api/bots/available").then(
+        response => response.json().then(data => {
+          context.commit("SET_BOTS_AVAILABLE", data);
         })
       )
     }

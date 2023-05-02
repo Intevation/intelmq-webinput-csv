@@ -38,13 +38,20 @@ import os
 import sys
 import traceback
 from collections import defaultdict
+from importlib import import_module
 from pathlib import Path
+from typing import Dict, List
 
 import dateutil.parser
 import falcon
 import hug
 from intelmq import CONFIG_DIR, HARMONIZATION_CONF_FILE
 from intelmq.bots.experts.taxonomy.expert import TAXONOMY
+try:
+    from intelmq.lib.bot import BotLibSettings, Bot
+except ImportError:
+    BotLibSettings = None
+    Bot = None
 from intelmq.lib.exceptions import InvalidValue, KeyExists
 from intelmq.lib.harmonization import DateTime
 from intelmq.lib.message import Event, MessageFactory
@@ -315,6 +322,38 @@ def mailgen_preview(body, request, response):
         response.status = falcon.status.HTTP_500
         traceback.print_exc(file=sys.stderr)
         return {"result": str(traceback.format_exc()), "log": log.getvalue()}
+
+
+@hug.get(ENDPOINT_PREFIX + '/api/bots/available', requires=session.token_authentication)
+def bots_available() -> dict:
+    """
+    Checks if bots are available: IntelMQ Core version supports the feature and at least one bot is configured.
+    """
+    config_has_bots = bool(CONFIG.get('bots'))
+    intelmq_supports_bot_lib = BotLibSettings and Bot and hasattr(Bot, 'process_message')
+    return {
+        "status": config_has_bots and intelmq_supports_bot_lib,
+        "reason": "IntelMQ does not support calling Bots as library (IntelMQ >= 3.2.0)" if not intelmq_supports_bot_lib else "No bots configured."
+    }
+
+
+@hug.post(ENDPOINT_PREFIX + '/api/process', requires=session.token_authentication)
+def process(body):
+    """
+    Process data with IntelMQ bots
+    """
+    bots = []
+    for bot_id, bot_config in CONFIG.get('bots').items():
+        bots.append(import_module(bot_config['module']).BOT(bot_id, settings=BotLibSettings | bot_config.get('parameters', {})))
+    messages = []
+    for message in body.get('data', []):
+        print('message before processing', message)
+        for bot in bots:
+            queues = bot.process_message(message)
+            message = queues['output'][0]  # FIXME
+            print(f'message after processing in {bot}', message)
+        messages.append(message)
+    return messages
 
 
 if __name__ == '__main__':

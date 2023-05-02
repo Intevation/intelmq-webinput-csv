@@ -227,6 +227,15 @@
                     <b-form-group v-b-tooltip.hover label-cols=4 label="Dryrun" title="Override the values of Classification Type and Classification Identifier to 'test'.">
                       <b-form-checkbox
                         v-model="dryrun"
+                        switch
+                      ></b-form-checkbox>
+                    </b-form-group>
+                    <b-form-group v-b-tooltip.hover label-cols=4 label="Validate with bots" title="Validate the data with all configured IntelMQ Bots included.">
+                      <b-form-checkbox
+                        v-model="validateWithBots"
+                        switch
+                        :disabled="!botsAvailable.status"
+                        :title="botsAvailable.reason"
                       ></b-form-checkbox>
                     </b-form-group>
                     <b-container>
@@ -525,10 +534,11 @@ export default ({
       showMailgenPreview: false,
       showMailgenPreviewRaw: false,
       mailgenPreviewParsed: {},
+      validateWithBots: false,
     }
   },
   computed: {
-    ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable']),
+    ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable', 'botsAvailable']),
   },
   mounted() {
     // Create timezone strings
@@ -688,6 +698,7 @@ export default ({
         this.$store.dispatch("fetchRequiredFields");
         this.$store.dispatch("fetchCustomFields");
         this.$store.dispatch("fetchMailgenAvailable");
+        this.$store.dispatch("fetchBotsAvailable");
       }, (response) => {
         if (response.status !== 200) {
           this.loginErrorText = "Server not reachable.";
