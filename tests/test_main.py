@@ -5,10 +5,13 @@ from unittest import mock
 from pathlib import Path
 from hug import test
 
+from intelmq.lib.bot import Dict39
+
 import intelmq_webinput_csv.serve
 
 
-CONFIG = {
+# to use the | operator to merge dicts in Python < 3.9, use this compatibility class
+CONFIG = Dict39({
     "intelmq": {
         "destination_pipeline_db": 2,
         # autodetect if this script is running standalone (-> localhost) or in intelmq-cb-mailgen-docker environment
@@ -29,7 +32,7 @@ CONFIG = {
     "required_fields": ["source.ip", "source.as_name"],
     "mailgen_config_file": "/etc/intelmq/intelmq-mailgen-oneshot.conf",
     "mailgen_temporary_template_name": "oneshot"
-}
+})
 EXAMPLE_DATA = [
     {'source.ip': '127.0.0.1', 'source.asn': '1'},
 ]
