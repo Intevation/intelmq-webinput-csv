@@ -66,10 +66,10 @@ except ImportError:
     cb = None
 
 try:
-    harmonization = load_configuration(HARMONIZATION_CONF_FILE)
+    EVENT_FIELDS = load_configuration(HARMONIZATION_CONF_FILE)
 except ValueError:
     # Fallback to internal harmonization file
-    harmonization = load_configuration(resource_filename('intelmq', 'etc/harmonization.conf'))
+    EVENT_FIELDS = load_configuration(resource_filename('intelmq', 'etc/harmonization.conf'))
 
 # Logging
 logging.basicConfig(format='%(asctime)s %(name)s %(levelname)s - %(message)s')
