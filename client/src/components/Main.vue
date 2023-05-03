@@ -320,9 +320,27 @@
                     :id="data.label"
                     :value="data.field"
                     :options="harmonizationFields"
+                    v-if="data.label != 'Actions'"
                     taggable
                     @input="(fieldname) => update(data.field, fieldname)"
                   ></v-select>
+                </template>
+                <template #cell(Actions)="row">
+                  #{{ row.index + 1 }}
+                  <b-overlay
+                            :show="rowModalInProgress"
+                            rounded
+                            opacity="0.5"
+                            spinner-small
+                            spinner-variant="primary"
+                            class="d-inline-block"
+                          >
+                    <b-button
+                      size="sm"
+                      @click="triggerShowRowModal(row)"
+                      variant="info"
+                    >Show Processed Row</b-button>
+                  </b-overlay>
                 </template>
                 <template #cell()="row">
                   <div :class="getTableCellClass(row)">
@@ -336,6 +354,9 @@
                   <i>{{ data.label }}</i>
                 </template>
               </b-table>
+              <b-modal v-model="showRowModal" title="Modal">
+                <code>{{rowModalData}}</code>
+              </b-modal>
               <b-container>
                 <b-row>
                   <b-col>
@@ -535,6 +556,9 @@ export default ({
       showMailgenPreviewRaw: false,
       mailgenPreviewParsed: {},
       validateWithBots: false,
+      showRowModal: false,
+      rowModalData: null,
+      rowModalInProgress: false,
     }
   },
   computed: {
@@ -576,12 +600,13 @@ export default ({
         let sendItem = {};
         for (let ndx in this.tableHeader) {
           // check for header in csv. data is array or object
-          if (this.tableHeader[ndx].field !== "") {
+          // skip first column
+          if (this.tableHeader[ndx].field !== "" && ndx !== 0) {
             let value;
             if (this.hasHeader) {
               value = item[this.tableHeader[ndx].key]
             } else {
-              value = item[ndx];
+              value = item[ndx-1];
             }
             sendItem[this.tableHeader[ndx].field] = this.prepare(this.tableHeader[ndx].field, value)
           }
@@ -669,7 +694,6 @@ export default ({
      * Update the table header and refresh view.
      */
     update: function(field, fieldname) {
-      console.log('update called with ', field, fieldname)
       if (fieldname == null) {
         fieldname = "";
       }
@@ -827,6 +851,7 @@ export default ({
         });
       }
       this.tableHeader.length = 0;
+      this.tableHeader.push('Actions')
       for (let i in columns) {
         this.tableHeader.push({
           key: columns[i].key,
@@ -839,7 +864,6 @@ export default ({
       this.overlay = false;
     },
     getTableCellClass(row) {
-      console.log("getTableCellClass called with rowIndex", row.index, row.field.key)
       if (this.dataErrors[row.index]) {
         return "table-danger"; // add a danger class to the row
       }
@@ -951,6 +975,52 @@ export default ({
           this.mailgenStatus = "text-danger";
           this.mailgenLog = response.body;
           this.mailgenInProgress = false;
+          return;
+        });
+    },
+    triggerShowRowModal (row) {
+      this.rowModalInProgress = true;
+      let data = []
+      let item = this.parserResult.data[row.index];
+      let sendItem = {};
+      for (let ndx in this.tableHeader) {
+        // check for header in csv. data is array or object
+        // skip first column
+        if (this.tableHeader[ndx].field !== "" && ndx !== 0) {
+          let value;
+          if (this.hasHeader) {
+            value = item[this.tableHeader[ndx].key]
+          } else {
+            value = item[ndx-1];
+          }
+          sendItem[this.tableHeader[ndx].field] = this.prepare(this.tableHeader[ndx].field, value)
+        }
+      }
+      data.push(sendItem);
+      this.$http.post('api/bots/process', {data: data})
+        .then(response => {
+          response.json().then(data => {
+            if (data.status == 'success') {
+              this.rowModalData = data.messages;
+              this.showRowModal = true;
+            } else {
+              this.rowModalData = data;
+              this.showRowModal = true; // TODO: Show log
+            }
+            this.rowModalInProgress = false;
+          }).catch(err => {
+            // body was not JSON
+            //this.rowModalStatus = "text-danger";
+            this.rowModalData = err;
+            this.showRowModal = true;
+            this.rowModalInProgress = false;
+        });
+        }, (response) => { // error
+          this.rowModalData = response;
+          this.showRowModal = true;
+          this.rowModalInProgress = false;
+          //this.rowModalStatus = "text-danger";
+          //this.rowModalLog = response.body;
           return;
         });
     }

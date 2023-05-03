@@ -333,27 +333,36 @@ def bots_available() -> dict:
     intelmq_supports_bot_lib = BotLibSettings and Bot and hasattr(Bot, 'process_message')
     return {
         "status": config_has_bots and intelmq_supports_bot_lib,
-        "reason": "IntelMQ does not support calling Bots as library (IntelMQ >= 3.2.0)" if not intelmq_supports_bot_lib else "No bots configured."
+        "reason": "IntelMQ does not support calling Bots as library (IntelMQ >= 3.2.0)" if not intelmq_supports_bot_lib else ("No bots configured." if not config_has_bots else f"Bots: {','.join(CONFIG.get('bots'))}")
     }
 
 
-@hug.post(ENDPOINT_PREFIX + '/api/process', requires=session.token_authentication)
-def process(body):
+@hug.post(ENDPOINT_PREFIX + '/api/bots/process', requires=session.token_authentication)
+def process(body) -> dict:
     """
     Process data with IntelMQ bots
     """
     bots = []
     for bot_id, bot_config in CONFIG.get('bots').items():
-        bots.append(import_module(bot_config['module']).BOT(bot_id, settings=BotLibSettings | bot_config.get('parameters', {})))
+        try:
+            bots.append(import_module(bot_config['module']).BOT(bot_id, settings=BotLibSettings | bot_config.get('parameters', {})))
+        except Exception as exc:
+            return {'status': 'error',
+                    'log': str(exc)}
     messages = []
     for message in body.get('data', []):
         print('message before processing', message)
         for bot in bots:
-            queues = bot.process_message(message)
+            try:
+                queues = bot.process_message(message)
+            except Exception as exc:
+                return {'status': 'error',
+                        'log': str(exc)}
             message = queues['output'][0]  # FIXME
             print(f'message after processing in {bot}', message)
         messages.append(message)
-    return messages
+    return {'status': 'success',
+            'messages': messages}
 
 
 if __name__ == '__main__':
