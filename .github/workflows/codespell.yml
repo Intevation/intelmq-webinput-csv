@@ -1,19 +1,10 @@
 #Github Workflow to find and notify about misspellings
 #
-#SPDX-FileCopyrightText: 2020 nic.at GmbH, 2022 Intevation GmbH
+#SPDX-FileCopyrightText: 2020 nic.at GmbH, 2022-2023 Intevation GmbH
 #SPDX-License-Identifier: AGPL-3.0-or-later
 
 name: "Codespell spelling check"
-
-on:
-  push:
-    branches: [develop, maintenance, master]
-    paths-ignore:
-      - '.github/**'
-  pull_request:
-    branches: [develop, maintenance]
-    paths-ignore:
-      - '.github/**'
+on: [push, pull_request]
 
 jobs:
   codespell:
