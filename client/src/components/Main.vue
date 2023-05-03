@@ -354,8 +354,19 @@
                   <i>{{ data.label }}</i>
                 </template>
               </b-table>
-              <b-modal v-model="showRowModal" title="Modal">
-                <code>{{rowModalData}}</code>
+              <b-modal
+                v-model="showRowModal"
+                title="Modal"
+                scrollable
+                v-b-modal.modal-xl>
+                <div v-if="rowModalData.messages">
+                  <p>Messages:</p>
+                  <code><pre>{{rowModalData.messages}}</pre></code>
+                </div>
+                <div v-if="rowModalData.log">
+                  <p>Error log:</p>
+                  <code><pre>{{rowModalData.log}}</pre></code>
+                </div>
               </b-modal>
               <b-container>
                 <b-row>
@@ -557,7 +568,7 @@ export default ({
       mailgenPreviewParsed: {},
       validateWithBots: false,
       showRowModal: false,
-      rowModalData: null,
+      rowModalData: {},
       rowModalInProgress: false,
     }
   },
@@ -1000,18 +1011,12 @@ export default ({
       this.$http.post('api/bots/process', {data: data})
         .then(response => {
           response.json().then(data => {
-            if (data.status == 'success') {
-              this.rowModalData = data.messages;
-              this.showRowModal = true;
-            } else {
-              this.rowModalData = data;
-              this.showRowModal = true; // TODO: Show log
-            }
+            this.rowModalData = data;
+            this.showRowModal = true;
             this.rowModalInProgress = false;
           }).catch(err => {
             // body was not JSON
-            //this.rowModalStatus = "text-danger";
-            this.rowModalData = err;
+            this.rowModalData = {'log': err};
             this.showRowModal = true;
             this.rowModalInProgress = false;
         });
@@ -1019,7 +1024,6 @@ export default ({
           this.rowModalData = response;
           this.showRowModal = true;
           this.rowModalInProgress = false;
-          //this.rowModalStatus = "text-danger";
           //this.rowModalLog = response.body;
           return;
         });

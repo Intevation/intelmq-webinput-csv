@@ -346,22 +346,30 @@ def process(body) -> dict:
     """
     Process data with IntelMQ bots
     """
+    data = body.get('data', [])
+    if not data:
+        return {'status': 'error',
+                'log': 'No data supplied. Did you set fields for the columns?'}
+
     bots = []
     for bot_id, bot_config in CONFIG.get('bots').items():
         try:
             bots.append(import_module(bot_config['module']).BOT(bot_id, settings=BotLibSettings | bot_config.get('parameters', {})))
-        except Exception as exc:
+        except Exception:
             return {'status': 'error',
-                    'log': str(exc)}
+                    'log': traceback.format_exc()}
     messages = []
-    for message in body.get('data', []):
+    for message in data:
         print('message before processing', message)
+        if not message:
+            return {'status': 'error',
+                    'log': 'No data supplied for at least one row. Did you set fields for the columns?'}
         for bot in bots:
             try:
                 queues = bot.process_message(message)
-            except Exception as exc:
+            except Exception:
                 return {'status': 'error',
-                        'log': str(exc)}
+                        'log': traceback.format_exc()}
             message = queues['output'][0]  # FIXME
             print(f'message after processing in {bot}', message)
         messages.append(message)
