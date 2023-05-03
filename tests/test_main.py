@@ -3,6 +3,7 @@ Tests for intelmq-webinput-csv
 """
 from unittest import mock
 from pathlib import Path
+from os import environ
 from hug import test
 
 from intelmq.lib.bot import Dict39
@@ -14,8 +15,9 @@ import intelmq_webinput_csv.serve
 CONFIG = Dict39({
     "intelmq": {
         "destination_pipeline_db": 2,
-        # autodetect if this script is running standalone (-> localhost) or in intelmq-cb-mailgen-docker environment
-        "destination_pipeline_host": "intelmq-redis" if Path('/.dockerenv').exists() else "localhost",
+        # autodetect if this script is running standalone (-> localhost) or GitHub Actions;
+        # or in intelmq-cb-mailgen-docker environment -> intelmq-redis
+        "destination_pipeline_host": "intelmq-redis" if (Path('/.dockerenv').exists() and not environ.get('CI')) else "localhost",
         "destination_pipeline_port": 6379
     },
     "destination_pipeline_queue": "taxonomy-expert-oneshot-queue",
