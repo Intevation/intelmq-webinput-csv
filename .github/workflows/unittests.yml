@@ -1,0 +1,53 @@
+# Call pytests to run unit tests
+#
+#SPDX-FileCopyrightText: 2023 Intevation GmbH <swagner@intevation.de>
+#SPDX-License-Identifier: AGPL-3.0-or-later
+#
+name: "Unit tests"
+on: [push, pull_request]
+
+jobs:
+  unittests:
+    runs-on: ubuntu-latest
+    name: Run unit tests with pytest
+    strategy:
+      fail-fast: false
+      matrix:
+#        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.11']
+
+
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Install intelmq dev
+      uses: actions/checkout@v2
+      with:
+        repository: wagner-intevation/intelmq
+        ref: bot-library
+        path: './intelmq'
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - run: pip install intelmq/
+
+    - name: Install pytest
+      run: pip install pytest
+
+    - name: Install
+      run: pip install -e .
+
+    - name: Run basic testsuite
+      env:
+        WEBINPUT_CSV_CONFIG: config/backend/webinput_csv.conf
+        WEBINPUT_CSV_SESSION_CONFIG: tests/assets/webinput-session.conf
+      run: pytest tests/
