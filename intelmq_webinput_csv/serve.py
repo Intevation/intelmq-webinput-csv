@@ -40,7 +40,7 @@ import traceback
 from collections import defaultdict
 from importlib import import_module
 from pathlib import Path
-from typing import Dict, List
+from pkg_resources import resource_filename
 
 import dateutil.parser
 import falcon
@@ -56,6 +56,7 @@ from intelmq.lib.exceptions import InvalidValue, KeyExists
 from intelmq.lib.harmonization import DateTime
 from intelmq.lib.message import Event, MessageFactory
 from intelmq.lib.pipeline import PipelineFactory
+from intelmq.lib.utils import load_configuration
 
 from webinput_session import config, session
 
@@ -64,8 +65,11 @@ try:
 except ImportError:
     cb = None
 
-with open(HARMONIZATION_CONF_FILE) as handle:
-    EVENT_FIELDS = json.load(handle)
+try:
+    harmonization = load_configuration(HARMONIZATION_CONF_FILE)
+except ValueError:
+    # Fallback to internal harmonization file
+    harmonization = load_configuration(resource_filename('intelmq', 'etc/harmonization.conf'))
 
 # Logging
 logging.basicConfig(format='%(asctime)s %(name)s %(levelname)s - %(message)s')
