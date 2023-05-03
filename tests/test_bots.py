@@ -47,20 +47,22 @@ BOTS_CONFIG = Dict39({
 def test_bot_library():
     with mock.patch('webinput_session.session.skip_authentication', new=True):
         with mock.patch('intelmq_webinput_csv.serve.CONFIG', new=CONFIG | BOT_CONFIG):
-            result = test.call('POST', intelmq_webinput_csv.serve, '/api/process/', body={'data': EXAMPLE_DATA_URL,
+            result = test.call('POST', intelmq_webinput_csv.serve, '/api/bots/process/', body={'data': EXAMPLE_DATA_URL,
                                                                                           })
     assert result.status == '200 OK'
-    assert result.data == [EXAMPLE_DATA_URL[0] | {'source.fqdn': 'example.com', 'source.port': 80, 'source.urlpath': '/', 'protocol.application': 'http', 'protocol.transport': 'tcp'}]
+    assert result.data == {'status': 'success',
+                           'messages': [EXAMPLE_DATA_URL[0] | {'source.fqdn': 'example.com', 'source.port': 80, 'source.urlpath': '/', 'protocol.application': 'http', 'protocol.transport': 'tcp'}]}
 
 
 def test_bots_library():
     with mock.patch('webinput_session.session.skip_authentication', new=True):
         with mock.patch('intelmq_webinput_csv.serve.CONFIG', new=CONFIG | BOTS_CONFIG):
-            result = test.call('POST', intelmq_webinput_csv.serve, '/api/process/', body={'data': EXAMPLE_DATA_URL,
+            result = test.call('POST', intelmq_webinput_csv.serve, '/api/bots/process/', body={'data': EXAMPLE_DATA_URL,
                                                                                           })
     assert result.status == '200 OK'
-    assert result.data == [EXAMPLE_DATA_URL[0] | {'source.fqdn': 'example',
+    assert result.data == {'status': 'success',
+                           'messages': [EXAMPLE_DATA_URL[0] | {'source.fqdn': 'example',
                                                   'source.port': 80,
                                                   'source.urlpath': '/',
                                                   'protocol.application': 'http', 'protocol.transport': 'tcp',
-                                                  'classification.taxonomy': 'other', 'classification.type': 'undetermined'}]
+                                                  'classification.taxonomy': 'other', 'classification.type': 'undetermined'}]}
