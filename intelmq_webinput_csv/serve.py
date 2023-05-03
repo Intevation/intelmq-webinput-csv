@@ -305,8 +305,8 @@ def mailgen_preview(body, request, response):
     """
     template = body.get('template')
 
-    log = io.StringIO()
-    log_handler = logging.StreamHandler(stream=log)
+    mailgen_log = io.StringIO()
+    log_handler = logging.StreamHandler(stream=mailgen_log)
     logging.getLogger('intelmqmail').addHandler(log_handler)
 
     if body.get('verbose'):
@@ -321,11 +321,11 @@ def mailgen_preview(body, request, response):
     try:
         mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
         return {"result": cb.start(mailgen_config, process_all=True, template=template, get_preview=True),
-                "log": log.getvalue().strip()}
+                "log": mailgen_log.getvalue().strip()}
     except Exception:
         response.status = falcon.status.HTTP_500
         traceback.print_exc(file=sys.stderr)
-        return {"result": str(traceback.format_exc()), "log": log.getvalue()}
+        return {"result": str(traceback.format_exc()), "log": mailgen_log.getvalue()}
 
 
 @hug.get(ENDPOINT_PREFIX + '/api/bots/available', requires=session.token_authentication)
