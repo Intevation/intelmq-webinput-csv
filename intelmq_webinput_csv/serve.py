@@ -52,7 +52,7 @@ try:
 except ImportError:
     BotLibSettings = None
     Bot = None
-from intelmq.lib.exceptions import InvalidValue, KeyExists
+from intelmq.lib.exceptions import InvalidValue, IntelMQException
 from intelmq.lib.harmonization import DateTime
 from intelmq.lib.message import Event, MessageFactory
 from intelmq.lib.pipeline import PipelineFactory
@@ -174,7 +174,7 @@ def uploadCSV(body, request, response):
                     line_valid = False
             try:
                 event.add(key, value)
-            except (InvalidValue, KeyExists) as exc:
+            except IntelMQException as exc:
                 retval[lineno].append(f"Failed to add data {value!r} as field {key!r}: {exc!s}")
                 line_valid = False
             col = col + 1
