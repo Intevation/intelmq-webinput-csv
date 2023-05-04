@@ -94,6 +94,15 @@
           </b-button>
         </template>
       </b-modal>
+      <b-modal
+        v-model="showErrorModal"
+        title="Error"
+        scrollable
+        v-b-modal.modal-xl
+        ok-only>
+        <p>Error message:</p>
+        <code><pre>{{errorMessage}}</pre></code>
+      </b-modal>
     </div>
     <div v-if="loggedIn">
       <div class="accordion" role="tablist">
@@ -356,9 +365,10 @@
               </b-table>
               <b-modal
                 v-model="showRowModal"
-                title="Modal"
+                title="Processed Row Data"
                 scrollable
-                v-b-modal.modal-xl>
+                v-b-modal.modal-xl
+                ok-only>
                 <div v-if="rowModalData.messages">
                   <p>Messages:</p>
                   <code><pre>{{rowModalData.messages}}</pre></code>
@@ -570,6 +580,8 @@ export default ({
       showRowModal: false,
       rowModalData: {},
       rowModalInProgress: false,
+      errorMessage: null,
+      showErrorModal: false,
     }
   },
   computed: {
@@ -653,6 +665,12 @@ export default ({
             return;
           }
           response.json().then(data => {
+            if (data.log && data.status == 'error') {
+              this.errorMessage = data.log;
+              this.showErrorModal = true;
+              me.inProgress = false;
+            }
+
             const num_errors = Object.keys(data.errors).length;
             me.transferred = (submit ? "Submitted " : "Validated ") + (data.total) + " lines. This resulted in " + num_errors + " validation errors and in total " + data.lines_invalid + " lines were invalid" + (submit ? ", these were not submitted" : "") + ". Therefore, " + (data.total - data.lines_invalid) + " lines were valid.";
             me.dataErrors = data.errors;
