@@ -154,6 +154,16 @@ def uploadCSV(body, request, response):
     retval = defaultdict(list)
     col = 0
     lines_valid = 0
+
+    bots = []
+    for bot_id, bot_config in CONFIG.get('bots').items():
+        log.info('init bot %s', bot_id)
+        try:
+            bots.append((bot_id, import_module(bot_config['module']).BOT(bot_id, settings=BotLibSettings | bot_config.get('parameters', {}))))
+        except Exception:
+            return {'status': 'error',
+                    'log': traceback.format_exc()}
+
     for lineno, item in enumerate(data):
         if not item:
             retval[lineno] = ('Line is empty', )
@@ -251,7 +261,7 @@ def custom_fields():
 
 
 @hug.get(ENDPOINT_PREFIX + '/api/custom/required_fields', requires=session.token_authentication)
-def required_fields():
+def get_required_fields():
     return CONFIG.get('required_fields', [])
 
 #  TODO for now show the full api documentation that hug generates
