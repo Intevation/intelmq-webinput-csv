@@ -22,10 +22,12 @@ needed to submit data to IntelMQ. There is no internal default.
 * `custom_input_fields`: These fields are shown in the interface with the given default values, see also below.
 * `constant_fields`: Similar to above, but not shown to the user and added to all processed events.
 * `required_fields`: A list of IntelMQ field names. If set (not empty list), all lines need to have these fields, otherwise they are marked as invalid and not submitted to IntelMQ. Example: `required_fields: ["time.source", "source.ip"]`
+* `bots`: FIXME
 
 ### Mailgen configuration parameters
 
 * `mailgen_config_file`: Optional path to the mailgen configuration file.
+* `mailgen_target_groups`: Optional list of target groups, used by the CERTBund Rules expert's rules.
 
 Usage
 -----

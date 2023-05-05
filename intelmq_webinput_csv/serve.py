@@ -41,6 +41,7 @@ from collections import defaultdict
 from importlib import import_module
 from pathlib import Path
 from pkg_resources import resource_filename
+from typing import Optional
 
 import dateutil.parser
 import falcon
@@ -263,6 +264,16 @@ def custom_fields():
 @hug.get(ENDPOINT_PREFIX + '/api/custom/required_fields', requires=session.token_authentication)
 def get_required_fields():
     return CONFIG.get('required_fields', [])
+
+
+@hug.get(ENDPOINT_PREFIX + '/api/mailgen/target_groups', requires=session.token_authentication)
+def get_mailgen_target_groups():
+    """
+    Return configured mailgen target groups
+    Actually the target group is used by a rules expert's rule.
+    """
+    return CONFIG.get('mailgen_target_groups', [])
+
 
 #  TODO for now show the full api documentation that hug generates
 # @hug.get("/")

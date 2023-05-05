@@ -18,6 +18,7 @@ export default new Vuex.Store({
     requiredFields: [],
     mailgenAvailable: null,
     botsAvailable: {status: false, reason: "not yet queried"},
+    mailgenAvailableTargetGroups: []
   },
   mutations: {
     SET_USER (state, user) {
@@ -58,6 +59,9 @@ export default new Vuex.Store({
     },
     SET_BOTS_AVAILABLE (state, data) {
       state.botsAvailable = data;
+    },
+    SET_MAILGEN_AVAILABLE_TARGET_GROUPS(state, data) {
+      state.mailgenAvailableTargetGroups = data;
     }
   },
   actions: {
@@ -144,6 +148,13 @@ export default new Vuex.Store({
       Vue.http.get("api/bots/available").then(
         response => response.json().then(data => {
           context.commit("SET_BOTS_AVAILABLE", data);
+        })
+      )
+    },
+    fetchMailgenAvailableTargetGroups(context) {
+      Vue.http.get("api/mailgen/target_groups").then(
+        response => response.json().then(data => {
+          context.commit("SET_MAILGEN_AVAILABLE_TARGET_GROUPS", data);
         })
       )
     }

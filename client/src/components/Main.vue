@@ -247,6 +247,12 @@
                         :title="botsAvailable.reason"
                       ></b-form-checkbox>
                     </b-form-group>
+                    <b-form-group label="Target Groups:">
+                      <b-form-checkbox-group
+                        v-model="mailgenTargetGroups"
+                        :options="mailgenAvailableTargetGroups"
+                      ></b-form-checkbox-group>
+                    </b-form-group>
                     <b-container>
                       <b-row>
                         <b-col>
@@ -582,10 +588,11 @@ export default ({
       rowModalInProgress: false,
       errorMessage: null,
       showErrorModal: false,
+      mailgenTargetGroups: [],
     }
   },
   computed: {
-    ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable', 'botsAvailable']),
+    ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable', 'botsAvailable', 'mailgenAvailableTargetGroups']),
   },
   mounted() {
     // Create timezone strings
@@ -752,6 +759,7 @@ export default ({
         this.$store.dispatch("fetchCustomFields");
         this.$store.dispatch("fetchMailgenAvailable");
         this.$store.dispatch("fetchBotsAvailable");
+        this.$store.dispatch("fetchMailgenAvailableTargetGroups");
       }, (response) => {
         if (response.status !== 200) {
           this.loginErrorText = "Server not reachable.";
