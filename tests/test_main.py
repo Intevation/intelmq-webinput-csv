@@ -114,7 +114,9 @@ def test_constant_fields():
                                                                                                      'dryrun': True,
                                                                                                      })
         pipeline_mock.create.assert_called()
-        assert mock.call().send('{"source.ip": "127.0.0.1", "source.asn": 1, "source.as_name": "Example AS", "feed.provider": "my-organization", "classification.identifier": "test", "classification.type": "test", "feed.code": "oneshot", "time.observation": "1970-01-01T13:37:00+00:00", "__type": "Event"}') in pipeline_mock.create.mock_calls
+        assert mock.call().send('{"source.ip": "127.0.0.1", "source.asn": 1, "source.as_name": "Example AS", "feed.provider": "my-organization", '
+                                '"classification.type": "test", "classification.identifier": "test", "feed.code": "oneshot", '
+                                '"time.observation": "1970-01-01T13:37:00+00:00", "__type": "Event"}') in pipeline_mock.create.mock_calls
     assert result.status == '200 OK'
     assert result.data['lines_invalid'] == 0
 

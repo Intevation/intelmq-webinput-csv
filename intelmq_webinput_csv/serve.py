@@ -130,7 +130,7 @@ def login(username: str, password: str):
                 }
 
 
-def row_to_event(item: dict, body: dict, bots: list,
+def row_to_event(item: dict, body: dict,
                  retval: Optional[defaultdict] = None,
                  lineno: int = 0, time_observation: Optional[str] = None) -> Event:
     """
@@ -138,7 +138,7 @@ def row_to_event(item: dict, body: dict, bots: list,
     """
     if not time_observation:
         time_observation = DateTime().generate_datetime_now()
-    if not retval:
+    if retval is None:
         # is not used then, but to keep the code below cleaner
         retval = defaultdict(list)
 
@@ -234,14 +234,15 @@ def uploadCSV(body, request, response):
             retval[lineno] = ('Line is empty', )
             continue
 
-        event, line_valid = row_to_event(item, body, bots, retval, lineno, time_observation)
+        event, line_valid = row_to_event(item, body, retval, lineno, time_observation)
 
         for bot_id, bot in bots:
             try:
-                bot.process_message(event)
+                queues = bot.process_message(event)
             except Exception as exc:
                 line_valid = False
                 retval[lineno].append(f"Failed to process this data with bot {bot_id}: {exc!s}")
+            event = queues['output'][0]  # FIXME
 
         try:
             if CONFIG.get('destination_pipeline_queue_formatted', False):
@@ -267,10 +268,10 @@ def uploadCSV(body, request, response):
             destination_pipeline.send(raw_message)
     # lineno is the index, for the number of lines add one
     total_lines = lineno + 1 if data else 0
-    retval = {"total": total_lines,
+    result = {"total": total_lines,
               "lines_invalid": total_lines - lines_valid,
               "errors": retval}
-    return retval
+    return result
 
 
 @hug.get(ENDPOINT_PREFIX + '/api/classification/types', requires=session.token_authentication)
@@ -413,7 +414,7 @@ def process(body) -> dict:
                     'log': 'No data supplied for at least one row. Did you set fields for the columns?'}
         print('message before processing', item)
         retval = {0: []}
-        message, line_valid = row_to_event(item, body, bots, retval)
+        message, line_valid = row_to_event(item, body, retval)
         if not line_valid:
             return {'status': 'error',
                     'log': f"Line was not valid: {'.'.join(retval[0])}"}
