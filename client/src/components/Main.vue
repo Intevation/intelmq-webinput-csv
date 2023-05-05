@@ -643,12 +643,7 @@ export default ({
         }
         data.push(sendItem);
       }
-      let custom = {
-          "custom_classification.type": this.classificationType,
-      };
-      for (let field of this.customFieldsMapping) {
-        custom["custom_"+field.key] = field.value;
-      }
+      let custom = this.computeCustom();
       let send = {
         timezone: this.timezone,
         data: data,
@@ -1034,7 +1029,11 @@ export default ({
         }
       }
       data.push(sendItem);
-      this.$http.post('api/bots/process', {data: data})
+      this.$http.post('api/bots/process', {
+        data: data,
+        custom: this.computeCustom(),
+        dryrun: this.dryrun,
+      })
         .then(response => {
           response.json().then(data => {
             this.rowModalData = data;
@@ -1053,6 +1052,18 @@ export default ({
           //this.rowModalLog = response.body;
           return;
         });
+    },
+    computeCustom() {
+      let custom = {
+          "custom_classification.type": this.classificationType,
+      };
+      if (this.mailgenTargetGroups) {
+        custom["custom_extra.target_groups"] = this.mailgenTargetGroups.join(',')
+      }
+      for (let field of this.customFieldsMapping) {
+        custom["custom_"+field.key] = field.value;
+      }
+      return custom;
     }
   }
 })
