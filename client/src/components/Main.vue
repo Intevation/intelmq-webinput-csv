@@ -556,7 +556,7 @@ export default ({
       timezones: [],
       timezone: '+00:00',
       dryrun: true,
-      classificationType: "blacklist",
+      classificationType: "test",
       identifier: "test",
       code: "oneshot",
       tableHeader: [],
