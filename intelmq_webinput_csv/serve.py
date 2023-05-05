@@ -130,6 +130,70 @@ def login(username: str, password: str):
                 }
 
 
+def row_to_event(item: dict, body: dict, bots: list,
+                 retval: Optional[defaultdict] = None,
+                 lineno: int = 0, time_observation: Optional[str] = None) -> Event:
+    """
+    Processes a row of the data
+    """
+    if not time_observation:
+        time_observation = DateTime().generate_datetime_now()
+    if not retval:
+        # is not used then, but to keep the code below cleaner
+        retval = defaultdict(list)
+
+    event = Event()
+    line_valid = True
+    for key in item:
+        value = item[key]
+        if key.startswith('time.'):
+            try:
+                parsed = dateutil.parser.parse(value, fuzzy=True)
+                if not parsed.tzinfo:
+                    value += body['timezone']
+                    parsed = dateutil.parser.parse(value)
+                value = parsed.isoformat()
+            except ValueError:
+                line_valid = False
+        try:
+            event.add(key, value)
+        except IntelMQException as exc:
+            retval[lineno].append(f"Failed to add data {value!r} as field {key!r}: {exc!s}")
+            line_valid = False
+    for key in CONSTANTS:
+        if key not in event:
+            try:
+                event.add(key, CONSTANTS[key])
+            except InvalidValue as exc:
+                retval[lineno].append(f"Failed to add data {CONSTANTS[key]!r} as field {key!r}: {exc!s}")
+                line_valid = False
+    for key in body['custom']:
+        if not key.startswith('custom_'):
+            continue
+        if key[7:] not in event:
+            try:
+                event.add(key[7:], body['custom'][key])
+            except InvalidValue as exc:
+                retval[lineno].append(f"Failed to add data {body['custom'][key]!r} as field {key!r}: {exc!s}")
+                line_valid = False
+
+    if 'classification.type' not in event:
+        event.add('classification.type', 'test')
+    if 'classification.identifier' not in event:
+        event.add('classification.identifier', 'test')
+    if 'feed.code' not in event:
+        event.add('feed.code', 'oneshot')
+    if 'time.observation' not in event:
+        event.add('time.observation', time_observation, sanitize=False)
+
+    # Ensure dryrun has priority, overwrite it at the end
+    if body['dryrun']:
+        event.add('classification.identifier', 'test', overwrite=True)
+        event.add('classification.type', 'test', overwrite=True)
+
+    return event, line_valid
+
+
 @hug.post(ENDPOINT_PREFIX + '/api/upload', requires=session.token_authentication)
 def uploadCSV(body, request, response):
     # additional authentication is required for this call
@@ -151,13 +215,13 @@ def uploadCSV(body, request, response):
     required_fields = CONFIG.get('required_fields')
 
     data = body["data"]
-    customs = body.get("custom", {})
+    if 'custom' not in body:
+        body["custom"] = {}
     retval = defaultdict(list)
-    col = 0
     lines_valid = 0
 
     bots = []
-    for bot_id, bot_config in CONFIG.get('bots').items():
+    for bot_id, bot_config in CONFIG.get('bots', {}).items():
         log.info('init bot %s', bot_id)
         try:
             bots.append((bot_id, import_module(bot_config['module']).BOT(bot_id, settings=BotLibSettings | bot_config.get('parameters', {}))))
@@ -168,71 +232,34 @@ def uploadCSV(body, request, response):
     for lineno, item in enumerate(data):
         if not item:
             retval[lineno] = ('Line is empty', )
-            line_valid = False
             continue
-        event = Event()
-        line_valid = True
-        for key in item:
-            value = item[key]
-            if key.startswith('time.'):
-                try:
-                    parsed = dateutil.parser.parse(value, fuzzy=True)
-                    if not parsed.tzinfo:
-                        value += body['timezone']
-                        parsed = dateutil.parser.parse(value)
-                    value = parsed.isoformat()
-                except ValueError:
-                    line_valid = False
+
+        event, line_valid = row_to_event(item, body, bots, retval, lineno, time_observation)
+
+        for bot_id, bot in bots:
             try:
-                event.add(key, value)
-            except IntelMQException as exc:
-                retval[lineno].append(f"Failed to add data {value!r} as field {key!r}: {exc!s}")
+                bot.process_message(event)
+            except Exception as exc:
                 line_valid = False
-            col = col + 1
-        for key in CONSTANTS:
-            if key not in event:
-                try:
-                    event.add(key, CONSTANTS[key])
-                except InvalidValue as exc:
-                    retval[lineno].append(f"Failed to add data {CONSTANTS[key]!r} as field {key!r}: {exc!s}")
-                    line_valid = False
-        for key in customs:
-            if not key.startswith('custom_'):
-                continue
-            if key[7:] not in event:
-                try:
-                    event.add(key[7:], customs[key])
-                except InvalidValue as exc:
-                    retval[lineno].append(f"Failed to add data {customs[key]!r} as field {key!r}: {exc!s}")
-                    line_valid = False
-        # Ensure dryrun has priority
-        if body['dryrun']:
-            event.add('classification.identifier', 'test', overwrite=True)
-            event.add('classification.type', 'test', overwrite=True)
+                retval[lineno].append(f"Failed to process this data with bot {bot_id}: {exc!s}")
+
         try:
             if CONFIG.get('destination_pipeline_queue_formatted', False):
                 CONFIG['destination_pipeline_queue'].format(ev=event)
         except Exception as exc:
             retval[lineno].append(f"Failed to generate destination_pipeline_queue {CONFIG['destination_pipeline_queue']}: {exc!s}")
             line_valid = False
-        if line_valid:
-            lines_valid += 1
-        else:
+        if not line_valid:
             continue
-        if 'classification.type' not in event:
-            event.add('classification.type', 'test')
-        if 'classification.identifier' not in event:
-            event.add('classification.identifier', 'test')
-        if 'feed.code' not in event:
-            event.add('feed.code', 'oneshot')
-        if 'time.observation' not in event:
-            event.add('time.observation', time_observation, sanitize=False)
+
         if required_fields:
             diff = set(required_fields) - event.keys()
             if diff:
                 line_valid = False
                 retval[lineno].append(f"Line is missing these required fields: {', '.join(diff)}")
-                lines_valid += 1
+
+        # if line was valid, increment the counter by 1
+        lines_valid += line_valid
         # if 'raw' not in event:
         #     event.add('raw', ''.join(raw_header + [handle_rewindable.current_line]))
         raw_message = MessageFactory.serialize(event)
@@ -373,19 +400,25 @@ def process(body) -> dict:
                 'log': 'No data supplied. Did you set fields for the columns?'}
 
     bots = []
-    for bot_id, bot_config in CONFIG.get('bots').items():
+    for bot_id, bot_config in CONFIG.get('bots', {}).items():
         try:
-            bots.append(import_module(bot_config['module']).BOT(bot_id, settings=BotLibSettings | bot_config.get('parameters', {})))
+            bots.append((bot_id, import_module(bot_config['module']).BOT(bot_id, settings=BotLibSettings | bot_config.get('parameters', {}))))
         except Exception:
             return {'status': 'error',
                     'log': traceback.format_exc()}
     messages = []
-    for message in data:
-        print('message before processing', message)
-        if not message:
+    for item in data:
+        if not item:
             return {'status': 'error',
                     'log': 'No data supplied for at least one row. Did you set fields for the columns?'}
-        for bot in bots:
+        print('message before processing', item)
+        retval = {0: []}
+        message, line_valid = row_to_event(item, body, bots, retval)
+        if not line_valid:
+            return {'status': 'error',
+                    'log': f"Line was not valid: {'.'.join(retval[0])}"}
+        print('message before processing', message)
+        for bot_id, bot in bots:
             try:
                 queues = bot.process_message(message)
             except Exception:
