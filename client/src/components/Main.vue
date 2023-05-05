@@ -1046,7 +1046,7 @@ export default ({
             this.rowModalInProgress = false;
         });
         }, (response) => { // error
-          this.rowModalData = response;
+          this.rowModalData = {'log': response.body};
           this.showRowModal = true;
           this.rowModalInProgress = false;
           //this.rowModalLog = response.body;
