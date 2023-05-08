@@ -98,7 +98,7 @@
         v-model="showErrorModal"
         title="Error"
         scrollable
-        v-b-modal.modal-xl
+        size="xl"
         ok-only>
         <p>Error message:</p>
         <code><pre>{{errorMessage}}</pre></code>
@@ -373,14 +373,14 @@
                 v-model="showRowModal"
                 title="Processed Row Data"
                 scrollable
-                v-b-modal.modal-xl
+                size="xl"
                 ok-only>
                 <div v-if="rowModalData.messages">
                   <p>Messages:</p>
                   <code><pre>{{rowModalData.messages}}</pre></code>
                 </div>
                 <div v-if="rowModalData.log">
-                  <p>Error log:</p>
+                  <p>Log:</p>
                   <code><pre>{{rowModalData.log}}</pre></code>
                 </div>
               </b-modal>
@@ -1041,13 +1041,13 @@ export default ({
             this.rowModalInProgress = false;
           }).catch(err => {
             // body was not JSON
-            this.rowModalData = {'log': err};
-            this.showRowModal = true;
+            this.errorMessage = err;
+            this.showErrorModal = true;
             this.rowModalInProgress = false;
         });
         }, (response) => { // error
-          this.rowModalData = {'log': response.body};
-          this.showRowModal = true;
+          this.errorMessage = response.body;
+          this.showErrorModal = true;
           this.rowModalInProgress = false;
           //this.rowModalLog = response.body;
           return;
