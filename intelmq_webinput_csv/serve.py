@@ -400,9 +400,13 @@ def process(body) -> dict:
         return {'status': 'error',
                 'log': 'No data supplied. Did you set fields for the columns?'}
 
+    bot_logs = io.StringIO()
+    log_handler = logging.StreamHandler(stream=bot_logs)
+
     bots = []
     for bot_id, bot_config in CONFIG.get('bots', {}).items():
         try:
+            logging.getLogger(bot_id).addHandler(log_handler)
             bots.append((bot_id, import_module(bot_config['module']).BOT(bot_id, settings=BotLibSettings | bot_config.get('parameters', {}))))
         except Exception:
             return {'status': 'error',
@@ -429,7 +433,8 @@ def process(body) -> dict:
             print(f'message after processing in {bot}', message)
         messages.append(message)
     return {'status': 'success',
-            'messages': messages}
+            'messages': messages,
+            'log': bot_logs.getvalue()}
 
 
 if __name__ == '__main__':
