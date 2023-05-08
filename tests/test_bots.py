@@ -67,6 +67,9 @@ def test_bot_library():
                                                                                                'dryrun': True})
     assert result.status == '200 OK'
     del result.data['messages'][0]['time.observation']
+    assert 'URLExpertBot initialized with id url' in result.data['log']
+    assert 'Bot initialization completed.' in result.data['log']
+    del result.data['log']
     assert result.data == {'status': 'success',
                            'messages': [EXAMPLE_DATA_URL[0] | {'source.fqdn': 'example.com', 'source.port': 80,
                                                                'source.urlpath': '/',
@@ -85,6 +88,9 @@ def test_bots_library():
                                                                                                'dryrun': False})
     assert result.status == '200 OK'
     del result.data['messages'][0]['time.observation']
+    assert 'RemoveAffixExpertBot initialized with id remove-affix' in result.data['log']
+    assert 'Bot initialization completed.' in result.data['log']
+    del result.data['log']
     assert result.data == {'status': 'success',
                            'messages': [EXAMPLE_DATA_URL[0] | {'source.fqdn': 'example',
                                                                'source.port': 80,
