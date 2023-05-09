@@ -376,7 +376,7 @@
                 size="xl"
                 ok-only>
                 <div v-if="rowModalData.messages">
-                  <p>Messages:</p>
+                  <p>Messages ({{rowModalData.messages.length}}):</p>
                   <code><pre>{{rowModalData.messages}}</pre></code>
                 </div>
                 <div v-if="rowModalData.log">
@@ -652,6 +652,7 @@ export default ({
         submit: submit,
         username: this.username,
         password: this.password,
+        validate_with_bots: this.validateWithBots,
       }
       var me = this;
       this.$http.post('api/upload', send)

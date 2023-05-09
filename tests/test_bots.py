@@ -12,9 +12,19 @@ from .test_main import CONFIG
 EXAMPLE_DATA_URL = [
     Dict39({'source.url': 'http://example.com/'})
 ]
+EXAMPLE_DATA_URL_ASNAME = [
+    Dict39({'source.url': 'http://example.com/', 'source.as_name': 'Example AS'})
+]
 EXAMPLE_DATA_URL_TYPE = [
     EXAMPLE_DATA_URL[0] | {'classification.type': 'undetermined'}
 ]
+EXAMPLE_DATA_URL_PROCESSED = [EXAMPLE_DATA_URL[0] | {'source.fqdn': 'example.com', 'source.port': 80,
+                                                     'source.urlpath': '/',
+                                                     'protocol.application': 'http', 'protocol.transport': 'tcp',
+                                                     'classification.identifier': 'test', 'classification.type': 'test',
+                                                     'feed.code': 'oneshot',
+                                                     'feed.provider': 'my-organization',
+                                                     }]
 BOT_CONFIG = Dict39({
     'bots': {
         'url': {
@@ -45,6 +55,19 @@ BOTS_CONFIG = Dict39({
         }
     }
 })
+BOTS_CONFIG_URL_IP = Dict39({
+    'bots': {
+        'url': {
+            'module': 'intelmq.bots.experts.url.expert',
+        },
+        'taxonomy': {
+            'module': 'intelmq.bots.experts.taxonomy.expert'
+        },
+        'gethostbyname': {
+            'module': 'intelmq.bots.experts.gethostbyname.expert',
+        }
+    }
+})
 BOT_CONFIG_JINJA = Dict39({
     'bots': {
         'jinja': {
@@ -59,7 +82,7 @@ BOT_CONFIG_JINJA = Dict39({
 })
 
 
-def test_bot_library():
+def test_process_bot():
     with mock.patch('webinput_session.session.skip_authentication', new=True):
         with mock.patch('intelmq_webinput_csv.serve.CONFIG', new=CONFIG | BOT_CONFIG):
             result = test.call('POST', intelmq_webinput_csv.serve, '/api/bots/process/', body={'data': EXAMPLE_DATA_URL,
@@ -71,13 +94,27 @@ def test_bot_library():
     assert 'Bot initialization completed.' in result.data['log']
     del result.data['log']
     assert result.data == {'status': 'success',
-                           'messages': [EXAMPLE_DATA_URL[0] | {'source.fqdn': 'example.com', 'source.port': 80,
-                                                               'source.urlpath': '/',
-                                                               'protocol.application': 'http', 'protocol.transport': 'tcp',
-                                                               'classification.identifier': 'test', 'classification.type': 'test',
-                                                               'feed.code': 'oneshot',
-                                                               'feed.provider': 'my-organization',
-                                                               }]}
+                           'messages': EXAMPLE_DATA_URL_PROCESSED}
+
+
+def test_process_bot_multi_messages():
+    """
+    test /api/bots/process/ with multiple bots and multiple messages
+    """
+    with mock.patch('webinput_session.session.skip_authentication', new=True):
+        with mock.patch('intelmq_webinput_csv.serve.CONFIG', new=CONFIG | BOT_CONFIG):
+            result = test.call('POST', intelmq_webinput_csv.serve, '/api/bots/process/', body={'data': EXAMPLE_DATA_URL * 2,
+                                                                                               'custom': {},
+                                                                                               'dryrun': True})
+    assert result.status == '200 OK'
+    del result.data['messages'][0]['time.observation']
+    del result.data['messages'][1]['time.observation']
+    assert 'URLExpertBot initialized with id url' in result.data['log']
+    assert 'Bot initialization completed.' in result.data['log']
+    del result.data['log']
+    assert result.data == {'status': 'success',
+                           'messages': EXAMPLE_DATA_URL_PROCESSED * 2}
+
 
 
 def test_bots_library():
@@ -100,7 +137,7 @@ def test_bots_library():
                                                                'classification.identifier': 'test',
                                                                'feed.code': 'oneshot',
                                                                'feed.provider': 'my-organization',
-}]}
+                                                               }]}
 
 
 def test_bot_exception():
@@ -114,3 +151,20 @@ def test_bot_exception():
     assert result.status == '200 OK'
     assert result.data['status'] == 'error'
     assert 'jinja2.exceptions.TemplateSyntaxError:' in result.data['log'] or 'intelmq.lib.exceptions.MissingDependencyError:' in result.data['log']
+
+
+def test_preview_bots_messages():
+    """
+    test /api/upload with multiple bots and multiple messages
+    """
+    with mock.patch('webinput_session.session.skip_authentication', new=True):
+        with mock.patch('intelmq_webinput_csv.serve.CONFIG', new=CONFIG | BOTS_CONFIG_URL_IP):
+            result = test.call('POST', intelmq_webinput_csv.serve, '/api/upload/', body={'submit': False,
+                                                                                         'data': EXAMPLE_DATA_URL_ASNAME * 2,
+                                                                                         'custom': {},  # TODO
+                                                                                         'dryrun': True,
+                                                                                         'validate_with_bots': True,
+                                                                                         })
+    assert result.status == '200 OK'
+    assert result.data['lines_invalid'] == 0
+    assert result.data['errors'] == {}

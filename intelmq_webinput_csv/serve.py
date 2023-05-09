@@ -221,7 +221,7 @@ def uploadCSV(body, request, response):
     lines_valid = 0
 
     bots = []
-    for bot_id, bot_config in CONFIG.get('bots', {}).items():
+    for bot_id, bot_config in CONFIG.get('bots', {}).items() if body.get('validate_with_bots', False) else {}:
         log.info('init bot %s', bot_id)
         try:
             bots.append((bot_id, import_module(bot_config['module']).BOT(bot_id, settings=BotLibSettings | bot_config.get('parameters', {}))))
@@ -236,36 +236,44 @@ def uploadCSV(body, request, response):
 
         event, line_valid = row_to_event(item, body, retval, lineno, time_observation)
 
+        bots_input = [event]
         for bot_id, bot in bots:
+            bots_output = []
+            log.info('messages before bot processing: %r', bots_input)
             try:
-                queues = bot.process_message(event)
+                queues = bot.process_message(*bots_input)
+            except Exception:
+                return {'status': 'error',
+                        'log': traceback.format_exc()}
+            bots_output.extend(queues['output'])
+            log.info(f'messages after processing by {bot}: %r', queues['output'])
+            bots_input = bots_output
+        if not bots:
+            bots_output = [event]
+
+        for event in bots_output:
+            try:
+                if CONFIG.get('destination_pipeline_queue_formatted', False):
+                    CONFIG['destination_pipeline_queue'].format(ev=event)
             except Exception as exc:
+                retval[lineno].append(f"Failed to generate destination_pipeline_queue {CONFIG['destination_pipeline_queue']}: {exc!s}")
                 line_valid = False
-                retval[lineno].append(f"Failed to process this data with bot {bot_id}: {exc!s}")
-            event = queues['output'][0]  # FIXME
+            if not line_valid:
+                continue
 
-        try:
-            if CONFIG.get('destination_pipeline_queue_formatted', False):
-                CONFIG['destination_pipeline_queue'].format(ev=event)
-        except Exception as exc:
-            retval[lineno].append(f"Failed to generate destination_pipeline_queue {CONFIG['destination_pipeline_queue']}: {exc!s}")
-            line_valid = False
-        if not line_valid:
-            continue
+            if required_fields:
+                diff = set(required_fields) - event.keys()
+                if diff:
+                    line_valid = False
+                    retval[lineno].append(f"Line is missing these required fields: {', '.join(diff)}")
 
-        if required_fields:
-            diff = set(required_fields) - event.keys()
-            if diff:
-                line_valid = False
-                retval[lineno].append(f"Line is missing these required fields: {', '.join(diff)}")
-
+            # if 'raw' not in event:
+            #     event.add('raw', ''.join(raw_header + [handle_rewindable.current_line]))
+            raw_message = MessageFactory.serialize(event)
+            if body.get('submit', True) and line_valid:
+                destination_pipeline.send(raw_message)
         # if line was valid, increment the counter by 1
         lines_valid += line_valid
-        # if 'raw' not in event:
-        #     event.add('raw', ''.join(raw_header + [handle_rewindable.current_line]))
-        raw_message = MessageFactory.serialize(event)
-        if body.get('submit', True) and line_valid:
-            destination_pipeline.send(raw_message)
     # lineno is the index, for the number of lines add one
     total_lines = lineno + 1 if data else 0
     result = {"total": total_lines,
@@ -411,29 +419,33 @@ def process(body) -> dict:
         except Exception:
             return {'status': 'error',
                     'log': traceback.format_exc()}
-    messages = []
+    bots_input = []
     for item in data:
         if not item:
             return {'status': 'error',
                     'log': 'No data supplied for at least one row. Did you set fields for the columns?'}
-        print('message before processing', item)
+        log.info('message before converting: %r', item)
         retval = {0: []}
-        message, line_valid = row_to_event(item, body, retval)
+        first_message, line_valid = row_to_event(item, body, retval)
         if not line_valid:
             return {'status': 'error',
                     'log': f"Line was not valid: {'.'.join(retval[0])}"}
-        print('message before processing', message)
-        for bot_id, bot in bots:
-            try:
-                queues = bot.process_message(message)
-            except Exception:
-                return {'status': 'error',
-                        'log': traceback.format_exc()}
-            message = queues['output'][0]  # FIXME
-            print(f'message after processing in {bot}', message)
-        messages.append(message)
+        bots_input.append(first_message)
+
+    for bot_id, bot in bots:
+        bots_output = []
+        log.info('messages before bot processing: %r', bots_input)
+        try:
+            queues = bot.process_message(*bots_input)
+        except Exception:
+            return {'status': 'error',
+                    'log': traceback.format_exc()}
+        bots_output.extend(queues['output'])
+        log.info(f'messages after processing by {bot}: %r', queues['output'])
+        bots_input = bots_output
+
     return {'status': 'success',
-            'messages': messages,
+            'messages': bots_output,
             'log': bot_logs.getvalue()}
 
 
