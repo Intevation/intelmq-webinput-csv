@@ -21,7 +21,10 @@ class WebinputSQLOutputBot(SQLOutputBot):
     Thus, fail_on_errors is always set to true
     """
 
-    def __init__(self, *args, connection: 'psycopg2.extensions.connection', **kwargs):
+    def __init__(self, *args, connection: 'psycopg2.extensions.connection', **kwargs):  # noqa: F821
+        """
+        Initializes the WebinputSQLOutputBot with a pre-exisiting Postgres Connection
+        """
         if not hasattr(self, 'fail_on_errors'):
             raise ValueError('This version of IntelMQ is too old. At least version 1.2.0 is required.')
         self.fail_on_errors = True
@@ -35,7 +38,6 @@ class WebinputSQLOutputBot(SQLOutputBot):
 
     def _init_postgresql(self):
         self.logger.info('Ignoring initialization of postgres connection.')
-        pass
 
     def _init_mssql(self):
         raise NotImplementedError
@@ -44,6 +46,10 @@ class WebinputSQLOutputBot(SQLOutputBot):
         raise NotADirectoryError
 
     def process(self):
+        """
+        Same as intelmq.bots.outputs.sql.output.SQLOutputBot.process
+        except that the postgres commit is left out
+        """
         event = self.receive_message().to_dict(jsondict_as_string=self.jsondict_as_string)
 
         key_names = self.fields
