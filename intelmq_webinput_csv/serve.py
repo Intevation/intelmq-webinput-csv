@@ -224,8 +224,9 @@ def uploadCSV(body, request, response):
     retval = defaultdict(list)
     lines_valid = 0
 
-    mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
-    conn = open_db_connection(mailgen_config, connection_factory=RealDictConnection)
+    if cb:
+        mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
+        conn = open_db_connection(mailgen_config, connection_factory=RealDictConnection)
 
     bots = []
     for bot_id, bot_config in CONFIG.get('bots', {}).items() if body.get('validate_with_bots', False) else {}:
@@ -286,9 +287,9 @@ def uploadCSV(body, request, response):
         # if line was valid, increment the counter by 1
         lines_valid += line_valid
 
-    if body['dryrun']:
+    if body['dryrun'] and cb:
         conn.rollback()
-    else:
+    elif cb:
         conn.commit()
 
     # lineno is the index, for the number of lines add one
@@ -430,8 +431,9 @@ def process(body) -> dict:
     bot_logs = io.StringIO()
     log_handler = logging.StreamHandler(stream=bot_logs)
 
-    mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
-    conn = open_db_connection(mailgen_config, connection_factory=RealDictConnection)
+    if cb:
+        mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
+        conn = open_db_connection(mailgen_config, connection_factory=RealDictConnection)
 
     bots = []
     for bot_id, bot_config in CONFIG.get('bots', {}).items():
@@ -475,19 +477,20 @@ def process(body) -> dict:
               'messages': bots_output,
               'log': bot_logs.getvalue()}
 
-    mailgen_log = io.StringIO()
-    log_handler = logging.StreamHandler(stream=mailgen_log)
-    logging.getLogger('intelmqmail').addHandler(log_handler)
-    logging.getLogger('intelmqmail').setLevel(logging.DEBUG)
+    if cb:
+        mailgen_log = io.StringIO()
+        log_handler = logging.StreamHandler(stream=mailgen_log)
+        logging.getLogger('intelmqmail').addHandler(log_handler)
+        logging.getLogger('intelmqmail').setLevel(logging.DEBUG)
 
-    retval['log'] += mailgen_log.getvalue().strip()
-    retval['notifications'] = cb.start(mailgen_config, process_all=True,
-                                       # template=template,
-                                       get_preview=True,
-                                       conn=conn,
-                                       dry_run=True),
+        retval['log'] += mailgen_log.getvalue().strip()
+        retval['notifications'] = cb.start(mailgen_config, process_all=True,
+                                        # template=template,
+                                        get_preview=True,
+                                        conn=conn,
+                                        dry_run=True),
 
-    # in dry_run, mailgen calls conn.rollback() itself
+        # in dry_run, mailgen calls conn.rollback() itself
 
     return retval
 
