@@ -46,7 +46,6 @@ from pkg_resources import resource_filename
 import dateutil.parser
 import falcon
 import hug
-from psycopg2.extras import RealDictConnection
 from intelmq import CONFIG_DIR, HARMONIZATION_CONF_FILE
 from intelmq.bots.experts.taxonomy.expert import TAXONOMY
 try:
@@ -69,6 +68,9 @@ try:
     from intelmqmail.db import open_db_connection
 except ImportError:
     cb = None
+else:
+    # only needed if intelmqmail is available
+    from psycopg2.extras import RealDictConnection
 
 try:
     EVENT_FIELDS = load_configuration(HARMONIZATION_CONF_FILE)
