@@ -64,5 +64,3 @@ jobs:
         WEBINPUT_CSV_CONFIG: config/backend/webinput_csv.conf
         WEBINPUT_CSV_SESSION_CONFIG: tests/assets/webinput-session.conf
       run: pytest tests/
-      env:
-        PYTHONPATH: .
