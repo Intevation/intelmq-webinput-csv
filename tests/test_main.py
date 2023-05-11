@@ -6,7 +6,7 @@ from pathlib import Path
 from os import environ
 from hug import test
 
-from intelmq.lib.bot import Dict39
+from intelmq.lib.datatypes import Dict39
 
 import intelmq_webinput_csv.serve
 
