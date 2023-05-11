@@ -10,7 +10,8 @@ Development: call like
 Several configuration methods are shown within the code.
 
 
-Copyright (C) 2016, 2017, 2022-2023 by Bundesamt für Sicherheit in der Informationstechnik
+SPDX-FileCopyrightText: 2016, 2017, 2022-2023 Bundesamt für Sicherheit in der Informationstechnik
+SPDX-License-Identifier: AGPL-3.0-or-later
 
 Software engineering by Intevation GmbH
 
@@ -29,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Author(s):
     * Raimund Renkert <raimund.renkert@intevation.de>
+    * Sebastian Wagner <swagner@intevation.de>
 """
 
 import io

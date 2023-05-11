@@ -1,5 +1,9 @@
 """
 Tests for intelmq-webinput-csv
+
+SPDX-FileCopyrightText: 2023 Bundesamt für Sicherheit in der Informationstechnik
+SPDX-License-Identifier: AGPL-3.0-or-later
+Software engineering by Intevation GmbH <https://intevation.de>
 """
 from unittest import mock
 

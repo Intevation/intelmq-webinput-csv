@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2017-2018 nic.at GmbH <wagner@cert.at>
-# Copyright (c) 2021-2022 Bundesamt für Sicherheit in der Informationstechnik
-# Authors:
-#   Sascha Wilde <wilde@intevation.de>
-# SPDX-License-Identifier: AGPL-3.0
+"""
+SPDX-FileCopyrightText: 2017-2018 nic.at GmbH <wagner@cert.at>, 2021-2022 Bundesamt für Sicherheit in der Informationstechnik
+SPDX-License-Identifier: AGPL-3.0-or-later
+Software engineering by Intevation GmbH <https://intevation.de>
+Authors:
+  Sascha Wilde <wilde@intevation.de>
+"""
 import os
 
 from setuptools import setup

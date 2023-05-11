@@ -2,10 +2,9 @@
 
 Requires hug (http://www.hug.rest/)
 
-Copyright (C) 2017, 2018, 2019, 2021 by
-Bundesamt für Sicherheit in der Informationstechnik
-
-Software engineering by Intevation GmbH
+SPDX-FileCopyrightText: 2023 Bundesamt für Sicherheit in der Informationstechnik
+SPDX-License-Identifier: AGPL-3.0-or-later
+Software engineering by Intevation GmbH <https://intevation.de>
 
 This program is Free Software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
