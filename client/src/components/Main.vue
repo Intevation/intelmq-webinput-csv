@@ -950,6 +950,47 @@ export default ({
         });
     },
     /**
+     * very basic MIME parser
+     * @param {str} mime: The email as string
+     */
+    parseMIME(mime) {
+      const splitted = mime.split('\n');
+      let isHeader = true;
+      let isMimeHeader = false;
+      let isBody = false;
+      let line;
+      let subject;
+      let body = '';
+
+        for(var lineindex = 0; lineindex < splitted.length; lineindex++) {
+          line = splitted[lineindex];
+          console.log('line:', line)
+          if (isHeader) {
+            console.log('is header')
+            if (line.slice(0, 2) == '--') {
+              line = '';
+              isMimeHeader = true;
+              isHeader = false;
+            } else if (line.slice(0, 9) == 'Subject: ') {
+              console.log('is subject')
+              subject = line.slice(9);
+            }
+          } else if (isMimeHeader) {
+            if (line == '\r') {
+              isMimeHeader = false;
+              isBody = true;
+            }
+          } else if (isBody) {
+            if (line.slice(0, 2) == '--') {
+              isBody = false;
+            } else {
+              body += line + '\n';
+            }
+          }
+        }
+      return [subject, body]
+    },
+    /**
      * Show an email preview
      */
     previewMailgen() {
@@ -965,38 +1006,8 @@ export default ({
             // clear the field, not used in case of success
             this.mailgenResult = '';
             this.mailgenLog = data.log;
-            const splitted = this.mailgenPreview.split('\n')
-            let isHeader = true;
-            let isMimeHeader = false;
-            let isBody = false;
-            let line;
-            let subject;
-            let body = '';
 
-            // very basic MIME parser
-            for(var lineindex = 0; lineindex < splitted.length; lineindex++) {
-              line = splitted[lineindex];
-              if (isHeader) {
-                if (line.slice(0, 2) == '--') {
-                  line = '';
-                  isMimeHeader = true;
-                  isHeader = false;
-                } else if (line.slice(0, 9) == 'Subject: ') {
-                  subject = line.slice(9);
-                }
-              } else if (isMimeHeader) {
-                if (line == '\r') {
-                  isMimeHeader = false;
-                  isBody = true;
-                }
-              } else if (isBody) {
-                if (line.slice(0, 2) == '--') {
-                  isBody = false;
-                } else {
-                  body += line + '\n';
-                }
-              }
-            }
+            let [subject, body] = this.parseMIME(this.mailgenPreview)
             this.mailgenPreviewParsed = {subject: subject, body: body}
             this.showMailgenPreview = true;
           }).catch(err => {
@@ -1038,6 +1049,12 @@ export default ({
         .then(response => {
           response.json().then(data => {
             this.rowModalData = data;
+
+            if (data.notifications) {
+              let [subject, body] = this.parseMIME(data.notifications[0])
+              this.rowModalData.notifications = 'Subject: ' + subject + '\n\n' + body;
+            }
+
             this.showRowModal = true;
             this.rowModalInProgress = false;
           }).catch(err => {
