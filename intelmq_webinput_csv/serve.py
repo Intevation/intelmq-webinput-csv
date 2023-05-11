@@ -401,7 +401,7 @@ def mailgen_preview(body, request, response):
         mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
         conn = open_db_connection(mailgen_config, connection_factory=RealDictConnection)
         return {"result": cb.start(mailgen_config, process_all=True, template=template, get_preview=True,
-                                   conn=conn),
+                                   conn=conn)[0],  # only transmit the first notification
                 "log": mailgen_log.getvalue().strip()}
     except Exception:
         response.status = falcon.status.HTTP_500
