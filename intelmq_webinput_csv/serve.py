@@ -489,10 +489,10 @@ def process(body) -> dict:
 
         retval['log'] += mailgen_log.getvalue().strip()
         retval['notifications'] = cb.start(mailgen_config, process_all=True,
-                                        # template=template,
-                                        get_preview=True,
-                                        conn=conn,
-                                        dry_run=True),
+                                           template=body.get('template'),
+                                           get_preview=True,
+                                           conn=conn,
+                                           dry_run=True)
 
         # in dry_run, mailgen calls conn.rollback() itself
 

@@ -1050,6 +1050,7 @@ export default ({
         data: data,
         custom: this.computeCustom(),
         dryrun: this.dryrun,
+        template: this.template,
       })
         .then(response => {
           response.json().then(data => {
