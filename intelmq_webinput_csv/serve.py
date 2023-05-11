@@ -40,12 +40,13 @@ import traceback
 from collections import defaultdict
 from importlib import import_module
 from pathlib import Path
-from pkg_resources import resource_filename
 from typing import Optional
+from pkg_resources import resource_filename
 
 import dateutil.parser
 import falcon
 import hug
+from psycopg2.extras import RealDictConnection
 from intelmq import CONFIG_DIR, HARMONIZATION_CONF_FILE
 from intelmq.bots.experts.taxonomy.expert import TAXONOMY
 try:
@@ -58,11 +59,14 @@ from intelmq.lib.harmonization import DateTime
 from intelmq.lib.message import Event, MessageFactory
 from intelmq.lib.pipeline import PipelineFactory
 from intelmq.lib.utils import load_configuration
+from intelmq.lib.datatypes import BotType, Dict39
 
 from webinput_session import config, session
+from intelmq_webinput_csv.sql_output import WebinputSQLOutputBot
 
 try:
     from intelmqmail import cb
+    from intelmqmail.db import open_db_connection
 except ImportError:
     cb = None
 
@@ -220,11 +224,18 @@ def uploadCSV(body, request, response):
     retval = defaultdict(list)
     lines_valid = 0
 
+    mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
+    conn = open_db_connection(mailgen_config, connection_factory=RealDictConnection)
+
     bots = []
     for bot_id, bot_config in CONFIG.get('bots', {}).items() if body.get('validate_with_bots', False) else {}:
         log.info('init bot %s', bot_id)
         try:
-            bots.append((bot_id, import_module(bot_config['module']).BOT(bot_id, settings=BotLibSettings | bot_config.get('parameters', {}))))
+            bot = import_module(bot_config['module']).BOT
+            kwargs = {}
+            if bot is WebinputSQLOutputBot:
+                kwargs = {'connection': conn}
+            bots.append((bot_id, bot(bot_id, **kwargs, settings=BotLibSettings | bot_config.get('parameters', {}))))
         except Exception:
             return {'status': 'error',
                     'log': traceback.format_exc()}
@@ -239,14 +250,14 @@ def uploadCSV(body, request, response):
         bots_input = [event]
         for bot_id, bot in bots:
             bots_output = []
-            log.info('messages before bot processing: %r', bots_input)
+            # log.info('messages before bot processing: %r', bots_input)
             try:
                 queues = bot.process_message(*bots_input)
             except Exception:
                 return {'status': 'error',
                         'log': traceback.format_exc()}
             bots_output.extend(queues['output'])
-            log.info(f'messages after processing by {bot}: %r', queues['output'])
+            # log.info(f'messages after processing by {bot}: %r', queues['output'])
             bots_input = bots_output
         if not bots:
             bots_output = [event]
@@ -274,6 +285,12 @@ def uploadCSV(body, request, response):
                 destination_pipeline.send(raw_message)
         # if line was valid, increment the counter by 1
         lines_valid += line_valid
+
+    if body['dryrun']:
+        conn.rollback()
+    else:
+        conn.commit()
+
     # lineno is the index, for the number of lines add one
     total_lines = lineno + 1 if data else 0
     result = {"total": total_lines,
@@ -377,7 +394,9 @@ def mailgen_preview(body, request, response):
 
     try:
         mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
-        return {"result": cb.start(mailgen_config, process_all=True, template=template, get_preview=True),
+        conn = open_db_connection(mailgen_config, connection_factory=RealDictConnection)
+        return {"result": cb.start(mailgen_config, process_all=True, template=template, get_preview=True,
+                                   conn=conn),
                 "log": mailgen_log.getvalue().strip()}
     except Exception:
         response.status = falcon.status.HTTP_500
@@ -411,11 +430,18 @@ def process(body) -> dict:
     bot_logs = io.StringIO()
     log_handler = logging.StreamHandler(stream=bot_logs)
 
+    mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
+    conn = open_db_connection(mailgen_config, connection_factory=RealDictConnection)
+
     bots = []
     for bot_id, bot_config in CONFIG.get('bots', {}).items():
         try:
             logging.getLogger(bot_id).addHandler(log_handler)
-            bots.append((bot_id, import_module(bot_config['module']).BOT(bot_id, settings=BotLibSettings | bot_config.get('parameters', {}))))
+            bot = import_module(bot_config['module']).BOT
+            kwargs = {}
+            if bot is WebinputSQLOutputBot:
+                kwargs = {'connection': conn}
+            bots.append((bot_id, bot(bot_id, **kwargs, settings=BotLibSettings | Dict39({'logging_level': 'DEBUG'}) | Dict39(bot_config.get('parameters', {})))))
         except Exception:
             return {'status': 'error',
                     'log': traceback.format_exc()}
@@ -424,7 +450,7 @@ def process(body) -> dict:
         if not item:
             return {'status': 'error',
                     'log': 'No data supplied for at least one row. Did you set fields for the columns?'}
-        log.info('message before converting: %r', item)
+        # log.info('message before converting: %r', item)
         retval = {0: []}
         first_message, line_valid = row_to_event(item, body, retval)
         if not line_valid:
@@ -433,20 +459,37 @@ def process(body) -> dict:
         bots_input.append(first_message)
 
     for bot_id, bot in bots:
-        bots_output = []
-        log.info('messages before bot processing: %r', bots_input)
+        # log.info('messages before bot processing: %r', bots_input)
         try:
             queues = bot.process_message(*bots_input)
         except Exception:
             return {'status': 'error',
                     'log': traceback.format_exc()}
-        bots_output.extend(queues['output'])
-        log.info(f'messages after processing by {bot}: %r', queues['output'])
+        # for output bots, the output quue is empty, don't consider it
+        if bot.bottype is not BotType.OUTPUT:
+            bots_output = queues['output']
+        # log.info(f'messages after processing by {bot}: %r', queues['output'])
         bots_input = bots_output
 
-    return {'status': 'success',
-            'messages': bots_output,
-            'log': bot_logs.getvalue()}
+    retval = {'status': 'success',
+              'messages': bots_output,
+              'log': bot_logs.getvalue()}
+
+    mailgen_log = io.StringIO()
+    log_handler = logging.StreamHandler(stream=mailgen_log)
+    logging.getLogger('intelmqmail').addHandler(log_handler)
+    logging.getLogger('intelmqmail').setLevel(logging.DEBUG)
+
+    retval['log'] += mailgen_log.getvalue().strip()
+    retval['notifications'] = cb.start(mailgen_config, process_all=True,
+                                       # template=template,
+                                       get_preview=True,
+                                       conn=conn,
+                                       dry_run=True),
+
+    # in dry_run, mailgen calls conn.rollback() itself
+
+    return retval
 
 
 if __name__ == '__main__':

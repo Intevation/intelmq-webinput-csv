@@ -176,3 +176,15 @@ If the template is not set using this field, the template isd determined by mail
 
 If `mailgen_config_file` is not set, mailgen loads the default configuration file (`'/etc/intelmq/intelmq-mailgen.conf'`).
 Mailgen, as always, additionally reads the user (the webserver user) configuration file (`'~/.intelmq/intelmq-mailgen.conf'`).
+
+### The complete Mailgen workflow
+
+To do the complete workflow of IntelMQ and Mailgen in the webinput:
+
+- configure all necessary IntelMQ bots
+  - any that you wish, plus
+  - CERTBund Contact Expert
+  - CERTBund Rules Expert
+  - SQL Output, with the special module `intelmq_webinput_csv.sql_output`
+- correctly configure mailgen
+- setup the mailgen configuration in webinput

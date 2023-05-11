@@ -375,8 +375,12 @@
                 scrollable
                 size="xl"
                 ok-only>
+                <div v-if="rowModalData.notifications">
+                  <p>Notifications:</p>
+                  <code><pre>{{rowModalData.notifications}}</pre></code>
+                </div>
                 <div v-if="rowModalData.messages">
-                  <p>Messages ({{rowModalData.messages.length}}):</p>
+                  <p>Messages ({{rowModalData.messages.length}}) after processing by bots (excluding output bots):</p>
                   <code><pre>{{rowModalData.messages}}</pre></code>
                 </div>
                 <div v-if="rowModalData.log">
