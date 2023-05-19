@@ -512,12 +512,45 @@
                       <b-form-textarea
                         id="template"
                         v-model="template"
-                        placeholder="E-Mail Template for Mailgen. First line is the subject. Use ${fieldname} to insert aggregated field names and ${events_as_csv} for a CSV attachment."
+                        description="E-Mail Template for Mailgen. First line is the subject. Use ${fieldname} to insert aggregated field names and ${events_as_csv} for a CSV attachment."
                         rows="10"
                         width="100%"
                       ></b-form-textarea>
                     </b-form-group>
                   </b-col>
+                </b-row>
+                <h4>Templates:</h4>
+                <b-row v-for="index in templates_count" :key="index">
+                  <b-col>
+                    <b-form-group
+                      label="Template name"
+                      description="With an empty name, the template will be ignored"
+                      width="20%"
+                      >
+                      <b-form-input
+                        :v-model="templates[index-1]['name']"
+                      ></b-form-input>
+                    </b-form-group>
+                  </b-col>
+                  <b-col>
+                    <b-form-group
+                      label="Template content"
+                      description="First line is the subject. Use ${fieldname} to insert aggregated field names and ${events_as_csv} for a CSV attachment."
+                      >
+                      <b-form-textarea
+                        :v-model="templates[index-1]['body']"
+                        rows="10"
+                        width="100%"
+                      ></b-form-textarea>
+                    </b-form-group>
+                  </b-col>
+                </b-row>
+                <b-row>
+                  <b-button
+                    block
+                    @click="increaseTemplateCounter"
+                    variant="primary"
+                  >+</b-button>
                 </b-row>
               </b-container>
             </b-card-body>
@@ -576,6 +609,8 @@ export default ({
       dataErrors: [],
       authConfirmErrorText: '',
       template: '',
+      templates: [{}, {}, {}],
+      templates_count: 1,
       showMailgenLog: false,
       mailgenLog: '',
       mailgenStatus: '',
@@ -1088,6 +1123,13 @@ export default ({
         custom["custom_"+field.key] = field.value;
       }
       return custom;
+    },
+    /**
+     * Increate the number of template inputs
+     */
+    increaseTemplateCounter() {
+      this.templates[this.templates_count] = {}
+      this.templates_count += 1;
     }
   }
 })
