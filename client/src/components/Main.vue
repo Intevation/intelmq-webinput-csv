@@ -1117,7 +1117,7 @@ export default ({
           "custom_classification.type": this.classificationType,
       };
       if (this.mailgenTargetGroups) {
-        custom["custom_extra.target_groups"] = this.mailgenTargetGroups.join(',')
+        custom["custom_extra.target_groups"] = this.mailgenTargetGroups
       }
       for (let field of this.customFieldsMapping) {
         custom["custom_"+field.key] = field.value;
