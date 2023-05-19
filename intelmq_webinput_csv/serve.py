@@ -60,7 +60,7 @@ from intelmq.lib.exceptions import InvalidValue, IntelMQException
 from intelmq.lib.harmonization import DateTime
 from intelmq.lib.message import Event, MessageFactory
 from intelmq.lib.pipeline import PipelineFactory
-from intelmq.lib.utils import load_configuration
+from intelmq.lib.utils import load_configuration, LOG_FORMAT_STREAM
 from intelmq.lib.datatypes import BotType, Dict39
 
 from webinput_session import config, session
@@ -441,6 +441,7 @@ def process(body) -> dict:
 
     bot_logs = io.StringIO()
     log_handler = logging.StreamHandler(stream=bot_logs)
+    log_handler.setFormatter(logging.Formatter(LOG_FORMAT_STREAM))
 
     if cb:
         mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
