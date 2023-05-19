@@ -40,6 +40,7 @@ import os
 import sys
 import traceback
 from collections import defaultdict
+from itertools import chain
 from importlib import import_module
 from pathlib import Path
 from typing import Optional
@@ -73,6 +74,7 @@ except ImportError:
 else:
     # only needed if intelmqmail is available
     from psycopg2.extras import RealDictConnection
+    from psycopg2 import connect
 
 try:
     EVENT_FIELDS = load_configuration(HARMONIZATION_CONF_FILE)
@@ -328,9 +330,14 @@ def get_required_fields():
 def get_mailgen_target_groups():
     """
     Return configured mailgen target groups
-    Actually the target group is used by a rules expert's rule.
+    The target group is used by a rules expert's rule and is used here in the webinput as a special form of a constant field.
     """
-    return CONFIG.get('mailgen_target_groups', [])
+    if 'target_groups' not in CONFIG:
+        raise NotImplementedError
+    conn = connect(**CONFIG['target_groups']['database'])
+    cur = conn.cursor()
+    cur.execute(CONFIG['target_groups']['query'])
+    return list(chain(*cur.fetchall()))
 
 
 #  TODO for now show the full api documentation that hug generates

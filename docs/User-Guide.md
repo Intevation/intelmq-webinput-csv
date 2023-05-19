@@ -27,7 +27,7 @@ needed to submit data to IntelMQ. There is no internal default.
 ### Mailgen configuration parameters
 
 * `mailgen_config_file`: Optional path to the mailgen configuration file.
-* `mailgen_target_groups`: Optional list of target groups, used by the CERTBund Rules expert's rules.
+* `target_groups`: Configuration how the backend can query the available target groups. See below.
 
 Usage
 -----
@@ -188,3 +188,24 @@ To do the complete workflow of IntelMQ and Mailgen in the webinput:
   - SQL Output, with the special module `intelmq_webinput_csv.sql_output`
 - correctly configure mailgen
 - setup the mailgen configuration in webinput
+
+The Postgres connection user must have write access to the events and directives tables (for event insertion).
+
+### Target groups
+
+The target groups are a special variant of constant fields as the available values depend on the result of an SQL query to the [fody database](https://github.com/Intevation/intelmq-fody-backend) (contactdb tags) and the users can select values from multiple-choice checkboxes.
+The selected values are saved in the event field `extra.target_groups`.
+The CERTBund Rules Expert's rules can use this information to generate the correct directives.
+
+Configuring this feature works as follows:
+```json
+    "target_groups": {
+        "database": {
+            "host": "localhost",
+            "user": "fody",
+            "password": "secret",
+            "dbname": "contactdb"
+        },
+        "query": "SELECT tag_value FROM tags WHERE tag_name_id = 2"
+    }
+```
