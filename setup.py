@@ -17,8 +17,8 @@ setup(
     version=__version__,
     author='Intevation GmbH',
     author_email='info@intevation.de',
-    maintainer='Raimund Renkert',
-    maintainer_email='raimund.renkert@intevation.de',
+    maintainer='Sebastian Wagner',
+    maintainer_email='sebastian.wagner@intevation.de',
     packages=[
         'intelmq_webinput_csv',
         'webinput_session',
