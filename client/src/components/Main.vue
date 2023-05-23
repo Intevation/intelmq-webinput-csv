@@ -520,29 +520,36 @@
                   </b-col>
                 </b-row>
                 <h4>Templates:</h4>
-                <b-row v-for="index in templates_count" :key="index">
+                <b-row v-for="(item, index) in templates" v-bind:key="index" class="item">
                   <b-col>
                     <b-form-group
                       label="Template name"
                       description="With an empty name, the template will be ignored"
-                      width="20%"
                       >
                       <b-form-input
-                        :v-model="templates[index-1]['name']"
+                        v-model="item.name"
                       ></b-form-input>
                     </b-form-group>
                   </b-col>
-                  <b-col>
+                  <b-col cols="8">
                     <b-form-group
                       label="Template content"
                       description="First line is the subject. Use ${fieldname} to insert aggregated field names and ${events_as_csv} for a CSV attachment."
                       >
                       <b-form-textarea
-                        :v-model="templates[index-1]['body']"
+                        v-model="item.body"
                         rows="10"
-                        width="100%"
                       ></b-form-textarea>
                     </b-form-group>
+                  </b-col>
+                  <b-col cols="1">
+                    <b-button
+                      variant="danger"
+                      size="sm"
+                      @click.prevent="deleteTemplateInput(index)"
+                      v-if="index != 0"
+                      >X
+                    </b-button>
                   </b-col>
                 </b-row>
                 <b-row>
@@ -609,8 +616,7 @@ export default ({
       dataErrors: [],
       authConfirmErrorText: '',
       template: '',
-      templates: [{}, {}, {}],
-      templates_count: 1,
+      templates: [{'name': '', 'body': ''}],
       showMailgenLog: false,
       mailgenLog: '',
       mailgenStatus: '',
@@ -1128,8 +1134,13 @@ export default ({
      * Increate the number of template inputs
      */
     increaseTemplateCounter() {
-      this.templates[this.templates_count] = {}
-      this.templates_count += 1;
+      this.templates.push({'name': '', 'body': ''});
+    },
+    /**
+     * Delete a template from the template array
+     */
+    deleteTemplateInput(index) {
+      this.templates.splice(index, 1);
     }
   }
 })
