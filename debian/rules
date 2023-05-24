@@ -24,11 +24,11 @@ override_dh_auto_build:
 override_dh_install:
 	dh_install
 	sed -i \
-          "s#/etc/.*\.sqlite#/var/lib/dbconfig-common/sqlite3/intelmq-webinput-csv-backend/intelmqwebinputcsvbackend#" \
-          debian/intelmq-webinput-csv-backend/etc/intelmq/webinput-session.conf
+		"s#/etc/.*\.sqlite#/var/lib/dbconfig-common/sqlite3/intelmq-webinput-csv-backend/intelmqwebinputcsvbackend#" \
+		debian/intelmq-webinput-csv-backend/etc/intelmq/webinput-session.conf
 	# client src package
 	mkdir -p debian/intelmq-webinput-csv-client-src/usr/src/intelmq-webinput-csv-client/
 	rsync -a --exclude debian \
-		 --exclude dist \
-		 --exclude .git\* \
-	  ./client debian/intelmq-webinput-csv-client-src/usr/src/intelmq-webinput-csv-client/
+		--exclude dist \
+		--exclude .git\* \
+		./client debian/intelmq-webinput-csv-client-src/usr/src/intelmq-webinput-csv-client/
