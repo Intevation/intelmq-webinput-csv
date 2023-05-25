@@ -484,6 +484,8 @@ def process(body) -> dict:
             bots_output = queues['output']
         # log.info(f'messages after processing by {bot}: %r', queues['output'])
         bots_input = bots_output
+    if not bots:
+        bots_output = bots_input
 
     retval = {'status': 'success',
               'messages': bots_output,
