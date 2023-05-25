@@ -247,11 +247,23 @@
                         :title="botsAvailable.reason"
                       ></b-form-checkbox>
                     </b-form-group>
-                    <b-form-group label="Target Groups:">
+                    <b-form-group label="Target Groups:"
+                      v-if="mailgenAvailable">
                       <b-form-checkbox-group
                         v-model="mailgenTargetGroups"
                         :options="mailgenAvailableTargetGroups"
+                        v-if="mailgenAvailableTargetGroupsStatus === true"
                       ></b-form-checkbox-group>
+                      <span
+                        class="text-danger"
+                        v-if="mailgenAvailableTargetGroupsStatus === null || mailgenAvailableTargetGroups.length == 0"
+                        >None defined
+                      </span>
+                      <span
+                        class="text-danger"
+                        v-else-if="mailgenAvailableTargetGroupsStatus !== true"
+                        >Error: {{mailgenAvailableTargetGroupsStatus}}
+                      </span>
                     </b-form-group>
                     <b-container>
                       <b-row>
@@ -635,10 +647,11 @@ export default ({
       errorMessage: null,
       showErrorModal: false,
       mailgenTargetGroups: [],
+      mailgenTargetGroupsStatus: null,
     }
   },
   computed: {
-    ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable', 'botsAvailable', 'mailgenAvailableTargetGroups']),
+    ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable', 'botsAvailable', 'mailgenAvailableTargetGroups', 'mailgenAvailableTargetGroupsStatus']),
   },
   mounted() {
     // Create timezone strings

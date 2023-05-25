@@ -62,6 +62,9 @@ export default new Vuex.Store({
     },
     SET_MAILGEN_AVAILABLE_TARGET_GROUPS(state, data) {
       state.mailgenAvailableTargetGroups = data;
+    },
+    SET_MAILGEN_AVAILABLE_TARGET_GROUPS_STATUS(state, data) {
+      state.mailgenAvailableTargetGroupsStatus = data;
     }
   },
   actions: {
@@ -153,10 +156,22 @@ export default new Vuex.Store({
     },
     fetchMailgenAvailableTargetGroups(context) {
       Vue.http.get("api/mailgen/target_groups").then(
-        response => response.json().then(data => {
-          context.commit("SET_MAILGEN_AVAILABLE_TARGET_GROUPS", data);
-        })
-      )
+        response => {
+          response.json().then(data => {
+            if (typeof data == "object") {
+              context.commit("SET_MAILGEN_AVAILABLE_TARGET_GROUPS_STATUS", true)
+              context.commit("SET_MAILGEN_AVAILABLE_TARGET_GROUPS", data)
+            } else {
+              context.commit("SET_MAILGEN_AVAILABLE_TARGET_GROUPS_STATUS", data)
+            }
+        }).catch(err => { // not json
+          context.commit("SET_MAILGEN_AVAILABLE_TARGET_GROUPS_STATUS", err)
+        });
+
+        }, (response) => { // error
+          context.commit("SET_MAILGEN_AVAILABLE_TARGET_GROUPS_STATUS", response)
+        }
+        )
     }
   },
   modules: {
