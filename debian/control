@@ -14,7 +14,7 @@ Description: intelmq-webinput-csv is a simple web interface allowing
  preview from the parser.
  .
  This package contains the web client.  To use intelmq-webinput-csv
- you will al so need a server running the intelmq-webinput-csv backend.
+ you will also need a server running the intelmq-webinput-csv backend.
 
 Package: intelmq-webinput-csv-client-src
 Architecture: all
@@ -26,7 +26,7 @@ Description: Full expanded source of intelmq-webinput-csv client.
  package.
  .
  This package contains the full tree with all dependencies installed
- turing build time.  It is installed below /usr/src and mainly intended
+ during build time.  It is installed below /usr/src and mainly intended
  for reference.
  .
  In nearly all cases you won't need this package to rebuild
@@ -42,5 +42,5 @@ Description: intelmq-webinput-csv is a simple web interface allowing
  the user to insert data into intelmq's pipelines interactively with
  preview from the parser.
  .
- This package contains the backend api as mod_wsgi application to run
+ This package contains the backend API as mod_wsgi application to run
  in apache2.

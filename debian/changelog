@@ -1,3 +1,9 @@
+intelmq-webinput-csv (1.0.0a1-1) unstable; urgency=medium
+
+  * Update to Version 1.0.0 Alpha 1
+
+ -- Sebastian Wagner <sebix@sebix.at>  Fri, 26 May 2023 10:30:05 +0200
+
 intelmq-webinput-csv (0.5.0-1) unstable; urgency=medium
 
   * Compatibility with only IntelMQ 3.0.0.

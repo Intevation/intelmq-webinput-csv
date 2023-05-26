@@ -3,5 +3,8 @@ include client/package.json
 graft client/public
 graft client/src
 exclude client/node_modules
-graft LICENSES docs config tests
+graft LICENSES
+graft docs
+graft config
+graft tests
 include NEWS.md CHANGELOG.md
