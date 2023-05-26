@@ -247,22 +247,23 @@
                         :title="botsAvailable.reason"
                       ></b-form-checkbox>
                     </b-form-group>
-                    <b-form-group label="Target Groups:"
+                    <b-form-group
+                      :label="mailgenAvailableTargetGroups.tag_name"
+                      label-cols=4
                       v-if="mailgenAvailable">
                       <b-form-checkbox-group
                         v-model="mailgenTargetGroups"
-                        :options="mailgenAvailableTargetGroups"
-                        v-if="mailgenAvailableTargetGroupsStatus === true"
+                        :options="mailgenAvailableTargetGroups.tag_values"
+                        v-if="mailgenAvailableTargetGroupsStatus === true && mailgenAvailableTargetGroups.tag_values && mailgenAvailableTargetGroups.tag_values.length"
                       ></b-form-checkbox-group>
                       <span
-                        class="text-danger"
-                        v-if="mailgenAvailableTargetGroupsStatus === null || mailgenAvailableTargetGroups.length == 0"
+                        v-if="mailgenAvailableTargetGroupsStatus === null || (mailgenAvailableTargetGroups.tag_values && mailgenAvailableTargetGroups.tag_values.length == 0)"
                         >None defined
                       </span>
                       <span
                         class="text-danger"
                         v-else-if="mailgenAvailableTargetGroupsStatus !== true"
-                        >Error: {{mailgenAvailableTargetGroupsStatus}}
+                        >Error: {{ mailgenAvailableTargetGroupsStatus }}
                       </span>
                     </b-form-group>
                     <b-container>
@@ -1135,8 +1136,9 @@ export default ({
       let custom = {
           "custom_classification.type": this.classificationType,
       };
-      if (this.mailgenTargetGroups) {
-        custom["custom_extra.target_groups"] = this.mailgenTargetGroups
+      // if target groups are available for selection, add the data (even if none selected, then it's an empty list). Otherwise, do not add the data.
+      if (this.mailgenAvailableTargetGroupsStatus === true && this.mailgenAvailableTargetGroups.tag_values && this.mailgenAvailableTargetGroups.tag_values.length) {
+        custom["custom_extra.target_groups"] = this.mailgenTargetGroups.map(value => this.mailgenAvailableTargetGroups.tag_name + ":" + value)
       }
       for (let field of this.customFieldsMapping) {
         custom["custom_"+field.key] = field.value;

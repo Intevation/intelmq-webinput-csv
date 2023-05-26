@@ -283,6 +283,7 @@ def uploadCSV(body, request, response):
                 diff = set(required_fields) - event.keys()
                 if diff:
                     line_valid = False
+                    log.debug(f'Event has {event.keys()}, required: {required_fields}, diff: {diff}')
                     retval[lineno].append(f"Line is missing these required fields: {', '.join(diff)}")
 
             # if 'raw' not in event:
@@ -327,7 +328,7 @@ def get_required_fields():
 
 
 @hug.get(ENDPOINT_PREFIX + '/api/mailgen/target_groups', requires=session.token_authentication)
-def get_mailgen_target_groups():
+def get_mailgen_target_groups(body, request, response):
     """
     Return configured mailgen target groups
     The target group is used by a rules expert's rule and is used here in the webinput as a special form of a constant field.
@@ -336,8 +337,13 @@ def get_mailgen_target_groups():
         raise NotImplementedError
     conn = connect(**CONFIG['target_groups']['database'])
     cur = conn.cursor()
-    cur.execute(CONFIG['target_groups']['query'])
-    return list(chain(*cur.fetchall()))
+    cur.execute(CONFIG['target_groups']['tag_values_query'])
+    tag_values = list(chain(*cur.fetchall()))
+    cur.execute(CONFIG['target_groups']['tag_name_query'])
+    tag_name = cur.fetchone()[0]
+    return "Garbage"
+    return {'tag_name': tag_name,
+            'tag_values': tag_values}
 
 
 #  TODO for now show the full api documentation that hug generates

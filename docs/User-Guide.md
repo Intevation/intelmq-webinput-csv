@@ -170,7 +170,7 @@ Keep in mind that the templates files need to exist beforehand.
 ### With operator-defined templates
 
 The Webinput operator can set the template directly in user interface with the *Template* button in the *CSV Notifications* section.
-If the template is not set using this field, the template isd determined by mailgen's configured formats.
+If the template is not set using this field, the template is determined by mailgen's configured formats.
 
 ### Starting Mailgen
 
