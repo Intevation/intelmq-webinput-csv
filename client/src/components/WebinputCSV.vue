@@ -585,6 +585,7 @@
 import { mapState } from 'vuex';
 import parse from 'papaparse';
 export default ({
+  name: 'WebinputCSV',
   data: () => {
     return {
       username: "",

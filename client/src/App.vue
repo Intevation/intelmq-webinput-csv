@@ -1,16 +1,16 @@
 <template>
   <div id="app">
-    <Main />
+    <WebinputCSV />
   </div>
 </template>
 
 <script>
-import Main from './components/Main.vue'
+import WebinputCSV from './components/WebinputCSV.vue'
 
 export default {
   name: 'App',
   components: {
-    Main
+    WebinputCSV
   },
   mounted () {
     this.$store.dispatch('login', {
