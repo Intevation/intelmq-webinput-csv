@@ -521,6 +521,9 @@ def process(body) -> dict:
         # in dry_run, mailgen calls conn.rollback() itself
 
         retval['log'] += mailgen_log.getvalue()
+    else:
+        # for the SQL output bot, if mailgen was not running
+        conn.rollback()
 
     return retval
 

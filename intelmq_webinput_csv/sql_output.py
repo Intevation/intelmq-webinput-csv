@@ -31,7 +31,8 @@ class WebinputSQLOutputBot(SQLOutputBot):
 
         self.con = connection
         self.autocommit = False
-        self.con.autocommit = False
+        if self.con.autocommit != self.autocommit:
+            self.con.autocommit = False
         self.cur = self.con.cursor()
         self._engine = "postgresql"
         super().__init__(*args, **kwargs)
