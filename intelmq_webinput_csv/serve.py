@@ -467,12 +467,14 @@ def process(body) -> dict:
             bot = import_module(bot_config['module']).BOT
             kwargs = {}
             if bot is WebinputSQLOutputBot:
-                conn = connect(database=bot_config['parameters']['database'],
-                               user=bot_config['parameters']['user'],
-                               password=bot_config['parameters']['password'],
-                               host=bot_config['parameters']['host'],
-                               port=bot_config['parameters']['port'],
-                               connection_factory=RealDictConnection)
+                if not conn:
+                    conn = connect(database=bot_config['parameters']['database'],
+                                    user=bot_config['parameters']['user'],
+                                    password=bot_config['parameters']['password'],
+                                    host=bot_config['parameters']['host'],
+                                    port=bot_config['parameters']['port'],
+                                    connection_factory=RealDictConnection)
+                    conn.autocommit = False
                 kwargs = {'connection': conn}
             bots.append((bot_id, bot(bot_id, **kwargs, settings=BotLibSettings | Dict39({'logging_level': 'DEBUG'}) | Dict39(bot_config.get('parameters', {})))))
         except Exception:
