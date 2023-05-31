@@ -63,7 +63,8 @@
         </template>
       </b-modal>
       <b-modal v-model="showMailgenPreview" scrollable centered size="xl" id="mailgenPreview-popup" title="Mailgen Email Preview">
-        <h4 title="Subject">{{mailgenPreviewParsed.subject}}</h4>
+        <h5 title="Subject">{{mailgenPreviewParsed.subject}}</h5>
+        <h6 title="To">To: {{mailgenPreviewParsed.to}}</h6>
         <code class="text-black"><pre>{{ mailgenPreviewParsed.body }}</pre></code>
         <template #modal-footer>
           <b-button
@@ -393,8 +394,8 @@
                 <div v-if="rowModalData.notifications">
                   <p>Notifications ({{ rowModalData.notifications.length }}):</p>
                   <b-container v-for="notification in rowModalData.notifications" v-bind:key="notification.index">
-                    <strong>Subject: {{ notification[0] }}</strong><br />
-                    <strong>To: {{ notification[1] }}</strong>
+                    <h6>Subject: {{ notification[0] }}</h6>
+                    <h6>To: {{ notification[1] }}</h6>
                     <code><pre>{{ notification[2] }}</pre></code>
                   </b-container>
                 </div>
@@ -1123,7 +1124,9 @@ export default ({
             this.rowModalData = data;
             console.log('data:', data)
 
-            this.rowModalData.notifications = data.notifications.map(notification => this.parseMIME(notification))
+            if (data.notifications) {
+              this.rowModalData.notifications = data.notifications.map(notification => this.parseMIME(notification))
+            }
 
             this.showRowModal = true;
             this.rowModalInProgress = false;
