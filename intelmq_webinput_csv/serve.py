@@ -520,6 +520,8 @@ def process(body) -> dict:
                                            additional_directive_where=additional_directive_where)
         # in dry_run, mailgen calls conn.rollback() itself
 
+        retval['log'] += mailgen_log.getvalue()
+
     return retval
 
 
