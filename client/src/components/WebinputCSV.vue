@@ -483,6 +483,7 @@
                           <b-form-group label-cols=12 label="Verbose Logs:">
                             <b-form-checkbox
                               v-model="mailgenVerbose"
+                              switch
                             ></b-form-checkbox>
                           </b-form-group>
                         </b-col>
@@ -491,6 +492,7 @@
                             <a href="http://intevation.github.io/intelmq-mailgen/intelmqcbmail.html#dry-run-simulation" target="_blank">?</a>
                             <b-form-checkbox
                               v-model="mailgenDryRun"
+                              switch
                             ></b-form-checkbox>
                           </b-form-group>
                         </b-col>
@@ -644,7 +646,7 @@ export default ({
       mailgenInProgress: false,
       mailgenResult: '',
       mailgenVerbose: false,
-      mailgenDryRun: false,
+      mailgenDryRun: true,
       mailgenPreview: '',
       showMailgenPreview: false,
       showMailgenPreviewRaw: false,
@@ -656,7 +658,7 @@ export default ({
       errorMessage: null,
       showErrorModal: false,
       mailgenTargetGroups: [],
-      mailgenTargetGroupsStatus: null,
+      mailgenTargetGroupsStatus: true,
     }
   },
   computed: {
