@@ -391,8 +391,12 @@
                 size="xl"
                 ok-only>
                 <div v-if="rowModalData.notifications">
-                  <p>Notifications:</p>
-                  <code><pre>{{rowModalData.notifications}}</pre></code>
+                  <p>Notifications ({{ rowModalData.notifications.length }}):</p>
+                  <b-container v-for="notification in rowModalData.notifications" v-bind:key="notification.index">
+                    <strong>Subject: {{ notification[0] }}</strong><br />
+                    <strong>To: {{ notification[1] }}</strong>
+                    <code><pre>{{ notification[2] }}</pre></code>
+                  </b-container>
                 </div>
                 <div v-if="rowModalData.messages">
                   <p>Messages ({{rowModalData.messages.length}}) after processing by bots (excluding output bots):</p>
@@ -1023,6 +1027,7 @@ export default ({
       let isBody = false;
       let line;
       let subject;
+      let to;
       let body = '';
 
         for(var lineindex = 0; lineindex < splitted.length; lineindex++) {
@@ -1037,6 +1042,9 @@ export default ({
             } else if (line.slice(0, 9) == 'Subject: ') {
               console.log('is subject')
               subject = line.slice(9);
+            } else if (line.slice(0, 4) == 'To: ') {
+              console.log('is to')
+              to = line.slice(4)
             }
           } else if (isMimeHeader) {
             if (line == '\r') {
@@ -1051,7 +1059,7 @@ export default ({
             }
           }
         }
-      return [subject, body]
+      return [subject, to, body]
     },
     /**
      * Show an email preview
@@ -1070,8 +1078,8 @@ export default ({
             this.mailgenResult = '';
             this.mailgenLog = data.log;
 
-            let [subject, body] = this.parseMIME(this.mailgenPreview)
-            this.mailgenPreviewParsed = {subject: subject, body: body}
+            let [subject, to, body] = this.parseMIME(this.mailgenPreview)
+            this.mailgenPreviewParsed = {subject: subject, to: to, body: body}
             this.showMailgenPreview = true;
           }).catch(err => {
             // body was not JSON
@@ -1113,11 +1121,9 @@ export default ({
         .then(response => {
           response.json().then(data => {
             this.rowModalData = data;
+            console.log('data:', data)
 
-            if (data.notifications) {
-              let [subject, body] = this.parseMIME(data.notifications[0])
-              this.rowModalData.notifications = 'Subject: ' + subject + '\n\n' + body;
-            }
+            this.rowModalData.notifications = data.notifications.map(notification => this.parseMIME(notification))
 
             this.showRowModal = true;
             this.rowModalInProgress = false;
