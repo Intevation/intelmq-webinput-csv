@@ -62,9 +62,6 @@ export default new Vuex.Store({
     },
     SET_MAILGEN_AVAILABLE_TARGET_GROUPS(state, data) {
       state.mailgenAvailableTargetGroups = data;
-    },
-    SET_MAILGEN_AVAILABLE_TARGET_GROUPS_STATUS(state, data) {
-      state.mailgenAvailableTargetGroupsStatus = data;
     }
   },
   actions: {
@@ -159,17 +156,16 @@ export default new Vuex.Store({
         response => {
           response.json().then(data => {
             if (typeof data == "object") {
-              context.commit("SET_MAILGEN_AVAILABLE_TARGET_GROUPS_STATUS", true)
               context.commit("SET_MAILGEN_AVAILABLE_TARGET_GROUPS", data)
             } else {
-              context.commit("SET_MAILGEN_AVAILABLE_TARGET_GROUPS_STATUS", data)
+              console.error('WEBINPUT: fetch target groups, not an object:', data)
             }
         }).catch(err => { // not json
-          context.commit("SET_MAILGEN_AVAILABLE_TARGET_GROUPS_STATUS", err)
+          console.error('WEBINPUT: fetch target groups, not json, err:', err)
         });
 
         }, (response) => { // error
-          context.commit("SET_MAILGEN_AVAILABLE_TARGET_GROUPS_STATUS", "Status: " + response.status + " (" + response.statusText + ") Body: " + response.body)
+          console.error('WEBINPUT: fetch target groups, response error:', response)
         }
         )
     }

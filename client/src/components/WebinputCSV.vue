@@ -251,23 +251,12 @@
                     <b-form-group
                       :label="mailgenAvailableTargetGroups.tag_name"
                       label-cols=4
-                      v-if="mailgenAvailable">
+                      v-if="mailgenAvailable && mailgenAvailableTargetGroups && mailgenAvailableTargetGroups.tag_values && mailgenAvailableTargetGroups.tag_values.length">
                       <b-form-checkbox-group
                         v-model="mailgenTargetGroups"
                         :options="mailgenAvailableTargetGroups.tag_values"
-                        v-if="mailgenAvailableTargetGroupsStatus === true && mailgenAvailableTargetGroups.tag_values && mailgenAvailableTargetGroups.tag_values.length"
+                        v-if="mailgenAvailableTargetGroups && mailgenAvailableTargetGroups.tag_values && mailgenAvailableTargetGroups.tag_values.length"
                       ></b-form-checkbox-group>
-                      <span
-                        v-if="mailgenAvailableTargetGroupsStatus === null || (mailgenAvailableTargetGroups.tag_values && mailgenAvailableTargetGroups.tag_values.length == 0)"
-                        >None defined
-                      </span>
-                      <!-- :title is a workaround for a Vue bug not showing the variable value sometimes. Adding a :title fixes it -->
-                      <span
-                        class="text-danger"
-                        v-else-if="mailgenAvailableTargetGroupsStatus !== true"
-                        :title="mailgenAvailableTargetGroupsStatus"
-                        >Error: {{ mailgenAvailableTargetGroupsStatus }}
-                      </span>
                     </b-form-group>
                     <b-container>
                       <b-row>
@@ -658,7 +647,6 @@ export default ({
       errorMessage: null,
       showErrorModal: false,
       mailgenTargetGroups: [],
-      mailgenTargetGroupsStatus: true,
     }
   },
   computed: {
