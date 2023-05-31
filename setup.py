@@ -27,7 +27,8 @@ setup(
         # 'intelmq' is not listed here as this causes a re-installation of intelmq on development installations
         # https://github.com/pypa/pip/issues/10805
         'hug',
-        ],
+        'psycopg2',
+    ],
     license='AGPLv3',
     description='This is a simple web interface allowing the user to '
                 'insert data into intelmq\'s pipelines interactively with '
