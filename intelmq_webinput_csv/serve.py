@@ -452,6 +452,11 @@ def process(body) -> dict:
     if cb:
         mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
         conn = open_db_connection(mailgen_config, connection_factory=RealDictConnection)
+        conn.autocommit = False
+        # find the last directive ID before inserting our new ones
+        cur = conn.cursor()
+        cur.execute('SELECT id FROM directives ORDER BY id DESC LIMIT 1;')
+        last_id = cur.fetchone()['id']
 
     bots = []
     for bot_id, bot_config in CONFIG.get('bots', {}).items():
@@ -503,13 +508,16 @@ def process(body) -> dict:
         logging.getLogger('intelmqmail').addHandler(log_handler)
         logging.getLogger('intelmqmail').setLevel(logging.DEBUG)
 
+        # select only the new directives
+        additional_directive_where = mailgen_config['database'].get('additional_directive_where', '') + (' AND' if 'additional_directive_where' in mailgen_config['database'] else '') + f' d3.id > {last_id}'
+
         retval['log'] += mailgen_log.getvalue().strip()
         retval['notifications'] = cb.start(mailgen_config, process_all=True,
                                            template=body.get('template'),
                                            get_preview=True,
                                            conn=conn,
-                                           dry_run=True)
-
+                                           dry_run=True,
+                                           additional_directive_where=additional_directive_where)
         # in dry_run, mailgen calls conn.rollback() itself
 
     return retval
