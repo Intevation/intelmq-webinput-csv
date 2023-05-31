@@ -650,7 +650,7 @@ export default ({
     }
   },
   computed: {
-    ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable', 'botsAvailable', 'mailgenAvailableTargetGroups', 'mailgenAvailableTargetGroupsStatus']),
+    ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable', 'botsAvailable', 'mailgenAvailableTargetGroups']),
   },
   mounted() {
     // Create timezone strings
@@ -1139,7 +1139,7 @@ export default ({
           "custom_classification.type": this.classificationType,
       };
       // if target groups are available for selection, add the data (even if none selected, then it's an empty list). Otherwise, do not add the data.
-      if (this.mailgenAvailableTargetGroupsStatus === true && this.mailgenAvailableTargetGroups.tag_values && this.mailgenAvailableTargetGroups.tag_values.length) {
+      if (this.mailgenAvailableTargetGroups && this.mailgenAvailableTargetGroups.tag_values && this.mailgenAvailableTargetGroups.tag_values.length) {
         custom["custom_extra.target_groups"] = this.mailgenTargetGroups.map(value => this.mailgenAvailableTargetGroups.tag_name + ":" + value)
       }
       for (let field of this.customFieldsMapping) {
