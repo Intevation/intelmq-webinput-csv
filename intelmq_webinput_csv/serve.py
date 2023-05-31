@@ -66,15 +66,15 @@ from intelmq.lib.datatypes import BotType, Dict39
 from webinput_session import config, session
 from intelmq_webinput_csv.sql_output import WebinputSQLOutputBot
 
+from psycopg2.extras import RealDictConnection
+from psycopg2 import connect
+
 try:
     from intelmqmail import cb
     from intelmqmail.db import open_db_connection
 except ImportError:
     cb = None
-else:
-    # only needed if intelmqmail is available
-    from psycopg2.extras import RealDictConnection
-    from psycopg2 import connect
+
 
 try:
     EVENT_FIELDS = load_configuration(HARMONIZATION_CONF_FILE)
@@ -449,6 +449,8 @@ def process(body) -> dict:
     log_handler = logging.StreamHandler(stream=bot_logs)
     log_handler.setFormatter(logging.Formatter(LOG_FORMAT_STREAM))
 
+    conn = None
+
     if cb:
         mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
         conn = open_db_connection(mailgen_config, connection_factory=RealDictConnection)
@@ -465,6 +467,12 @@ def process(body) -> dict:
             bot = import_module(bot_config['module']).BOT
             kwargs = {}
             if bot is WebinputSQLOutputBot:
+                conn = connect(database=bot_config['parameters']['database'],
+                               user=bot_config['parameters']['user'],
+                               password=bot_config['parameters']['password'],
+                               host=bot_config['parameters']['host'],
+                               port=bot_config['parameters']['port'],
+                               connection_factory=RealDictConnection)
                 kwargs = {'connection': conn}
             bots.append((bot_id, bot(bot_id, **kwargs, settings=BotLibSettings | Dict39({'logging_level': 'DEBUG'}) | Dict39(bot_config.get('parameters', {})))))
         except Exception:
@@ -521,7 +529,7 @@ def process(body) -> dict:
         # in dry_run, mailgen calls conn.rollback() itself
 
         retval['log'] += mailgen_log.getvalue()
-    else:
+    elif conn:
         # for the SQL output bot, if mailgen was not running
         conn.rollback()
 
