@@ -37,7 +37,7 @@ Package: intelmq-webinput-csv-backend
 Architecture: all
 Depends: ${misc:Depends}, python3, ${python3:Depends}, python3-hug (>= 2.2.0),
  apache2, apache2-utils, libapache2-mod-wsgi-py3, intelmq (>= 3.0.0),
- dbconfig-sqlite3 | dbconfig-no-thanks
+ dbconfig-sqlite3 | dbconfig-no-thanks, python3-psycopg2
 Description: intelmq-webinput-csv is a simple web interface allowing
  the user to insert data into intelmq's pipelines interactively with
  preview from the parser.
