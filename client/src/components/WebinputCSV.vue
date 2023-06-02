@@ -3,6 +3,11 @@
     <b-navbar toggleable="lg" type="dark" variant="info">
       <b-navbar-brand href="#">IntelMQ - Webinput CSV</b-navbar-brand>
       <b-navbar-nav>
+        <b-nav-item href="#" disabled>
+          <small>
+            Client Version: {{ clientVersion }}
+          </small>
+        </b-nav-item>
         <b-nav-item href="#" disabled v-if="backendVersion">
           <small>
             Backend Version: {{ backendVersion }}
@@ -654,6 +659,7 @@ export default ({
       errorMessage: null,
       showErrorModal: false,
       mailgenTargetGroups: [],
+      clientVersion: "1.0.0a2"
     }
   },
   computed: {
