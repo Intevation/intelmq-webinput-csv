@@ -19,6 +19,7 @@ export default new Vuex.Store({
     mailgenAvailable: null,
     botsAvailable: {status: false, reason: "not yet queried"},
     mailgenAvailableTargetGroups: [],
+    mailgenAvailableTargetGroupsStatus: null,
     backendVersion: null
   },
   mutations: {
@@ -66,6 +67,9 @@ export default new Vuex.Store({
     },
     SET_BACKEND_VERSION(state, data) {
       state.backendVersion = data;
+    },
+    SET_MAILGEN_AVAILABLE_TARGET_GROUPS_STATUS(state, data) {
+      state.mailgenAvailableTargetGroupsStatus = data;
     }
   },
   actions: {
@@ -160,16 +164,17 @@ export default new Vuex.Store({
         response => {
           response.json().then(data => {
             if (typeof data == "object") {
+              context.commit("SET_MAILGEN_AVAILABLE_TARGET_GROUPS_STATUS", true)
               context.commit("SET_MAILGEN_AVAILABLE_TARGET_GROUPS", data)
             } else {
-              console.error('WEBINPUT: fetch target groups, not an object:', data)
+              context.commit("SET_MAILGEN_AVAILABLE_TARGET_GROUPS_STATUS", data)
             }
         }).catch(err => { // not json
-          console.error('WEBINPUT: fetch target groups, not json, err:', err)
+          context.commit("SET_MAILGEN_AVAILABLE_TARGET_GROUPS_STATUS", err)
         });
 
         }, (response) => { // error
-          console.error('WEBINPUT: fetch target groups, response error:', response)
+          context.commit("SET_MAILGEN_AVAILABLE_TARGET_GROUPS_STATUS", "Status: " + response.status + " (" + response.statusText + ") Body: " + response.body)
         }
         )
     },

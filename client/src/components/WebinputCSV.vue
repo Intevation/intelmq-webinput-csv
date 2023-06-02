@@ -261,14 +261,23 @@
                       ></b-form-checkbox>
                     </b-form-group>
                     <b-form-group
-                      :label="mailgenAvailableTargetGroups.tag_name"
+                      :label="mailgenAvailableTargetGroups.tag_name || 'Target groups'"
                       label-cols=4
-                      v-if="mailgenAvailable && mailgenAvailableTargetGroups && mailgenAvailableTargetGroups.tag_values && mailgenAvailableTargetGroups.tag_values.length">
+                      v-if="mailgenAvailable">
                       <b-form-checkbox-group
                         v-model="mailgenTargetGroups"
                         :options="mailgenAvailableTargetGroups.tag_values"
-                        v-if="mailgenAvailableTargetGroups && mailgenAvailableTargetGroups.tag_values && mailgenAvailableTargetGroups.tag_values.length"
+                        v-if="mailgenAvailableTargetGroupsStatus === true && mailgenAvailableTargetGroups.tag_values && mailgenAvailableTargetGroups.tag_values.length"
                       ></b-form-checkbox-group>
+                      <span
+                        v-if="mailgenAvailableTargetGroupsStatus === true && mailgenAvailableTargetGroups.tag_values && mailgenAvailableTargetGroups.tag_values.length == 0"
+                        >None defined
+                      </span>
+                      <span
+                        class="text-danger"
+                        v-else-if="mailgenAvailableTargetGroupsStatus !== true"
+                        >Error: {{ mailgenAvailableTargetGroupsStatus }}
+                      </span>
                     </b-form-group>
                     <b-container>
                       <b-row>
@@ -663,7 +672,7 @@ export default ({
     }
   },
   computed: {
-    ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable', 'botsAvailable', 'mailgenAvailableTargetGroups', 'backendVersion']),
+    ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable', 'botsAvailable', 'mailgenAvailableTargetGroups', 'mailgenAvailableTargetGroupsStatus', 'backendVersion']),
   },
   mounted() {
     this.$store.dispatch("fetchBackendVersion");
@@ -1153,7 +1162,7 @@ export default ({
           "custom_classification.type": this.classificationType,
       };
       // if target groups are available for selection, add the data (even if none selected, then it's an empty list). Otherwise, do not add the data.
-      if (this.mailgenAvailableTargetGroups && this.mailgenAvailableTargetGroups.tag_values && this.mailgenAvailableTargetGroups.tag_values.length) {
+      if (this.mailgenAvailableTargetGroupsStatus === true && this.mailgenAvailableTargetGroups && this.mailgenAvailableTargetGroups.tag_values && this.mailgenAvailableTargetGroups.tag_values.length) {
         custom["custom_extra.target_groups"] = this.mailgenTargetGroups.map(value => this.mailgenAvailableTargetGroups.tag_name + ":" + value)
       }
       for (let field of this.customFieldsMapping) {
