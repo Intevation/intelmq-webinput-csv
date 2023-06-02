@@ -1,5 +1,5 @@
 module.exports = {
-  publicPath: '/', //Adjust path prefix for deployment here to have all static files requested with this perefix.
+  publicPath: '/', // Adjust path prefix for deployment here to have all static files requested with this prefix.
   lintOnSave: "error",
   devServer: {
     disableHostCheck: true,
@@ -10,4 +10,3 @@ module.exports = {
     }
   }
 };
-      
