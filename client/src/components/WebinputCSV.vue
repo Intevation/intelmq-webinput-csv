@@ -2,6 +2,13 @@
   <div>
     <b-navbar toggleable="lg" type="dark" variant="info">
       <b-navbar-brand href="#">IntelMQ - Webinput CSV</b-navbar-brand>
+      <b-navbar-nav>
+        <b-nav-item href="#" disabled v-if="backendVersion">
+          <small>
+            Backend Version: {{ backendVersion }}
+          </small>
+        </b-nav-item>
+      </b-navbar-nav>
       <b-navbar-nav v-if="hasAuth" class="ml-auto">
         <b-button v-if="!loggedIn" v-b-modal.login-popup size="sm" class="my-2 my-sm-0" type="submit">Login</b-button>
         <b-button v-if="loggedIn" size="sm" class="my-2 my-sm-0" @click="signOut">Logout</b-button>
@@ -650,9 +657,10 @@ export default ({
     }
   },
   computed: {
-    ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable', 'botsAvailable', 'mailgenAvailableTargetGroups']),
+    ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable', 'botsAvailable', 'mailgenAvailableTargetGroups', 'backendVersion']),
   },
   mounted() {
+    this.$store.dispatch("fetchBackendVersion");
     // Create timezone strings
     for (var i = -12; i <= 12; i++) {
       var timeZoneString = '';

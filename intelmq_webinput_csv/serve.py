@@ -43,8 +43,9 @@ from collections import defaultdict
 from itertools import chain
 from importlib import import_module
 from pathlib import Path
+from subprocess import run
+from pkg_resources import get_distribution, resource_filename
 from typing import Optional
-from pkg_resources import resource_filename
 
 import dateutil.parser
 import falcon
@@ -536,6 +537,20 @@ def process(body) -> dict:
         conn.rollback()
 
     return retval
+
+
+@hug.get(ENDPOINT_PREFIX + '/api/version')
+def version():
+    """
+    Return the version of the backend
+    """
+    try:
+        git_describe = run(['git', 'describe'], cwd=os.path.dirname(__file__), capture_output=True, check=False)
+        if git_describe.returncode == 0:
+            return git_describe.stdout.strip()
+    except FileNotFoundError:
+        pass
+    return get_distribution('intelmq-webinput-csv').version
 
 
 if __name__ == '__main__':

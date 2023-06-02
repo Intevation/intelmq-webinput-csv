@@ -18,7 +18,8 @@ export default new Vuex.Store({
     requiredFields: [],
     mailgenAvailable: null,
     botsAvailable: {status: false, reason: "not yet queried"},
-    mailgenAvailableTargetGroups: []
+    mailgenAvailableTargetGroups: [],
+    backendVersion: null
   },
   mutations: {
     SET_USER (state, user) {
@@ -62,6 +63,9 @@ export default new Vuex.Store({
     },
     SET_MAILGEN_AVAILABLE_TARGET_GROUPS(state, data) {
       state.mailgenAvailableTargetGroups = data;
+    },
+    SET_BACKEND_VERSION(state, data) {
+      state.backendVersion = data;
     }
   },
   actions: {
@@ -168,6 +172,14 @@ export default new Vuex.Store({
           console.error('WEBINPUT: fetch target groups, response error:', response)
         }
         )
+    },
+    fetchBackendVersion(context) {
+      Vue.http.get("api/version").then(
+        response => {
+          response.json().then(data => {
+            context.commit("SET_BACKEND_VERSION", data)
+            })
+        });
     }
   },
   modules: {

@@ -5,6 +5,7 @@ SPDX-FileCopyrightText: 2023 Bundesamt für Sicherheit in der Informationstechni
 SPDX-License-Identifier: AGPL-3.0-or-later
 Software engineering by Intevation GmbH <https://intevation.de>
 """
+from json import loads
 from unittest import mock
 from pathlib import Path
 from os import environ
@@ -137,3 +138,14 @@ def test_preview_invalid():
     assert result.data['lines_invalid'] == 1
     assert result.data['errors'] == {'0': ["Failed to add data '1270.0.0.1' as field 'source.ip': "
                                            "invalid value '1270.0.0.1' (<class 'str'>) for key 'source.ip'"]}
+
+
+def test_version():
+    """
+    Simple test for the version
+    """
+    result = test.call('GET', intelmq_webinput_csv.serve, '/api/version')
+    assert result.status == '200 OK'
+    assert '.' in result.data
+    # should only contain one line of data
+    assert '\n' not in result.data.strip()
