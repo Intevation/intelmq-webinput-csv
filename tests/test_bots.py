@@ -11,7 +11,7 @@ from intelmq.lib.bot import Dict39
 from hug import test
 
 import intelmq_webinput_csv.serve
-from .test_main import CONFIG
+from .test_main import CONFIG, CONFIG_SIMPLE
 
 EXAMPLE_DATA_URL = [
     Dict39({'source.url': 'http://example.com/'})
@@ -170,5 +170,107 @@ def test_preview_bots_messages():
                                                                                          'validate_with_bots': True,
                                                                                          })
     assert result.status == '200 OK'
-    assert result.data['lines_invalid'] == 0
+    assert result.data['input_lines_invalid'] == 0
+    assert result.data['output_lines_invalid'] == 0
     assert result.data['errors'] == {}
+
+
+def test_bot_process_raises():
+    """
+    assert that /process shows an error when a bot raises
+    """
+    with mock.patch('webinput_session.session.skip_authentication', new=True):
+        with mock.patch('intelmq_webinput_csv.serve.CONFIG', new=CONFIG |
+                        {'bots': {
+                            'raises': {
+                                'module': 'tests.raises_expert'
+                            }
+                        }}):
+            result = test.call('POST', intelmq_webinput_csv.serve, '/api/bots/process/', body={'submit': False,
+                                                                                               'data': [{'event_description.text': 'text'}],
+                                                                                               'custom': {},
+                                                                                               'dryrun': True,
+                                                                                               'validate_with_bots': True,
+                                                                                               })
+    assert result.status == '200 OK'
+    print(result.data)
+    assert result.data['status'] == 'error'
+    assert 'some random error' in result.data['log']
+
+
+def test_bot_upload_invalid():
+    """
+    assert that /api/upload treats a line completely invalid if it only results in one event and the bot raises an error on this one event
+    """
+    with mock.patch('webinput_session.session.skip_authentication', new=True):
+        with mock.patch('intelmq_webinput_csv.serve.CONFIG', new=CONFIG |
+                        {'bots': {
+                            'raises': {
+                                'module': 'tests.raises_expert'
+                            }
+                        }}):
+            result = test.call('POST', intelmq_webinput_csv.serve, '/api/upload/', body={'submit': False,
+                                                                                         'data': [{'event_description.text': 'text'}],
+                                                                                         'custom': {},
+                                                                                         'dryrun': True,
+                                                                                         'validate_with_bots': True,
+                                                                                         })
+    assert result.status == '200 OK'
+    print(result.data)
+    assert result.data['input_lines_invalid'] == 1
+    assert result.data['output_lines_invalid'] == 1
+    assert 'some random error' in result.data['log']
+
+
+def test_bot_upload_valid_with_one():
+    """
+    assert that /upload treats a line valid if one event from the line is valid
+    """
+    with mock.patch('webinput_session.session.skip_authentication', new=True):
+        with mock.patch('intelmq_webinput_csv.serve.CONFIG', new=CONFIG_SIMPLE |
+                        {'bots': {
+                            'splits': {
+                                'module': 'tests.split_expert'
+                            },
+                            'raises': {
+                                'module': 'tests.raises_expert'
+                            }
+                        }}):
+            result = test.call('POST', intelmq_webinput_csv.serve, '/api/upload/', body={'submit': False,
+                                                                                         'data': [{'event_description.text': 'text'}],
+                                                                                         'custom': {},
+                                                                                         'dryrun': True,
+                                                                                         'validate_with_bots': True,
+                                                                                         })
+    assert result.status == '200 OK'
+    print(result.data)
+    assert result.data['input_lines_invalid'] == 0
+    assert result.data['output_lines_invalid'] == 1
+    assert 'some random error' in result.data['log']
+
+
+def test_bot_empty_output_valid():
+    """
+    assert that if a bot returns no events (e.g. filtered), then the line is valid even if the output is empyt
+    """
+    with mock.patch('webinput_session.session.skip_authentication', new=True):
+        with mock.patch('intelmq_webinput_csv.serve.CONFIG', new=CONFIG |
+                        {'bots': {
+                            'filter': {
+                                'module': 'intelmq.bots.experts.filter.expert',
+                                'parameters': {
+                                    'filter_action': 'keep',
+                                    'filter_key': 'source.ip',
+                                    'filter_value': '127.0.0.1',
+                                }
+                            }
+                        }}):
+            result = test.call('POST', intelmq_webinput_csv.serve, '/api/upload/', body={'submit': False,
+                                                                                         'data': [{'event_description.text': 'text'}],
+                                                                                         'custom': {},
+                                                                                         'dryrun': True,
+                                                                                         'validate_with_bots': True,
+                                                                                         })
+    assert result.status == '200 OK'
+    assert result.data['input_lines_invalid'] == 0
+    assert result.data['output_lines_invalid'] == 0

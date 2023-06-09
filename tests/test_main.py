@@ -17,7 +17,7 @@ import intelmq_webinput_csv.serve
 
 
 # to use the | operator to merge dicts in Python < 3.9, use this compatibility class
-CONFIG = Dict39({
+CONFIG_SIMPLE = Dict39({
     "intelmq": {
         "destination_pipeline_db": 2,
         # autodetect if this script is running standalone (-> localhost) or GitHub Actions;
@@ -27,6 +27,10 @@ CONFIG = Dict39({
     },
     "destination_pipeline_queue": "taxonomy-expert-oneshot-queue",
     "prefix": "",
+    "mailgen_config_file": "/etc/intelmq/intelmq-mailgen-oneshot.conf",
+    "mailgen_temporary_template_name": "oneshot"
+})
+CONFIG = CONFIG_SIMPLE | Dict39({
     "constant_fields": {
         "feed.provider": "my-organization"
     },
@@ -37,8 +41,6 @@ CONFIG = Dict39({
         "extra.template_prefix": ""
     },
     "required_fields": ["source.ip", "source.as_name"],
-    "mailgen_config_file": "/etc/intelmq/intelmq-mailgen-oneshot.conf",
-    "mailgen_temporary_template_name": "oneshot"
 })
 EXAMPLE_DATA = [
     {'source.ip': '127.0.0.1', 'source.asn': '1'},

@@ -248,27 +248,45 @@ def uploadCSV(body, request, response):
             return {'status': 'error',
                     'log': traceback.format_exc()}
 
+    tracebacks = []
+    input_lines_invalid = 0
+    output_lines = 0
+    output_lines_invalid = 0
+
     for lineno, item in enumerate(data):
         if not item:
             retval[lineno] = ('Line is empty', )
             continue
 
-        event, line_valid = row_to_event(item, body, retval, lineno, time_observation)
+        event, input_line_valid = row_to_event(item, body, retval, lineno, time_observation)
 
         bots_input = [event]
         for bot_id, bot in bots:
-            bots_output = []
+            print(f'bot id {bot_id}, input messages: {len(bots_input)}')
+            bot_raised_errors = False
+            if bot.bottype is not BotType.OUTPUT:
+                bots_output = []
             # log.info('messages before bot processing: %r', bots_input)
-            try:
-                queues = bot.process_message(*bots_input)
-            except Exception:
-                return {'status': 'error',
-                        'log': traceback.format_exc()}
-            bots_output.extend(queues['output'])
-            # log.info(f'messages after processing by {bot}: %r', queues['output'])
+            for message in bots_input:
+                try:
+                    queues = bot.process_message(message)
+                except Exception:
+                    print(f'message {message} triggered an exception {traceback.format_exc()}')
+                    bot_raised_errors = True
+                    tracebacks.append(traceback.format_exc())
+                    output_lines_invalid += 1
+                else:
+                    # for output bots, the output queue is empty, don't consider it
+                    if bot.bottype is not BotType.OUTPUT:
+                        bots_output.extend(queues['output'])
+            # if > 0 errors and no valid messages, then the line is invalid
+            if not bots_output and bot_raised_errors:
+                input_line_valid = False
+                break
             bots_input = bots_output
         if not bots:
             bots_output = [event]
+        output_lines += len(bots_output)
 
         for event in bots_output:
             try:
@@ -276,35 +294,45 @@ def uploadCSV(body, request, response):
                     CONFIG['destination_pipeline_queue'].format(ev=event)
             except Exception as exc:
                 retval[lineno].append(f"Failed to generate destination_pipeline_queue {CONFIG['destination_pipeline_queue']}: {exc!s}")
-                line_valid = False
-            if not line_valid:
+                input_line_valid = False
+            if not input_line_valid:
                 continue
 
             if required_fields:
                 diff = set(required_fields) - event.keys()
                 if diff:
-                    line_valid = False
-                    log.debug(f'Event has {event.keys()}, required: {required_fields}, diff: {diff}')
+                    input_line_valid = False
                     retval[lineno].append(f"Line is missing these required fields: {', '.join(diff)}")
 
             # if 'raw' not in event:
             #     event.add('raw', ''.join(raw_header + [handle_rewindable.current_line]))
             raw_message = MessageFactory.serialize(event)
-            if body.get('submit', True) and line_valid:
+            if body.get('submit', True) and input_line_valid:
                 destination_pipeline.send(raw_message)
+            if not input_line_valid:
+                input_lines_invalid += 1
         # if line was valid, increment the counter by 1
-        lines_valid += line_valid
+        input_lines_invalid += not input_line_valid
+
+    output_lines_invalid = len(tracebacks)
 
     if body['dryrun'] and cb:
         conn.rollback()
     elif cb:
         conn.commit()
 
+    print('output:', bots_output)
+    print('tracebacks:', tracebacks)
+
     # lineno is the index, for the number of lines add one
     total_lines = lineno + 1 if data else 0
-    result = {"total": total_lines,
-              "lines_invalid": total_lines - lines_valid,
+    result = {"input_lines": total_lines,
+              "input_lines_invalid": input_lines_invalid,
+              "output_lines": output_lines,
+              "output_lines_invalid": output_lines_invalid,
               "errors": retval}
+    if tracebacks:
+        result['log'] = '\n'.join(tracebacks)
     return result
 
 
@@ -494,24 +522,26 @@ def process(body) -> dict:
                     'log': f"Line was not valid: {'.'.join(retval[0])}"}
         bots_input.append(first_message)
 
+    tracebacks = []
     for bot_id, bot in bots:
-        # log.info('messages before bot processing: %r', bots_input)
-        try:
-            queues = bot.process_message(*bots_input)
-        except Exception:
-            return {'status': 'error',
-                    'log': traceback.format_exc()}
-        # for output bots, the output quue is empty, don't consider it
         if bot.bottype is not BotType.OUTPUT:
-            bots_output = queues['output']
-        # log.info(f'messages after processing by {bot}: %r', queues['output'])
+            bots_output = []
+        for message in bots_input:
+            try:
+                queues = bot.process_message(message)
+            except Exception:
+                tracebacks.append(traceback.format_exc())
+            else:
+                # for output bots, the output queue is empty, don't consider it
+                if bot.bottype is not BotType.OUTPUT:
+                    bots_output.extend(queues['output'])
         bots_input = bots_output
     if not bots:
         bots_output = bots_input
 
-    retval = {'status': 'success',
+    retval = {'status': 'error' if (not bots_output and tracebacks) else 'success',
               'messages': bots_output,
-              'log': bot_logs.getvalue()}
+              'log': '\n'.join(tracebacks + [bot_logs.getvalue()])}
 
     if cb:
         mailgen_log = io.StringIO()
