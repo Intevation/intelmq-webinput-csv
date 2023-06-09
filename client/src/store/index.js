@@ -20,7 +20,11 @@ export default new Vuex.Store({
     botsAvailable: {status: false, reason: "not yet queried"},
     mailgenAvailableTargetGroups: [],
     mailgenAvailableTargetGroupsStatus: null,
-    backendVersion: null
+    backendVersion: null,
+    // the templates in the client. The client only modifies them and is able to compare them with the
+    mailgenTemplates: [{'name': '', 'body': ''}],
+    // the templates on the server
+    mailgenTemplatesServer: []
   },
   mutations: {
     SET_USER (state, user) {
@@ -70,6 +74,11 @@ export default new Vuex.Store({
     },
     SET_MAILGEN_AVAILABLE_TARGET_GROUPS_STATUS(state, data) {
       state.mailgenAvailableTargetGroupsStatus = data;
+    },
+    SET_TEMPLATES(state, data) {
+      state.mailgenTemplates = data;
+      // create a deep clone, otherwise both names have the same reference. deep clone is required as the list items are objects themselves
+      state.mailgenTemplatesServer = JSON.parse(JSON.stringify(data));
     }
   },
   actions: {
@@ -185,6 +194,26 @@ export default new Vuex.Store({
             context.commit("SET_BACKEND_VERSION", data)
             })
         });
+    },
+    fetchTemplates(context) {
+      Vue.http.get('api/mailgen/templates').then(
+        response => {
+          response.json().then(data => {
+            let template_names = Object.keys(data);
+            let mapping = [];
+            for (let key of template_names) {
+              mapping.push({
+                name: key,
+                body: data[key]
+              });
+            }
+            if (template_names.length == 0) {
+              mapping = [{'name': '', 'body': ''}];
+            }
+            context.commit("SET_TEMPLATES", mapping)
+          })
+        }
+      )
     }
   },
   modules: {

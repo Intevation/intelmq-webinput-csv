@@ -5,7 +5,6 @@ SPDX-FileCopyrightText: 2023 Bundesamt für Sicherheit in der Informationstechni
 SPDX-License-Identifier: AGPL-3.0-or-later
 Software engineering by Intevation GmbH <https://intevation.de>
 """
-from json import loads
 from unittest import mock
 from pathlib import Path
 from os import environ

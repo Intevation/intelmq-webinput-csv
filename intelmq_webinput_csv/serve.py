@@ -43,9 +43,10 @@ from collections import defaultdict
 from itertools import chain
 from importlib import import_module
 from pathlib import Path
+from re import compile
 from subprocess import run
-from pkg_resources import get_distribution, resource_filename
 from typing import Optional
+from pkg_resources import get_distribution, resource_filename
 
 import dateutil.parser
 import falcon
@@ -116,6 +117,8 @@ for path in configfiles:
             if ENDPOINT_PREFIX.endswith('/'):
                 ENDPOINT_PREFIX = ENDPOINT_PREFIX[:-1]
             CONSTANTS = CONFIG.get('constant_fields', '{}')
+
+FILENAME_RE = compile('^[a-zA-Z0-9. _-]+$')
 
 
 @hug.startup()
@@ -568,6 +571,52 @@ def process(body) -> dict:
         conn.rollback()
 
     return retval
+
+
+@hug.get(ENDPOINT_PREFIX + '/api/mailgen/templates', requires=session.token_authentication)
+def get_templates():
+    """
+    Returns all defined mailgen templates
+    """
+    mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
+    template_dir = Path(mailgen_config['template_dir'])
+    retval = {}
+    for template in template_dir.glob('*'):  # iterdir does not work here as that is recursive
+        retval[template.name] = template.read_text()
+    return retval
+
+
+@hug.put(ENDPOINT_PREFIX + '/api/mailgen/template', requires=session.token_authentication)
+def set_template(template_name: str, template_body: str, response):
+    """
+    Saves a template to disk
+    """
+    if not FILENAME_RE.match(template_name):
+        response.status = falcon.HTTP_403
+        return f'Filename does not match {FILENAME_RE.pattern!r}.'
+
+    mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
+    template_dir = Path(mailgen_config['template_dir'])
+    Path(template_dir / template_name.strip()).write_text(template_body.strip(), encoding='utf8')
+
+
+@hug.delete(ENDPOINT_PREFIX + '/api/mailgen/template', requires=session.token_authentication)
+def delete_template(template_name: str, response):
+    """
+    Deletes a template from disk
+    """
+    if not FILENAME_RE.match(template_name):
+        response.status = falcon.HTTP_403
+        return f'Filename does not match {FILENAME_RE.pattern!r}.'
+
+    mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
+    template_dir = Path(mailgen_config['template_dir'])
+    template_file = Path(template_dir / template_name.strip())
+    if not template_file.exists():
+        response.status = falcon.HTTP_404
+        return f'Template {template_file!s} does not exist'
+
+    template_file.unlink(   )
 
 
 @hug.get(ENDPOINT_PREFIX + '/api/version')

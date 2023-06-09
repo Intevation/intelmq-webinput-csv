@@ -552,7 +552,7 @@
                   </b-col>
                 </b-row>
                 <h4>Templates:</h4>
-                <b-row v-for="(item, index) in templates" v-bind:key="index" class="item">
+                <b-row v-for="(item, index) in mailgenTemplates" v-bind:key="index" class="item">
                   <b-col>
                     <b-form-group
                       label="Template name"
@@ -562,6 +562,23 @@
                         v-model="item.name"
                       ></b-form-input>
                     </b-form-group>
+                    <span
+                      style="color: green"
+                      v-if="mailgenTemplatesServer[index] && mailgenTemplatesServer[index].name == ''"
+                      title="This template does not exist on the server"
+                      >new</span>
+                    <span
+                      style="color: green"
+                      v-if="mailgenTemplatesServer[index] && item.name.trim() != mailgenTemplatesServer[index].name.trim() && mailgenTemplatesServer[index].name != ''"
+                      >modified
+                        <b-button
+                          variant="info"
+                          size="sm"
+                          @click.prevent="item.name = mailgenTemplatesServer[index].name"
+                          title="Reset to the original state"
+                          >↶
+                        </b-button>
+                      </span>
                   </b-col>
                   <b-col cols="8">
                     <b-form-group
@@ -576,12 +593,43 @@
                   </b-col>
                   <b-col cols="1">
                     <b-button
-                      variant="danger"
+                      block
+                      variant="info"
                       size="sm"
                       @click.prevent="deleteTemplateInput(index)"
+                      title="Remove this template input field. Does not remove it from the server."
                       v-if="index != 0"
-                      >X
+                      >❌
                     </b-button>
+                    <b-button
+                      block
+                      size="sm"
+                      variant="danger"
+                      :disabled="mailgenTemplatesServer[index] && item.name.trim() != mailgenTemplatesServer[index].name.trim()"
+                      @click.prevent="dropTemplate(index, item.name)"
+                      title="Delete the template file from the server"
+                    >🗑️</b-button>
+                    <b-button
+                      block
+                      size="sm"
+                      variant="success"
+                      :disabled="mailgenTemplatesServer[index] && item.name.trim() == mailgenTemplatesServer[index].name.trim() && item.body.trim() == mailgenTemplatesServer[index].body.trim()"
+                      @click.prevent="saveTemplate(index, item.name, item.body)"
+                      title="Save the template file on the server"
+                    >💾</b-button>
+                    <span
+                      style="color: green"
+                      v-if="mailgenTemplatesServer[index] && item.body.trim() != mailgenTemplatesServer[index].body.trim() && mailgenTemplatesServer[index].name != ''"
+                      >modified
+                      <b-button
+                        variant="info"
+                        size="sm"
+                        @click.prevent="item.body = mailgenTemplatesServer[index].body"
+                        v-if="mailgenTemplatesServer[index] && item.body.trim() != mailgenTemplatesServer[index].body.trim()"
+                        title="Reset to the original state"
+                        >↶
+                        </b-button>
+                      </span>
                   </b-col>
                 </b-row>
                 <b-row>
@@ -649,7 +697,6 @@ export default ({
       dataErrors: [],
       authConfirmErrorText: '',
       template: '',
-      templates: [{'name': '', 'body': ''}],
       showMailgenLog: false,
       mailgenLog: '',
       mailgenStatus: '',
@@ -668,11 +715,11 @@ export default ({
       errorMessage: null,
       showErrorModal: false,
       mailgenTargetGroups: [],
-      clientVersion: "1.0.0a2"
+      clientVersion: "1.0.0a2",
     }
   },
   computed: {
-    ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable', 'botsAvailable', 'mailgenAvailableTargetGroups', 'mailgenAvailableTargetGroupsStatus', 'backendVersion']),
+    ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable', 'botsAvailable', 'mailgenAvailableTargetGroups', 'mailgenAvailableTargetGroupsStatus', 'backendVersion', 'mailgenTemplatesServer', 'mailgenTemplates']),
   },
   mounted() {
     this.$store.dispatch("fetchBackendVersion");
@@ -840,6 +887,7 @@ export default ({
         this.$store.dispatch("fetchMailgenAvailable");
         this.$store.dispatch("fetchBotsAvailable");
         this.$store.dispatch("fetchMailgenAvailableTargetGroups");
+        this.$store.dispatch("fetchTemplates");
       }, (response) => {
         if (response.status !== 200) {
           this.loginErrorText = "Server not reachable.";
@@ -1177,13 +1225,72 @@ export default ({
      * Increate the number of template inputs
      */
     increaseTemplateCounter() {
-      this.templates.push({'name': '', 'body': ''});
+      this.mailgenTemplates.push({'name': '', 'body': ''});
+      // not really true, but serves the purpose of showing correct "modified" indicator:
+      this.mailgenTemplatesServer.push({'name': '', 'body': ''});
     },
     /**
      * Delete a template from the template array
      */
     deleteTemplateInput(index) {
-      this.templates.splice(index, 1);
+      this.mailgenTemplates.splice(index, 1);
+    },
+    /**
+     * Save a template to disk
+     * @param {int} index
+     * @param {str} template_name
+     * @param {str} template_body
+     */
+    saveTemplate(index, template_name, template_body) {
+      this.$http.put('api/mailgen/template', {
+        template_name: template_name,
+        template_body: template_body,
+      })
+        .then(response => {
+          response.json().then(data => {
+            // success
+            console.log('Template save success:', data)
+            // update our knowledge of the server template, resets the "changed" indicator
+            // https://v2.vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
+            this.$set(this.mailgenTemplatesServer, index, {name: template_name, body: template_body})
+            console.log('this.mailgenTemplatesServer[index] = ', this.mailgenTemplatesServer[index])
+          }).catch(err => {
+            // body was not JSON
+            this.errorMessage = err;
+            this.showErrorModal = true;
+        });
+        }, (response) => { // error
+          this.errorMessage = response.body;
+          this.showErrorModal = true;
+        });
+    },
+    /**
+     * Remove a template from disk and remove it from the UI
+     * @param {int} index
+     * @param {str} template_name
+     */
+    dropTemplate(index, template_name) {
+      this.$http.delete('api/mailgen/template', {
+        // https://stackoverflow.com/questions/39916939/attaching-data-body-to-http-delete-event-in-vuejs
+        body: {template_name: template_name},
+      })
+        .then(response => {
+          response.json().then(data => {
+            // success
+            console.log('Template deletion success:', data)
+            // remove the input field
+            this.deleteTemplateInput(index)
+            // update our knowledge of the server template
+            this.mailgenTemplatesServer.splice(index, 1)
+          }).catch(err => {
+            // body was not JSON
+            this.errorMessage = err;
+            this.showErrorModal = true;
+        });
+        }, (response) => { // error
+          this.errorMessage = response.body;
+          this.showErrorModal = true;
+        });
     }
   }
 })
