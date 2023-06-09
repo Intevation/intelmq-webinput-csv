@@ -76,7 +76,7 @@ def test_preview():
                                                                                          'dryrun': True,
                                                                                          })
     assert result.status == '200 OK'
-    assert result.data['lines_invalid'] == 0
+    assert result.data['input_lines_invalid'] == 0
 
 
 def test_submit_auth_fail():
@@ -125,7 +125,7 @@ def test_constant_fields():
                                 '"classification.type": "test", "classification.identifier": "test", "feed.code": "oneshot", '
                                 '"time.observation": "1970-01-01T13:37:00+00:00", "__type": "Event"}') in pipeline_mock.create.mock_calls
     assert result.status == '200 OK'
-    assert result.data['lines_invalid'] == 0
+    assert result.data['input_lines_invalid'] == 0
 
 
 def test_preview_invalid():
@@ -137,7 +137,7 @@ def test_preview_invalid():
                                                                                          'dryrun': True,
                                                                                          })
     assert result.status == '200 OK'
-    assert result.data['lines_invalid'] == 1
+    assert result.data['input_lines_invalid'] == 1
     assert result.data['errors'] == {'0': ["Failed to add data '1270.0.0.1' as field 'source.ip': "
                                            "invalid value '1270.0.0.1' (<class 'str'>) for key 'source.ip'"]}
 
