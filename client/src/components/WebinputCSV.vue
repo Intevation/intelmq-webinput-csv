@@ -1062,7 +1062,12 @@ export default ({
       //var me = this;
       this.mailgenInProgress = true;
       this.mailgenLog = '';
-      this.$http.post('api/mailgen/run', {template: this.template, verbose: this.mailgenVerbose, dry_run: this.mailgenDryRun})
+      this.$http.post('api/mailgen/run', {
+        template: this.template,
+        templates: this.mailgenTemplates,
+        verbose: this.mailgenVerbose,
+        dry_run: this.mailgenDryRun
+        })
         .then(response => {
           this.mailgenInProgress = false;
           response.json().then(data => {
@@ -1182,6 +1187,7 @@ export default ({
         custom: this.computeCustom(),
         dryrun: this.dryrun,
         template: this.template,
+        templates: this.mailgenTemplates,
       })
         .then(response => {
           response.json().then(data => {
@@ -1253,7 +1259,6 @@ export default ({
             // update our knowledge of the server template, resets the "changed" indicator
             // https://v2.vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
             this.$set(this.mailgenTemplatesServer, index, {name: template_name, body: template_body})
-            console.log('this.mailgenTemplatesServer[index] = ', this.mailgenTemplatesServer[index])
           }).catch(err => {
             // body was not JSON
             this.errorMessage = err;

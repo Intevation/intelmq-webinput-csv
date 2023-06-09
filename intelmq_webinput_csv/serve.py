@@ -559,6 +559,7 @@ def process(body) -> dict:
         retval['log'] += mailgen_log.getvalue().strip()
         retval['notifications'] = cb.start(mailgen_config, process_all=True,
                                            template=body.get('template'),
+                                           templates={item['name']: item['body'] for item in body.get('templates', [])},
                                            get_preview=True,
                                            conn=conn,
                                            dry_run=True,
@@ -616,7 +617,7 @@ def delete_template(template_name: str, response):
         response.status = falcon.HTTP_404
         return f'Template {template_file!s} does not exist'
 
-    template_file.unlink(   )
+    template_file.unlink()
 
 
 @hug.get(ENDPOINT_PREFIX + '/api/version')
