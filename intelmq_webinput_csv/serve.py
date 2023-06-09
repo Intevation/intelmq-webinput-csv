@@ -487,7 +487,8 @@ def process(body) -> dict:
         # find the last directive ID before inserting our new ones
         cur = conn.cursor()
         cur.execute('SELECT id FROM directives ORDER BY id DESC LIMIT 1;')
-        last_id = cur.fetchone()['id']
+        last_id = cur.fetchone()['id'] if cur.rowcount else None
+
 
     bots = []
     for bot_id, bot_config in CONFIG.get('bots', {}).items():
@@ -498,11 +499,11 @@ def process(body) -> dict:
             if bot is WebinputSQLOutputBot:
                 if not conn:
                     conn = connect(database=bot_config['parameters']['database'],
-                                    user=bot_config['parameters']['user'],
-                                    password=bot_config['parameters']['password'],
-                                    host=bot_config['parameters']['host'],
-                                    port=bot_config['parameters']['port'],
-                                    connection_factory=RealDictConnection)
+                                   user=bot_config['parameters']['user'],
+                                   password=bot_config['parameters']['password'],
+                                   host=bot_config['parameters']['host'],
+                                   port=bot_config['parameters']['port'],
+                                   connection_factory=RealDictConnection)
                     conn.autocommit = False
                 kwargs = {'connection': conn}
             bots.append((bot_id, bot(bot_id, **kwargs, settings=BotLibSettings | Dict39({'logging_level': 'DEBUG'}) | Dict39(bot_config.get('parameters', {})))))
@@ -550,7 +551,7 @@ def process(body) -> dict:
         logging.getLogger('intelmqmail').setLevel(logging.DEBUG)
 
         # select only the new directives
-        additional_directive_where = mailgen_config['database'].get('additional_directive_where', '') + (' AND' if 'additional_directive_where' in mailgen_config['database'] else '') + f' d3.id > {last_id}'
+        additional_directive_where = (mailgen_config['database'].get('additional_directive_where', '') + (' AND' if 'additional_directive_where' in mailgen_config['database'] else '') + f' d3.id > {last_id}') if last_id else None
 
         retval['log'] += mailgen_log.getvalue().strip()
         retval['notifications'] = cb.start(mailgen_config, process_all=True,
