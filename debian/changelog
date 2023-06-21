@@ -1,3 +1,13 @@
+intelmq-webinput-csv (1.0.0a3) unstable; urgency=medium
+
+  * Complete template management for mailgen, pass templates to mailgen
+    directly
+  * show version of client and backend in client
+  * display name of target group tag name instead of generic name
+  * only display target groups if fetching the data worked
+
+ -- Sebastian Wagner <swagner@intevation.de>  Wed, 21 Jun 2023 15:18:46 +0200
+
 intelmq-webinput-csv (1.0.0a2) unstable; urgency=medium
 
   * client: preview enhancements
