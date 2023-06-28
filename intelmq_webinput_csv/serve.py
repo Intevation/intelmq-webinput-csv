@@ -397,7 +397,7 @@ def mailgen_run(body, request, response):
     """
     Start mailgen
     """
-    template = body.get('template')
+    templates = body.get('templates')
 
     log = io.StringIO()
     log_handler = logging.StreamHandler(stream=log)
@@ -414,7 +414,7 @@ def mailgen_run(body, request, response):
 
     try:
         mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
-        return {"result": cb.start(mailgen_config, process_all=True, template=template, dry_run=body.get('dry_run')),
+        return {"result": cb.start(mailgen_config, process_all=True, templates=templates, dry_run=body.get('dry_run')),
                 "log": log.getvalue().strip()}
     except Exception:
         response.status = falcon.status.HTTP_500
@@ -558,7 +558,6 @@ def process(body) -> dict:
 
         retval['log'] += mailgen_log.getvalue().strip()
         retval['notifications'] = cb.start(mailgen_config, process_all=True,
-                                           template=body.get('template'),
                                            templates={item['name']: item['body'] for item in body.get('templates', [])},
                                            get_preview=True,
                                            conn=conn,

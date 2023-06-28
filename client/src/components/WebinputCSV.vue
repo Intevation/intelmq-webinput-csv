@@ -454,7 +454,7 @@
         <b-card no-body class="mb-1">
 
           <b-card-header header-tag="header" class="p-1" role="tab">
-            <b-button :disabled="!mailgenAvailable" block v-b-toggle.accordion-notifications variant="info" :title="mailgenAvailable ? 'Mailgen Template' : 'Mailgen is not installed/available'">Send Notifications</b-button>
+            <b-button :disabled="!mailgenAvailable" block v-b-toggle.accordion-notifications variant="info" :title="mailgenAvailable ? 'Set Mailgen Templates and Start a Mailgen Run' : 'Mailgen is not installed/available'">Send Notifications</b-button>
           </b-card-header>
           <b-collapse id="accordion-notifications" visible accordion="my-accordion" role="tabpanel">
             <b-card-body>
@@ -473,18 +473,6 @@
                             class="d-inline-block"
                           >
                             <b-button v-b-tooltip.hover @click="runMailgen" variant="primary" :disabled="!mailgenAvailable" :title="mailgenAvailable ? 'Start Mailgen' : 'Mailgen is not installed/available'">Start Mailgen</b-button>
-                          </b-overlay>
-                        </b-col>
-                        <b-col>
-                          <b-overlay
-                            :show="mailgenInProgress"
-                            rounded
-                            opacity="0.5"
-                            spinner-small
-                            spinner-variant="primary"
-                            class="d-inline-block"
-                          >
-                            <b-button v-b-tooltip.hover @click="previewMailgen" variant="primary" :disabled="!mailgenAvailable" :title="mailgenAvailable ? 'Preview Mailgen Email' : 'Mailgen is not installed/available'">Email Preview</b-button>
                           </b-overlay>
                         </b-col>
                       </b-row>
@@ -538,18 +526,6 @@
                       </b-row>
                     </b-container>
                   </b-col>
-                  <b-col>
-                    <h4>Notification Template</h4>
-                    <b-form-group width="100%">
-                      <b-form-textarea
-                        id="template"
-                        v-model="template"
-                        description="E-Mail Template for Mailgen. First line is the subject. Use ${fieldname} to insert aggregated field names and ${events_as_csv} for a CSV attachment."
-                        rows="10"
-                        width="100%"
-                      ></b-form-textarea>
-                    </b-form-group>
-                  </b-col>
                 </b-row>
                 <h4>Templates:</h4>
                 <b-row v-for="(item, index) in mailgenTemplates" v-bind:key="index" class="item">
@@ -579,6 +555,16 @@
                           >↶
                         </b-button>
                       </span>
+                      <b-overlay
+                        :show="mailgenInProgress"
+                        rounded
+                        opacity="0.5"
+                        spinner-small
+                        spinner-variant="primary"
+                        class="d-inline-block"
+                      >
+                        <b-button v-b-tooltip.hover @click="previewMailgen(index)" variant="primary" :disabled="!mailgenAvailable" title="Preview this template">Email Preview</b-button>
+                      </b-overlay>
                   </b-col>
                   <b-col cols="8">
                     <b-form-group
@@ -696,7 +682,6 @@ export default ({
       loginErrorText: "Wrong username or password",
       dataErrors: [],
       authConfirmErrorText: '',
-      template: '',
       showMailgenLog: false,
       mailgenLog: '',
       mailgenStatus: '',
@@ -1063,7 +1048,6 @@ export default ({
       this.mailgenInProgress = true;
       this.mailgenLog = '';
       this.$http.post('api/mailgen/run', {
-        template: this.template,
         templates: this.mailgenTemplates,
         verbose: this.mailgenVerbose,
         dry_run: this.mailgenDryRun
@@ -1083,6 +1067,7 @@ export default ({
           this.mailgenStatus = "text-danger";
           this.mailgenLog = response.body;
           this.mailgenInProgress = false;
+          this.showMailgenLog = true;
           return;
         });
     },
@@ -1134,11 +1119,11 @@ export default ({
     /**
      * Show an email preview
      */
-    previewMailgen() {
+    previewMailgen(template_index) {
       //var me = this;
       this.mailgenInProgress = true;
       this.mailgenLog = '';
-      this.$http.post('api/mailgen/preview', {template: this.template, verbose: this.mailgenVerbose, dry_run: this.mailgenDryRun})
+      this.$http.post('api/mailgen/preview', {template: this.mailgenTemplates[template_index], verbose: this.mailgenVerbose, dry_run: this.mailgenDryRun})
         .then(response => {
           this.mailgenInProgress = false;
           response.json().then(data => {
@@ -1159,6 +1144,7 @@ export default ({
         }, (response) => { // error
           this.mailgenStatus = "text-danger";
           this.mailgenLog = response.body;
+          this.showMailgenLog = true;
           this.mailgenInProgress = false;
           return;
         });
@@ -1186,7 +1172,6 @@ export default ({
         data: data,
         custom: this.computeCustom(),
         dryrun: this.dryrun,
-        template: this.template,
         templates: this.mailgenTemplates,
       })
         .then(response => {
