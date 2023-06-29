@@ -75,7 +75,8 @@
         </template>
       </b-modal>
       <b-modal v-model="showMailgenPreview" scrollable centered size="xl" id="mailgenPreview-popup" title="Mailgen Email Preview">
-        <h5 title="Subject">{{mailgenPreviewParsed.subject}}</h5>
+        <small>Please note that this preview uses example data and thus does not take the CERTbund rules into account. The example data contains more data and aggregated fields than real data.</small>
+        <h5 title="Subject">Subject: {{mailgenPreviewParsed.subject}}</h5>
         <h6 title="To">To: {{mailgenPreviewParsed.to}}</h6>
         <code class="text-black"><pre>{{ mailgenPreviewParsed.body }}</pre></code>
         <template #modal-footer>
@@ -538,6 +539,23 @@
                         v-model="item.name"
                       ></b-form-input>
                     </b-form-group>
+                    <b-overlay
+                      :show="mailgenInProgress"
+                      rounded
+                      opacity="0.5"
+                      spinner-small
+                      spinner-variant="primary"
+                      class="d-inline-block"
+                    >
+                      <b-button
+                        v-b-tooltip.hover
+                        @click="previewMailgen(index)"
+                        variant="primary"
+                        :disabled="!mailgenAvailable || !item.body"
+                        title="Preview this template"
+                        block
+                        >Email Preview</b-button>
+                    </b-overlay>
                     <span
                       style="color: green"
                       v-if="mailgenTemplatesServer[index] && mailgenTemplatesServer[index].name == ''"
@@ -555,16 +573,6 @@
                           >↶
                         </b-button>
                       </span>
-                      <b-overlay
-                        :show="mailgenInProgress"
-                        rounded
-                        opacity="0.5"
-                        spinner-small
-                        spinner-variant="primary"
-                        class="d-inline-block"
-                      >
-                        <b-button v-b-tooltip.hover @click="previewMailgen(index)" variant="primary" :disabled="!mailgenAvailable" title="Preview this template">Email Preview</b-button>
-                      </b-overlay>
                   </b-col>
                   <b-col cols="8">
                     <b-form-group
@@ -1123,7 +1131,12 @@ export default ({
       //var me = this;
       this.mailgenInProgress = true;
       this.mailgenLog = '';
-      this.$http.post('api/mailgen/preview', {template: this.mailgenTemplates[template_index], verbose: this.mailgenVerbose, dry_run: this.mailgenDryRun})
+      this.$http.post('api/mailgen/preview',
+          {
+            template: this.mailgenTemplates[template_index]['body'],
+            verbose: this.mailgenVerbose,
+            dry_run: this.mailgenDryRun
+            })
         .then(response => {
           this.mailgenInProgress = false;
           response.json().then(data => {

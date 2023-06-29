@@ -67,9 +67,14 @@ from intelmq.lib.datatypes import BotType, Dict39
 
 from webinput_session import config, session
 from intelmq_webinput_csv.sql_output import WebinputSQLOutputBot
+try:
+    from .data import EXAMPLE_CERTBUND_EVENT
+except ImportError:  # attempted relative import with no known parent package
+    exec(Path(__file__).with_name('data.py').read_text(encoding='utf-8'))
 
-from psycopg2.extras import RealDictConnection
-from psycopg2 import connect
+from psycopg2.extras import RealDictConnection, Json
+from psycopg2 import connect, InterfaceError
+from psycopg2.extensions import register_adapter
 
 try:
     from intelmqmail import cb
@@ -78,6 +83,8 @@ except ImportError:
     cb = None
 
 
+# automatic conversion of python dicts to postgres' json
+register_adapter(dict, Json)
 try:
     EVENT_FIELDS = load_configuration(HARMONIZATION_CONF_FILE)
 except ValueError:
@@ -427,8 +434,6 @@ def mailgen_preview(body, request, response):
     """
     Show mailgen email preview
     """
-    template = body.get('template')
-
     mailgen_log = io.StringIO()
     log_handler = logging.StreamHandler(stream=mailgen_log)
     logging.getLogger('intelmqmail').addHandler(log_handler)
@@ -445,9 +450,33 @@ def mailgen_preview(body, request, response):
     try:
         mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
         conn = open_db_connection(mailgen_config, connection_factory=RealDictConnection)
-        return {"result": cb.start(mailgen_config, process_all=True, template=template, get_preview=True,
-                                   conn=conn)[0],  # only transmit the first notification
-                "log": mailgen_log.getvalue().strip()}
+        conn.autocommit = False
+
+        try:
+            cur = conn.cursor()
+            cur.execute('INSERT INTO events ("{keys}") VALUES ({values})'
+                        ''.format(keys='", "'.join(EXAMPLE_CERTBUND_EVENT.keys()),
+                                values=', '.join(['%s'] * len(EXAMPLE_CERTBUND_EVENT))),
+                        list(EXAMPLE_CERTBUND_EVENT.values()))
+            cur.execute('START TRANSACTION')
+            cur.execute('SELECT id FROM events')
+            cur.execute('SELECT id, events_id FROM DIRECTIVES')
+            cur.execute('SELECT id FROM directives ORDER BY id DESC LIMIT 1;')
+            last_id = cur.fetchone()['id'] if cur.rowcount else None
+            # ignore the additional_directive_where in mailgen config as that causes we are not seeing the test event
+            additional_directive_where = f' d3.id >= {last_id}'
+
+            return {"result": cb.start(mailgen_config, process_all=True,
+                                       template=body.get('template'),
+                                       get_preview=True,
+                                       additional_directive_where=additional_directive_where,
+                                       conn=conn)[0],  # only transmit the first notification
+                    "log": mailgen_log.getvalue().strip()}
+        finally:
+            try:
+                conn.rollback()
+            except InterfaceError:  # connection already closed
+                pass
     except Exception:
         response.status = falcon.status.HTTP_500
         traceback.print_exc(file=sys.stderr)
