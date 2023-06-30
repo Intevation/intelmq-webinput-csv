@@ -17,3 +17,10 @@ yarn run dev
 ## Using docker
 
 See https://github.com/Intevation/intelmq-cb-mailgen-docker#user-content-scenario-2-development-dev
+
+## Release a new version
+
+* make a changelog entry in `debian/changelog` using `dch` command line tool. don't forget the revision
+* set `clientVersion` in `client/src/components/WebinputCSV.vue`
+* set `__version_info__` in `intelmq_webinput_csv/version.py`
+* make a commit and create a tag from it

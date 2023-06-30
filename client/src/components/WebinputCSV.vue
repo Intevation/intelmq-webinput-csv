@@ -705,7 +705,7 @@ export default ({
       errorMessage: null,
       showErrorModal: false,
       mailgenTargetGroups: [],
-      clientVersion: "1.0.0a3",
+      clientVersion: "1.0.0",
     }
   },
   computed: {

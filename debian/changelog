@@ -1,3 +1,12 @@
+intelmq-webinput-csv (1.0.0-1) stable; urgency=medium
+
+  * Design and usability updates.
+  * frontend: Cleanups and removal of deprectated single-template input field in favor of named templates.
+  * frontend & backend: Previews per named template input group, using complete example data
+  * backend: fixes
+
+ -- Sebastian Wagner <swagner@intevation.de>  Fri, 03 Jul 2023 17:01:04 +0200
+
 intelmq-webinput-csv (1.0.0a3) unstable; urgency=medium
 
   * Complete template management for mailgen, pass templates to mailgen
