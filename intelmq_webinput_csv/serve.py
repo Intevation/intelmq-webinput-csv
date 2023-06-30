@@ -247,7 +247,6 @@ def uploadCSV(body, request, response):
 
     bots = []
     for bot_id, bot_config in CONFIG.get('bots', {}).items() if body.get('validate_with_bots', False) else {}:
-        log.info('init bot %s', bot_id)
         try:
             bot = import_module(bot_config['module']).BOT
             kwargs = {}
@@ -272,16 +271,13 @@ def uploadCSV(body, request, response):
 
         bots_input = [event]
         for bot_id, bot in bots:
-            print(f'bot id {bot_id}, input messages: {len(bots_input)}')
             bot_raised_errors = False
             if bot.bottype is not BotType.OUTPUT:
                 bots_output = []
-            # log.info('messages before bot processing: %r', bots_input)
             for message in bots_input:
                 try:
                     queues = bot.process_message(message)
                 except Exception:
-                    print(f'message {message} triggered an exception {traceback.format_exc()}')
                     bot_raised_errors = True
                     tracebacks.append(traceback.format_exc())
                     output_lines_invalid += 1
@@ -330,9 +326,6 @@ def uploadCSV(body, request, response):
         conn.rollback()
     elif cb:
         conn.commit()
-
-    print('output:', bots_output)
-    print('tracebacks:', tracebacks)
 
     # lineno is the index, for the number of lines add one
     total_lines = lineno + 1 if data else 0
