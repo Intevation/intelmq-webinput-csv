@@ -1183,6 +1183,7 @@ export default ({
         custom: this.computeCustom(),
         dryrun: this.dryrun,
         templates: this.mailgenTemplates,
+        timezone: this.timezone,
       })
         .then(response => {
           response.json().then(data => {

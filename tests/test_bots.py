@@ -144,6 +144,27 @@ def test_bots_library():
                                                                }]}
 
 
+def test_bots_library_time():
+    """
+    test /process with time-data
+    """
+    with mock.patch('webinput_session.session.skip_authentication', new=True):
+        with mock.patch('intelmq_webinput_csv.serve.CONFIG', new=CONFIG | BOTS_CONFIG):
+            result = test.call('POST', intelmq_webinput_csv.serve, '/api/bots/process/', body={'data': [{'time.source': '2023-01-08 19:01:01'}],
+                                                                                               'custom': {},
+                                                                                               'dryrun': False,
+                                                                                               'timezone': '+02:00'})
+    assert result.status == '200 OK'
+    del result.data['messages'][0]['time.observation']
+    assert 'RemoveAffixExpertBot initialized with id remove-affix' in result.data['log']
+    assert 'Bot initialization completed.' in result.data['log']
+    del result.data['log']
+    assert result.data == {'status': 'success',
+                           'messages': [{'classification.identifier': 'test', 'classification.type': 'test',
+                                         'classification.taxonomy': 'test', 'feed.code': 'oneshot', 'feed.provider': 'my-organization',
+                                         'time.source': '2023-01-08T17:01:01+00:00'}]}
+
+
 def test_bot_exception():
     """
     When a bot raises an exception during Bot initialization
