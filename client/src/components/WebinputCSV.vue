@@ -75,7 +75,7 @@
         </template>
       </b-modal>
       <b-modal v-model="showMailgenPreview" scrollable centered size="xl" id="mailgenPreview-popup" title="Mailgen Email Preview">
-        <small>Please note that this preview uses example data and thus does not take the CERTbund rules into account. The example data contains more data and aggregated fields than real data.</small>
+        <small>Please note that this preview uses example data and thus does not take the CERTbund rules into account. The example data contains more data and aggregated fields than real data. To consider the input data, use the tools in the "Data Validation and Submission" section.</small>
         <h5 title="Subject">Subject: {{mailgenPreviewParsed.subject}}</h5>
         <h6 title="To">To: {{mailgenPreviewParsed.to}}</h6>
         <code class="text-black"><pre>{{ mailgenPreviewParsed.body }}</pre></code>
@@ -511,68 +511,61 @@
                           </b-overlay>
                         </b-col>
                       </b-row>
-                      <b-row>
-                        <b-col v-if="mailgenPreview">
-                          <b-overlay
-                            :show="mailgenInProgress"
-                            rounded
-                            opacity="0.5"
-                            spinner-small
-                            spinner-variant="primary"
-                            class="d-inline-block"
-                          >
-                            <b-button @click="showMailgenPreview=true" v-b-modal.mailgenPreview-popup v-if="mailgenPreview">Show Email Preview</b-button>
-                          </b-overlay>
-                        </b-col>
-                      </b-row>
                     </b-container>
                   </b-col>
                 </b-row>
                 <h4>Templates:</h4>
                 <b-row v-for="(item, index) in mailgenTemplates" v-bind:key="index" class="item">
                   <b-col>
-                    <b-form-group
-                      label="Template name"
-                      description="With an empty name, the template will be ignored"
+                    <b-row>
+                      <b-form-group
+                        label="Template name"
+                        description="With an empty name, the template will be ignored"
+                        >
+                        <b-form-input
+                          v-model="item.name"
+                        ></b-form-input>
+                      </b-form-group>
+                    </b-row>
+                    <b-row>
+                      <b-overlay
+                        :show="mailgenInProgress"
+                        rounded
+                        opacity="0.5"
+                        spinner-small
+                        spinner-variant="primary"
+                        class="d-inline-block"
                       >
-                      <b-form-input
-                        v-model="item.name"
-                      ></b-form-input>
-                    </b-form-group>
-                    <b-overlay
-                      :show="mailgenInProgress"
-                      rounded
-                      opacity="0.5"
-                      spinner-small
-                      spinner-variant="primary"
-                      class="d-inline-block"
-                    >
-                      <b-button
-                        v-b-tooltip.hover
-                        @click="previewMailgen(index)"
-                        variant="primary"
-                        :disabled="!mailgenAvailable || !item.body"
-                        title="Preview this template"
-                        block
-                        >Email Preview</b-button>
-                    </b-overlay>
-                    <span
-                      style="color: green"
-                      v-if="mailgenTemplatesServer[index] && mailgenTemplatesServer[index].name == ''"
-                      title="This template does not exist on the server"
-                      >new</span>
-                    <span
-                      style="color: green"
-                      v-if="mailgenTemplatesServer[index] && item.name.trim() != mailgenTemplatesServer[index].name.trim() && mailgenTemplatesServer[index].name != ''"
-                      >modified
                         <b-button
-                          variant="info"
-                          size="sm"
-                          @click.prevent="item.name = mailgenTemplatesServer[index].name"
-                          title="Reset to the original state"
-                          >↶
-                        </b-button>
-                      </span>
+                          v-b-tooltip.hover
+                          @click="previewMailgen(index)"
+                          variant="primary"
+                          :disabled="!mailgenAvailable || !item.body"
+                          title="Preview this template"
+                          block
+                          >Email Preview</b-button>
+                      </b-overlay>
+                    </b-row>
+                    <b-row>
+                      <span
+                        style="color: green"
+                        v-if="mailgenTemplatesServer[index] && mailgenTemplatesServer[index].name == ''"
+                        title="This template does not exist on the server"
+                        >new</span>
+                      <span
+                        style="color: green"
+                        v-if="mailgenTemplatesServer[index] && item.name.trim() != mailgenTemplatesServer[index].name.trim() && mailgenTemplatesServer[index].name != ''"
+                        >modified
+                          <b-button
+                            variant="info"
+                            size="sm"
+                            @click.prevent="item.name = mailgenTemplatesServer[index].name"
+                            title="Revert to the original state"
+                            style="margin-top: 10px"
+                            >↶
+                          </b-button>
+                        </span>
+                      </b-row>
                   </b-col>
                   <b-col cols="8">
                     <b-form-group
@@ -593,6 +586,7 @@
                       @click.prevent="deleteTemplateInput(index)"
                       title="Remove this template input field. Does not remove it from the server."
                       v-if="index != 0"
+                      style="font-size: 1.5em"
                       >❌
                     </b-button>
                     <b-button
@@ -602,6 +596,7 @@
                       :disabled="mailgenTemplatesServer[index] && item.name.trim() != mailgenTemplatesServer[index].name.trim()"
                       @click.prevent="dropTemplate(index, item.name)"
                       title="Delete the template file from the server"
+                      style="font-size: 1.5em"
                     >🗑️</b-button>
                     <b-button
                       block
@@ -610,6 +605,7 @@
                       :disabled="mailgenTemplatesServer[index] && item.name.trim() == mailgenTemplatesServer[index].name.trim() && item.body.trim() == mailgenTemplatesServer[index].body.trim()"
                       @click.prevent="saveTemplate(index, item.name, item.body)"
                       title="Save the template file on the server"
+                      style="font-size: 1.5em"
                     >💾</b-button>
                     <span
                       style="color: green"
@@ -620,7 +616,8 @@
                         size="sm"
                         @click.prevent="item.body = mailgenTemplatesServer[index].body"
                         v-if="mailgenTemplatesServer[index] && item.body.trim() != mailgenTemplatesServer[index].body.trim()"
-                        title="Reset to the original state"
+                        title="Revert to the original state"
+                        style="margin-top: 10px"
                         >↶
                         </b-button>
                       </span>
