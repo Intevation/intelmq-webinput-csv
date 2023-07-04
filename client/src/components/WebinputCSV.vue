@@ -466,58 +466,53 @@
           <b-collapse id="accordion-notifications" visible accordion="my-accordion" role="tabpanel">
             <b-card-body>
               <b-container fluid>
-                <b-row>
-                  <b-col sm="auto">
-                    <b-container fluid>
-                      <b-row class=".align-items-center .justify-content-center">
-                        <b-col>
-                          <b-overlay
-                            :show="mailgenInProgress"
-                            rounded
-                            opacity="0.5"
-                            spinner-small
-                            spinner-variant="primary"
-                            class="d-inline-block"
-                          >
-                            <b-button v-b-tooltip.hover @click="runMailgen" variant="primary" :disabled="!mailgenAvailable" :title="mailgenAvailable ? 'Start Mailgen' : 'Mailgen is not installed/available'">Start Mailgen</b-button>
-                          </b-overlay>
-                        </b-col>
-                      </b-row>
-                      <b-row>
-                        <b-col>
-                          <b-form-group label-cols=12 label="Verbose Logs:">
-                            <b-form-checkbox
-                              v-model="mailgenVerbose"
-                              switch
-                            ></b-form-checkbox>
-                          </b-form-group>
-                        </b-col>
-                        <b-col>
-                          <b-form-group label-cols=6 label="Simulate:" title="Do not send notifications">
-                            <a href="http://intevation.github.io/intelmq-mailgen/intelmqcbmail.html#dry-run-simulation" target="_blank">?</a>
-                            <b-form-checkbox
-                              v-model="mailgenDryRun"
-                              switch
-                            ></b-form-checkbox>
-                          </b-form-group>
-                        </b-col>
-                      </b-row>
-                      <b-row>
-                        <b-col>
-                          <b-overlay
-                            :show="mailgenInProgress"
-                            rounded
-                            opacity="0.5"
-                            spinner-small
-                            spinner-variant="primary"
-                            class="d-inline-block"
-                          >
-                            <label style="margin-left: 10px;" :class="mailgenStatus">{{ mailgenResult }}</label><br />
-                            <b-button @click="showMailgenLog=true" v-b-modal.mailgenLog-popup v-if="mailgenLog && mailgenLog != mailgenResult">Show complete log</b-button>
-                          </b-overlay>
-                        </b-col>
-                      </b-row>
-                    </b-container>
+                <b-row align-v="center">
+                  <b-col>
+                    <b-form-group
+                      label-cols="auto"
+                      label="Verbose Logs"
+                    >
+                      <b-form-checkbox
+                        v-model="mailgenVerbose"
+                        switch
+                      ></b-form-checkbox>
+                    </b-form-group>
+                    <b-form-group
+                      label-cols="auto"
+                      label="Simulate"
+                      title="Do not send notifications"
+                    >
+                      <a href="http://intevation.github.io/intelmq-mailgen/intelmqcbmail.html#dry-run-simulation" target="_blank">?</a>
+                      <b-form-checkbox
+                        v-model="mailgenDryRun"
+                        switch
+                      ></b-form-checkbox>
+                    </b-form-group>
+                  </b-col>
+                  <b-col>
+                    <b-overlay
+                      :show="mailgenInProgress"
+                      rounded
+                      opacity="0.5"
+                      spinner-small
+                      spinner-variant="primary"
+                      class="d-inline-block"
+                    >
+                      <b-button v-b-tooltip.hover @click="runMailgen" variant="primary" :disabled="!mailgenAvailable" :title="mailgenAvailable ? 'Start Mailgen' : 'Mailgen is not installed/available'">Start Mailgen</b-button>
+                    </b-overlay>
+                  </b-col>
+                  <b-col>
+                    <b-overlay
+                      :show="mailgenInProgress"
+                      rounded
+                      opacity="0.5"
+                      spinner-small
+                      spinner-variant="primary"
+                      class="d-inline-block"
+                    >
+                      <label style="margin-left: 10px;" :class="mailgenStatus">{{ mailgenResult }}</label><br />
+                      <b-button @click="showMailgenLog=true" v-b-modal.mailgenLog-popup v-if="mailgenLog && mailgenLog != mailgenResult">Show complete log</b-button>
+                    </b-overlay>
                   </b-col>
                 </b-row>
                 <h4>Templates:</h4>
