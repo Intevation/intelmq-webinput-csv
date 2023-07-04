@@ -5,9 +5,9 @@ intelmq-webinput-csv (1.0.0-1) stable; urgency=medium
   * frontend & backend: Previews per named template input group, using complete example data
   * backend: fixes
 
- -- Sebastian Wagner <swagner@intevation.de>  Fri, 03 Jul 2023 17:01:04 +0200
+ -- Sebastian Wagner <swagner@intevation.de>  Fri, 30 Jun 2023 17:01:04 +0200
 
-intelmq-webinput-csv (1.0.0a3) unstable; urgency=medium
+intelmq-webinput-csv (1.0.0~a3) unstable; urgency=medium
 
   * Complete template management for mailgen, pass templates to mailgen
     directly
@@ -17,7 +17,7 @@ intelmq-webinput-csv (1.0.0a3) unstable; urgency=medium
 
  -- Sebastian Wagner <swagner@intevation.de>  Wed, 21 Jun 2023 15:18:46 +0200
 
-intelmq-webinput-csv (1.0.0a2) unstable; urgency=medium
+intelmq-webinput-csv (1.0.0~a2) unstable; urgency=medium
 
   * client: preview enhancements
     * handling edge cases
@@ -39,7 +39,7 @@ intelmq-webinput-csv (1.0.0a2) unstable; urgency=medium
 
  -- Sebastian Wagner <swagner@intevation.de>  Wed, 31 May 2023 16:17:55 +0200
 
-intelmq-webinput-csv (1.0.0a1-1) unstable; urgency=medium
+intelmq-webinput-csv (1.0.0~a1-1) unstable; urgency=medium
 
   * Update to Version 1.0.0 Alpha 1
 
