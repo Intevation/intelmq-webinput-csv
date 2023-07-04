@@ -251,6 +251,7 @@
                       <b-form-checkbox
                         v-model="dryrun"
                         switch
+                        @change="onDryRunChange"
                       ></b-form-checkbox>
                     </b-form-group>
                     <b-form-group v-b-tooltip.hover label-cols=4 label="Validate with bots" title="Validate the data with all configured IntelMQ Bots included.">
@@ -339,10 +340,15 @@
                       <b-form-select
                         v-model="classificationType"
                         :options="classificationTypes"
+                        :disabled="dryrun"
                       ></b-form-select>
                     </b-form-group>
                     <b-form-group v-for="field in customFieldsMapping" :key="field.key" :id="field.key" label-cols=4 :label="field.key" label-class="text-monospace">
-                      <b-form-input v-model="field.value" type="text"></b-form-input>
+                      <b-form-input
+                        v-model="field.value"
+                        type="text"
+                        :disabled="field.key == 'classification.identifier' && dryrun"
+                        ></b-form-input>
                     </b-form-group>
                   </b-col>
                 </b-row>
@@ -674,7 +680,6 @@ export default ({
       timezone: '+00:00',
       dryrun: true,
       classificationType: "test",
-      identifier: "test",
       code: "oneshot",
       tableHeader: [],
       tableData: [],
@@ -913,7 +918,6 @@ export default ({
       this.timezone = '+00:00';
       this.dryrun = true;
       this.classificationType = "blacklist";
-      this.identifier = "test";
       this.code = "oneshot";
       this.currentPage = 1;
       this.perPage = 25;
@@ -1292,6 +1296,20 @@ export default ({
           this.errorMessage = response.body;
           this.showErrorModal = true;
         });
+    },
+    /**
+     * When dryrun is changed, set the fields type and identifier to test, to show the dry run effect
+     */
+    onDryRunChange() {
+      if (this.dryrun) {
+        this.classificationType = 'test';
+        for (let field of this.customFieldsMapping) {
+          if (field.key == 'classification.identifier') {
+            field.value = 'test';
+            break;
+          }
+        }
+      }
     }
   }
 })
