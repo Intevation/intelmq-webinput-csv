@@ -74,7 +74,7 @@
           </b-button>
         </template>
       </b-modal>
-      <b-modal v-model="showMailgenPreview" scrollable centered size="xl" id="mailgenPreview-popup" title="Mailgen Email Preview">
+      <b-modal v-model="showMailgenPreview" scrollable centered size="xl" id="mailgenPreview-popup" title="Mailgen Template Preview">
         <small>Please note that this preview uses example data and thus does not take the CERTbund rules into account. The example data contains more data and aggregated fields than real data. To consider the input data, use the tools in the "Data Validation and Submission" section.</small>
         <h5 title="Subject">Subject: {{mailgenPreviewParsed.subject}}</h5>
         <h6 title="To">To: {{mailgenPreviewParsed.to}}</h6>
@@ -116,6 +116,11 @@
         ok-only>
         <p>Error message:</p>
         <code><pre>{{errorMessage}}</pre></code>
+      </b-modal>
+      <b-modal v-model="templateDeletionModal" scrollable centered size="xl" id="mailgenLog-popup" title="Are you sure?"
+        @ok="dropTemplate"
+        >
+        Are you sure? This will delete the template file <strong><code>{{ templateToDelete.template_name }}</code></strong> from the server. It cannot be recovered unless you have a backup of it.
       </b-modal>
     </div>
     <div v-if="loggedIn">
@@ -516,6 +521,13 @@
                   </b-col>
                 </b-row>
                 <h4>Templates:</h4>
+                <b-row align-h="center" style="margin-buttom: 30px">
+                  <span style="max-width: 700px">
+                    Mailgen started via this interface (only) uses the templates shown here. It does not matter if the templates are saved to the file on the server.
+                    Templates not saved to disk are not retained and are only available in this session.
+                    Mailgen started by other means (command line or automated jobs), uses the templates present on disk.
+                  </span>
+                </b-row>
                 <b-row v-for="(item, index) in mailgenTemplates" v-bind:key="index" class="item">
                   <b-col>
                     <b-row>
@@ -602,7 +614,7 @@
                       size="sm"
                       variant="danger"
                       :disabled="mailgenTemplatesServer[index] && item.name.trim() != mailgenTemplatesServer[index].name.trim()"
-                      @click.prevent="dropTemplate(index, item.name)"
+                      @click.prevent="showTemplateDeletionModal(index, item.name)"
                       title="Delete the template file from the server"
                       style="font-size: 1.5em"
                     >🗑️</b-button>
@@ -714,6 +726,8 @@ export default ({
       showErrorModal: false,
       mailgenTargetGroups: [],
       clientVersion: "1.0.0",
+      templateDeletionModal: false,
+      templateToDelete: {'index': null, 'template_name': null},
     }
   },
   computed: {
@@ -1268,6 +1282,7 @@ export default ({
      */
     deleteTemplateInput(index) {
       this.mailgenTemplates.splice(index, 1);
+      this.mailgenTemplatesServer.splice(index, 1);
     },
     /**
      * Save a template to disk
@@ -1298,31 +1313,40 @@ export default ({
         });
     },
     /**
-     * Remove a template from disk and remove it from the UI
-     * @param {int} index
-     * @param {str} template_name
+     * Show the confirmation dialog for deleting a template
      */
-    dropTemplate(index, template_name) {
+    showTemplateDeletionModal(index, template_name) {
+      this.templateToDelete = {'index': index, 'template_name': template_name}
+      this.templateDeletionModal = true;
+    },
+    /**
+     * Remove a template from disk and remove it from the UI
+     */
+    dropTemplate() {
       this.$http.delete('api/mailgen/template', {
         // https://stackoverflow.com/questions/39916939/attaching-data-body-to-http-delete-event-in-vuejs
-        body: {template_name: template_name},
+        body: {template_name: this.templateToDelete.template_name},
       })
         .then(response => {
           response.json().then(data => {
             // success
             console.log('Template deletion success:', data)
             // remove the input field
-            this.deleteTemplateInput(index)
+            this.mailgenTemplates.splice(this.templateToDelete.index, 1);
             // update our knowledge of the server template
-            this.mailgenTemplatesServer.splice(index, 1)
+            this.mailgenTemplatesServer.splice(this.templateToDelete.index, 1)
+            // always reset this variable inside the callbacks, otherwise the variable is reset before it is accessed above for deleting the input, resulting in the first item to be delete (index being null)
+            this.templateToDelete = {'index': null, 'template_name': null}
           }).catch(err => {
             // body was not JSON
             this.errorMessage = err;
             this.showErrorModal = true;
+            this.templateToDelete = {'index': null, 'template_name': null}
         });
         }, (response) => { // error
           this.errorMessage = response.body;
           this.showErrorModal = true;
+          this.templateToDelete = {'index': null, 'template_name': null}
         });
     },
     /**
