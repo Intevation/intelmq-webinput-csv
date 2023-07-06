@@ -539,12 +539,12 @@
                       >
                         <b-button
                           v-b-tooltip.hover
-                          @click="previewMailgen(index)"
+                          @click="previewMailgen(index, showDialog=true)"
                           variant="primary"
                           :disabled="!mailgenAvailable || !item.body"
                           title="Preview this template"
                           block
-                          >Email Preview</b-button>
+                          >Show Template {{ (item.validationStatus == 'text-danger') ? 'Log' : 'Preview' }}</b-button>
                       </b-overlay>
                     </b-row>
                     <b-row>
@@ -567,6 +567,12 @@
                           </b-button>
                         </span>
                       </b-row>
+                      <b-row>
+                        <span
+                          :class="item.validationStatus"
+                           >{{item.validationText}}
+                        </span>
+                      </b-row>
                   </b-col>
                   <b-col cols="8">
                     <b-form-group
@@ -576,6 +582,7 @@
                       <b-form-textarea
                         v-model="item.body"
                         rows="10"
+                        @input="validateTemplateContent(index)"
                       ></b-form-textarea>
                     </b-form-group>
                   </b-col>
@@ -643,6 +650,7 @@
 <script>
 import { mapState } from 'vuex';
 import parse from 'papaparse';
+import { debounce } from 'lodash';
 export default ({
   name: 'WebinputCSV',
   data: () => {
@@ -1121,9 +1129,9 @@ export default ({
       return [subject, to, body]
     },
     /**
-     * Show an email preview
+     * Show an Email Template preview
      */
-    previewMailgen(template_index) {
+    previewMailgen(template_index, showDialog=false) {
       //var me = this;
       this.mailgenInProgress = true;
       this.mailgenLog = '';
@@ -1136,26 +1144,51 @@ export default ({
         .then(response => {
           this.mailgenInProgress = false;
           response.json().then(data => {
-            this.mailgenStatus = "text-black";
+            console.log('no error and json')
+            this.mailgenTemplates[template_index].validationStatus = "text-success";
             this.mailgenPreview = data.result;
             // clear the field, not used in case of success
-            this.mailgenResult = '';
+            this.mailgenTemplates[template_index].validationText = 'Validated OK';
             this.mailgenLog = data.log;
 
             let [subject, to, body] = this.parseMIME(this.mailgenPreview)
             this.mailgenPreviewParsed = {subject: subject, to: to, body: body}
-            this.showMailgenPreview = true;
+            if (showDialog) {
+              this.showMailgenPreview = true;
+            }
           }).catch(err => {
+            console.log('no error and no json')
             // body was not JSON
-            this.mailgenStatus = "text-danger";
-            this.mailgenResult = err;
+            this.mailgenTemplates[template_index].validationStatus = "text-danger";
+            this.mailgenTemplates[template_index].validationText = "Validation failed";
+            this.mailgenLog = err;
+            if (showDialog) {
+              this.showMailgenLog = true;
+            }
+            this.mailgenInProgress;
         });
         }, (response) => { // error
-          this.mailgenStatus = "text-danger";
-          this.mailgenLog = response.body;
-          this.showMailgenLog = true;
-          this.mailgenInProgress = false;
-          return;
+          response.json().then(data => {
+            console.log('error and json')
+            this.mailgenPreview = data.result;
+            this.mailgenTemplates[template_index].validationStatus = "text-danger";
+            this.mailgenTemplates[template_index].validationText = data.result;
+            this.mailgenLog = data.log;
+            if (showDialog) {
+              this.showMailgenLog = true;
+            }
+            this.mailgenInProgress = false;
+          }).catch(err => {
+            console.log('error and not json')
+            // error response is not JSON
+            this.mailgenTemplates[template_index].validationStatus = "text-danger";
+            this.mailgenLog = response.body;
+            this.mailgenTemplates[template_index].validationText = err;
+            if (showDialog) {
+              this.showMailgenLog = true;
+            }
+            this.mailgenInProgress = false;
+          })
         });
     },
     triggerShowRowModal (row) {
@@ -1228,7 +1261,7 @@ export default ({
     increaseTemplateCounter() {
       this.mailgenTemplates.push({'name': '', 'body': ''});
       // not really true, but serves the purpose of showing correct "modified" indicator:
-      this.mailgenTemplatesServer.push({'name': '', 'body': ''});
+      this.mailgenTemplatesServer.push({'name': '', 'body': '', 'validationStatus': null, 'validationText': ''});
     },
     /**
      * Delete a template from the template array
@@ -1305,7 +1338,13 @@ export default ({
           }
         }
       }
-    }
+    },
+    /**
+     * Syntactically validate the template body
+     */
+    validateTemplateContent: debounce(function (index) {
+      this.previewMailgen(index, false)
+    }, 1000)
   }
 })
 </script>

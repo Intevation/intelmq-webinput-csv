@@ -469,9 +469,15 @@ def mailgen_preview(body, request, response):
             except InterfaceError:  # connection already closed
                 pass
     except Exception:
+        log.exception('Mailgen Preview failed')  # also log it properly
+        for line in mailgen_log.getvalue().splitlines():
+            if line.startswith('ValueError: Invalid placeholder') or line.startswith('KeyError'):
+                result = f'Validation failed: {line}'
+                break
+        else:
+            result = traceback.format_exc()
         response.status = falcon.status.HTTP_500
-        traceback.print_exc(file=sys.stderr)
-        return {"result": str(traceback.format_exc()), "log": mailgen_log.getvalue()}
+        return {"result": result, "log": mailgen_log.getvalue()}
 
 
 @hug.get(ENDPOINT_PREFIX + '/api/bots/available', requires=session.token_authentication)

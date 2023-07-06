@@ -204,7 +204,9 @@ export default new Vuex.Store({
             for (let key of template_names) {
               mapping.push({
                 name: key,
-                body: data[key]
+                body: data[key],
+                validationStatus: null,
+                validationText: ''
               });
             }
             if (template_names.length == 0) {
