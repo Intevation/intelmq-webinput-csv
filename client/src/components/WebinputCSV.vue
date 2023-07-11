@@ -1029,10 +1029,14 @@ export default ({
       this.tableHeader.length = 0;
       this.tableHeader.push('Actions')
       for (let i in columns) {
+        let colname = "";
+        if (columns[i].label) {
+          colname = "extra." + columns[i].label;
+        }
         this.tableHeader.push({
           key: columns[i].key,
-          label: columns[i].label,
-          field: ""
+          label: colname,  // displayed value
+          field: colname,  // actual value
         })
 
       }
