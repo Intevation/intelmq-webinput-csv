@@ -425,6 +425,10 @@ def mailgen_preview(body, request, response):
     """
     Show mailgen email preview
     """
+    if not body.get('template'):  # empty string
+        response.status = falcon.status.HTTP_422
+        return {'result': 'Empty template', 'log': ''}
+
     mailgen_log = io.StringIO()
     log_handler = logging.StreamHandler(stream=mailgen_log)
     logging.getLogger('intelmqmail').addHandler(log_handler)
