@@ -537,7 +537,13 @@
                         >
                         <b-form-input
                           v-model="item.name"
+                          @input="validateTemplateNameDebounced(index); validateTemplateContent(index)"
+                          :state="item.state"
                         ></b-form-input>
+                        state: {{ item.state }}
+                        <b-form-invalid-feedback :id="'template-name-feedback-' + index">
+                          Duplicate Template Name
+                        </b-form-invalid-feedback>
                       </b-form-group>
                     </b-row>
                     <b-row>
@@ -1156,6 +1162,7 @@ export default ({
       this.$http.post('api/mailgen/preview',
           {
             template: this.mailgenTemplates[template_index]['body'],
+            template_name: this.mailgenTemplates[template_index]['name'],
             verbose: this.mailgenVerbose,
             dry_run: this.mailgenDryRun
             })
@@ -1372,7 +1379,31 @@ export default ({
      */
     validateTemplateContent: debounce(function (index) {
       this.previewMailgen(index, false)
-    }, 1000)
+    }, 1000),
+    /**
+     * Syntactically validate the template name: check for a duplicate name
+     */
+    validateTemplateNameDebounced: debounce(function (index) {
+      this.validateTemplateName(index)
+    }, 200),
+    validateTemplateName(index) {
+      let templateName = this.mailgenTemplates[index].name;
+
+      let newTemplate = this.mailgenTemplates[index];
+      newTemplate.state = true;
+
+      this.mailgenTemplates.forEach(function (template, i) {
+        if (i == index) {
+          return
+        }
+        if (template.name == templateName) {
+          newTemplate.state = false;
+          newTemplate.errorMessage = "Duplicate template name";
+          return
+        }
+      })
+      this.$set(this.mailgenTemplates, index, newTemplate)
+    }
   }
 })
 </script>

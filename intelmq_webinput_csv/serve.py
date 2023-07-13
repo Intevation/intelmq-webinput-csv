@@ -125,7 +125,8 @@ for path in configfiles:
                 ENDPOINT_PREFIX = ENDPOINT_PREFIX[:-1]
             CONSTANTS = CONFIG.get('constant_fields', '{}')
 
-FILENAME_RE = compile('^[a-zA-Z0-9. _-]+$')
+# 255 bytes is a safe maximum lenght to allow
+FILENAME_RE = compile('^[a-zA-Z0-9. _-][a-zA-Z0-9. _-]{,254}$')
 
 
 @hug.startup()
@@ -429,6 +430,10 @@ def mailgen_preview(body, request, response):
         response.status = falcon.status.HTTP_422
         return {'result': 'Empty template', 'log': ''}
 
+    if not FILENAME_RE.match(body.get('template_name')):
+        response.status = falcon.status.HTTP_422
+        return {'result': f'Template name does not match regular expression {FILENAME_RE.pattern!r}.'}
+
     mailgen_log = io.StringIO()
     log_handler = logging.StreamHandler(stream=mailgen_log)
     logging.getLogger('intelmqmail').addHandler(log_handler)
@@ -623,7 +628,7 @@ def set_template(template_name: str, template_body: str, response):
     """
     if not FILENAME_RE.match(template_name):
         response.status = falcon.HTTP_403
-        return f'Filename does not match {FILENAME_RE.pattern!r}.'
+        return f'Template name does not match regular expression {FILENAME_RE.pattern!r}.'
 
     mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
     template_dir = Path(mailgen_config['template_dir'])
@@ -637,7 +642,7 @@ def delete_template(template_name: str, response):
     """
     if not FILENAME_RE.match(template_name):
         response.status = falcon.HTTP_403
-        return f'Filename does not match {FILENAME_RE.pattern!r}.'
+        return f'Template name does not match regular expression {FILENAME_RE.pattern!r}.'
 
     mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
     template_dir = Path(mailgen_config['template_dir'])
