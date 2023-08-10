@@ -15,3 +15,6 @@ jobs:
 
     - name: Build package
       run: bash .github/workflows/scripts/debian-package.sh
+      env:
+        # https://stackoverflow.com/a/69746937/2851664
+        NODE_OPTIONS: --openssl-legacy-provider
