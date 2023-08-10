@@ -10,8 +10,6 @@ override_dh_auto_clean:
 	cd client && rm -rf dist node_modules
 
 override_dh_auto_test:
-	pip3 install hug
-	pip3 install git+https://github.com/wagner-intevation/intelmq.git@bot-library
 	dh_auto_test
 
 override_dh_auto_configure:
