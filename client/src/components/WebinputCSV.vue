@@ -117,7 +117,7 @@
         <p>Error message:</p>
         <code><pre>{{errorMessage}}</pre></code>
       </b-modal>
-      <b-modal v-model="templateDeletionModal" scrollable centered size="xl" id="mailgenLog-popup" title="Are you sure?"
+      <b-modal v-model="templateDeletionModal" scrollable centered size="xl" id="templateDeletetion-popup" title="Are you sure?"
         @ok="dropTemplate"
         >
         Are you sure? This will delete the template file <strong><code>{{ templateToDelete.template_name }}</code></strong> from the server. It cannot be recovered unless you have a backup of it.
