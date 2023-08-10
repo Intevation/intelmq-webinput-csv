@@ -13,6 +13,8 @@ It is implemented in Python with `hug <https://www.hug.rest/>`__ in the
 backend and Javascript with bootstrap-vue in the frontend. This is a
 rewrite of the original Flask-based web interface by CERT.at.
 
+The code is available at `Intevation/intelmq-webinput-csv <https://github.com/Intevation/intelmq-webinput-csv>`__
+
 Contents:
 
 .. toctree::
