@@ -1,3 +1,12 @@
+intelmq-webinput-csv (1.0.2-1) stable; urgency=medium
+
+  * backend: fix method arguments causing falcon errors
+  * backend: remove obsolete, long-running DB queries
+  * backend: fix falcon status code calls
+  * client: fix wrong modal on mailgen log button
+
+ -- Sebastian Wagner <swagner@intevation.de>  Thu, 10 Aug 2023 09:53:40 +0200
+
 intelmq-webinput-csv (1.0.1-1) stable; urgency=medium
 
   * template name validation on name change
