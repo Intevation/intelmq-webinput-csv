@@ -540,7 +540,6 @@
                           @input="validateTemplateNameDebounced(index); validateTemplateContent(index)"
                           :state="item.state"
                         ></b-form-input>
-                        state: {{ item.state }}
                         <b-form-invalid-feedback :id="'template-name-feedback-' + index">
                           Duplicate Template Name
                         </b-form-invalid-feedback>

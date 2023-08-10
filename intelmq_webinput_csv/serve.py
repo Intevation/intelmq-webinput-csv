@@ -408,7 +408,7 @@ def mailgen_run(body, request, response):
         logging.getLogger('intelmqmail').setLevel(logging.INFO)
 
     if cb is None:
-        response.status = falcon.status.HTTP_500
+        response.status = falcon.HTTP_500
         return {"result": "intelmqmail is not available on this system."}
 
     try:
@@ -416,7 +416,7 @@ def mailgen_run(body, request, response):
         return {"result": cb.start(mailgen_config, process_all=True, templates={item['name']: item['body'] for item in body.get('templates', [])}, dry_run=body.get('dry_run')),
                 "log": mailgen_log.getvalue().strip()}
     except Exception:
-        response.status = falcon.status.HTTP_500
+        response.status = falcon.HTTP_500
         traceback.print_exc(file=sys.stderr)
         return {"result": str(traceback.format_exc()), "log": mailgen_log.getvalue().strip()}
 
@@ -427,11 +427,11 @@ def mailgen_preview(body, request, response):
     Show mailgen email preview
     """
     if not body.get('template'):  # empty string
-        response.status = falcon.status.HTTP_422
+        response.status = falcon.HTTP_422
         return {'result': 'Empty template', 'log': ''}
 
     if not FILENAME_RE.match(body.get('template_name')):
-        response.status = falcon.status.HTTP_422
+        response.status = falcon.HTTP_422
         return {'result': f'Template name does not match regular expression {FILENAME_RE.pattern!r}.'}
 
     mailgen_log = io.StringIO()
@@ -444,7 +444,7 @@ def mailgen_preview(body, request, response):
         logging.getLogger('intelmqmail').setLevel(logging.INFO)
 
     if cb is None:
-        response.status = falcon.status.HTTP_500
+        response.status = falcon.HTTP_500
         return {"result": "intelmqmail is not available on this system."}
 
     try:
@@ -485,7 +485,7 @@ def mailgen_preview(body, request, response):
                 break
         else:
             result = traceback.format_exc()
-        response.status = falcon.status.HTTP_500
+        response.status = falcon.HTTP_500
         return {"result": result, "log": mailgen_log.getvalue()}
 
 
