@@ -24,6 +24,42 @@ Contents:
    developers-guide
    webinput-n6.rst
 
+Screenshots
+-----------
+
+CSV Data Input
+~~~~~~~~~~~~~~
+
+.. figure:: ./images/csv-input.png
+   :alt: CSV data insertion and parsing options
+
+Data Validation
+~~~~~~~~~~~~~~~
+
+Assign data columns to IntelMQ fields and validate the data:
+
+.. figure:: ./images/data-validation.png
+   :alt: field asssignment and data validation
+
+Data Row preview
+~~~~~~~~~~~~~~~~
+
+Preview the resulting parsed data per row including the complete IntelMQ processing log:
+
+.. figure:: ./images/row-log-preview.png
+
+Preview the resulting IntelMQ Mailgen notification
+
+.. figure:: ./images/row-notification-preview.png
+
+Mailgen Templates management
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+View and modify all IntelMQ Mailgen templates including live validation:
+
+.. figure:: ./images/templates.png
+
+
 Licence
 -------
 
