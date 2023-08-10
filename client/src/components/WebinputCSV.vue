@@ -1060,7 +1060,7 @@ export default ({
       return ""; // return an empty string for other rows
     },
     getTooltip(rowIndex, columnIndex) {
-      console.log("getTooltip called with rowIndex", rowIndex, "columnIndex", columnIndex, "errors", this.dataErrors[rowIndex])
+      console.log('getTooltip called with', rowIndex, columnIndex)
       if (this.dataErrors[rowIndex]) {
         return this.dataErrors[rowIndex].join('. ');
       }
