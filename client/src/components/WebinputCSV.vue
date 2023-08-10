@@ -731,7 +731,7 @@ export default ({
       errorMessage: null,
       showErrorModal: false,
       mailgenTargetGroups: [],
-      clientVersion: "1.0.0",
+      clientVersion: "1.0.1",
       templateDeletionModal: false,
       templateToDelete: {'index': null, 'template_name': null},
     }
@@ -1398,7 +1398,6 @@ export default ({
         }
         if (template.name == templateName) {
           newTemplate.state = false;
-          newTemplate.errorMessage = "Duplicate template name";
           return
         }
       })

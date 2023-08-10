@@ -1,3 +1,15 @@
+intelmq-webinput-csv (1.0.1-1) stable; urgency=medium
+
+  * template name validation on name change
+  * backend: verbose error message for empty template in preview
+  * client: improve default column field names
+  * client: template deletion safety question
+  * client+backend: live feedback template syntax check
+  * frontend, mailgen: optimize UI components placement
+  * frontend: disable classification fields in dryrun
+
+ -- Sebastian Wagner <swagner@intevation.de>  Thu, 10 Aug 2023 09:07:27 +0200
+
 intelmq-webinput-csv (1.0.0-1) stable; urgency=medium
 
   * Design and usability updates.
