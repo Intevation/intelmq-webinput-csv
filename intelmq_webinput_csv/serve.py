@@ -488,7 +488,7 @@ def mailgen_preview(body, request, response):
 
 
 @hug.get(ENDPOINT_PREFIX + '/api/bots/available', requires=session.token_authentication)
-def bots_available() -> dict:
+def bots_available(body) -> dict:
     """
     Checks if bots are available: IntelMQ Core version supports the feature and at least one bot is configured.
     """
