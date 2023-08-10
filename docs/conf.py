@@ -19,7 +19,7 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
 
-from intelmq_webinput_csv.version import __version__
+from intelmq_webinput_csv.version import __version__  # noqa
 
 # -- General configuration ------------------------------------------------
 
