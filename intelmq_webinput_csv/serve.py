@@ -459,8 +459,6 @@ def mailgen_preview(body, request, response):
                                 values=', '.join(['%s'] * len(EXAMPLE_CERTBUND_EVENT))),
                         list(EXAMPLE_CERTBUND_EVENT.values()))
             cur.execute('START TRANSACTION')
-            cur.execute('SELECT id FROM events')
-            cur.execute('SELECT id, events_id FROM DIRECTIVES')
             cur.execute('SELECT id FROM directives ORDER BY id DESC LIMIT 1;')
             last_id = cur.fetchone()['id'] if cur.rowcount else None
             # ignore the additional_directive_where in mailgen config as that causes we are not seeing the test event
