@@ -20,6 +20,7 @@ htmlcov/
 .eggs
 .vscode/
 client/node_modules/
+docs/_build/
 
 # Debian build filed
 debian/files

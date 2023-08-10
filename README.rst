@@ -14,7 +14,10 @@ Table of Contents
 1. `Installation <#how-to-install>`__
 2. `User guide <#user-guide>`__
 3. `Development <#development>`__
-4. `Licence <#licence>`__ ## How to Install
+4. `Licence <#licence>`__
+
+How to install
+--------------
 
 To get the Webinput-CSV up and running, clone the repo and use
 

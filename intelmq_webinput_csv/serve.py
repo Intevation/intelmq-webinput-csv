@@ -9,11 +9,10 @@ Development: call like
 
 Several configuration methods are shown within the code.
 
-
 SPDX-FileCopyrightText: 2016, 2017, 2022-2023 Bundesamt für Sicherheit in der Informationstechnik
 SPDX-License-Identifier: AGPL-3.0-or-later
 
-Software engineering by Intevation GmbH
+Software engineering by Intevation GmbH <https://intevation.de>
 
 This program is Free Software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
