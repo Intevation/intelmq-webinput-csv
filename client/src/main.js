@@ -1,4 +1,5 @@
-import 'mutationobserver-shim'
+// successor of @babel/polyfill
+import "core-js/stable";
 import Vue from 'vue'
 import vSelect from 'vue-select'
 import "vue-select/dist/vue-select.css";
