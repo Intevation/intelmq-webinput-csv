@@ -33,9 +33,9 @@ BOT_CONFIG = Dict39({
     'bots': {
         'url': {
             'module': 'intelmq.bots.experts.url.expert',
-            }
         }
-    })
+    }
+})
 BOTS_CONFIG = Dict39({
     'bots': {
         'url': {
@@ -118,7 +118,6 @@ def test_process_bot_multi_messages():
     del result.data['log']
     assert result.data == {'status': 'success',
                            'messages': EXAMPLE_DATA_URL_PROCESSED * 2}
-
 
 
 def test_bots_library():

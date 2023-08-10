@@ -456,7 +456,7 @@ def mailgen_preview(body, request, response):
             cur = conn.cursor()
             cur.execute('INSERT INTO events ("{keys}") VALUES ({values})'
                         ''.format(keys='", "'.join(EXAMPLE_CERTBUND_EVENT.keys()),
-                                values=', '.join(['%s'] * len(EXAMPLE_CERTBUND_EVENT))),
+                                  values=', '.join(['%s'] * len(EXAMPLE_CERTBUND_EVENT))),
                         list(EXAMPLE_CERTBUND_EVENT.values()))
             cur.execute('START TRANSACTION')
             cur.execute('SELECT id FROM directives ORDER BY id DESC LIMIT 1;')
@@ -524,7 +524,6 @@ def process(body) -> dict:
         cur = conn.cursor()
         cur.execute('SELECT id FROM directives ORDER BY id DESC LIMIT 1;')
         last_id = cur.fetchone()['id'] if cur.rowcount else None
-
 
     bots = []
     for bot_id, bot_config in CONFIG.get('bots', {}).items():

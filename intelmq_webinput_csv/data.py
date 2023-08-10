@@ -1,7 +1,9 @@
 """
 SPDX-FileCopyrightText: 2016, 2017, 2022-2023 Bundesamt für Sicherheit in der Informationstechnik
 SPDX-License-Identifier: AGPL-3.0-or-later
+Software engineering by Intevation GmbH <https://intevation.de>
 """
+from copy import deepcopy
 
 """
 Fields left out in this example event are:
@@ -13,7 +15,6 @@ misp.event_uuid
 source.geolocation.latitude
 source.geolocation.longitude
 """
-from copy import deepcopy
 
 EXAMPLE_EVENT = {
     "classification.identifier": "Test-identifier",
