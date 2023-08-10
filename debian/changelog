@@ -22,7 +22,7 @@ intelmq-webinput-csv (1.0.1-1) stable; urgency=medium
 intelmq-webinput-csv (1.0.0-1) stable; urgency=medium
 
   * Design and usability updates.
-  * frontend: Cleanups and removal of deprectated single-template input field in favor of named templates.
+  * frontend: Cleanups and removal of deprecated single-template input field in favor of named templates.
   * frontend & backend: Previews per named template input group, using complete example data
   * backend: fixes
 

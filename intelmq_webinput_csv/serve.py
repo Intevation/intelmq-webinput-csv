@@ -125,7 +125,7 @@ for path in configfiles:
                 ENDPOINT_PREFIX = ENDPOINT_PREFIX[:-1]
             CONSTANTS = CONFIG.get('constant_fields', '{}')
 
-# 255 bytes is a safe maximum lenght to allow
+# 255 bytes is a safe maximum length to allow
 FILENAME_RE = compile('^[a-zA-Z0-9. _-][a-zA-Z0-9. _-]{,254}$')
 
 
