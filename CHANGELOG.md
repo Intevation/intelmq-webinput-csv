@@ -2,6 +2,44 @@ CHANGELOG
 =========
 
 
+1.0.2: Bugfixes (2023-08-10)
+----------------------------
+
+## Backend
+- fix method arguments causing falcon errors
+- remove obsolete, long-running DB queries
+- fix falcon status code calls
+
+## Frontend
+- fix wrong modal on mailgen log button
+
+
+1.0.1: Template Validations, UI optimizations (2023-08-10)
+----------------------------------------------------------
+
+## Frontend and Backend
+- live feedback template syntax check
+- template name validation
+
+## Backend
+- backend: verbose error message for empty template in preview
+
+## Frontend
+- improve default column field names
+- template deletion safety question
+- optimize UI components placement
+- disable classification fields in dryrun
+
+
+1.0.0: Mailgen Integration (2023-07-03)
+---------------------------------------
+
+  * Design and usability updates.
+  * frontend: Cleanups and removal of deprectated single-template input field in favor of named templates.
+  * frontend & backend: Previews per named template input group, using complete example data
+  * backend: fixes
+
+
 0.5.0 (2022-06-13)
 ------------------
 

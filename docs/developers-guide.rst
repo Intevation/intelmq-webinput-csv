@@ -29,6 +29,7 @@ https://github.com/Intevation/intelmq-cb-mailgen-docker#user-content-scenario-2-
 Release a new version
 ---------------------
 
+- Document the changes in the `CHANGELOG.md`
 -  make a changelog entry in ``debian/changelog`` using ``dch`` command
    line tool. don’t forget the revision
 -  set ``clientVersion`` in ``client/src/components/WebinputCSV.vue``
