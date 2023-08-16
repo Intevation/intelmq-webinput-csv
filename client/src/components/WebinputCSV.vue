@@ -1041,7 +1041,7 @@ export default ({
       for (let i in columns) {
         let colname = "";
         if (columns[i].label) {
-          colname = "extra." + columns[i].label;
+          colname = "extra." + columns[i].label.trim().toLowerCase();
         }
         this.tableHeader.push({
           key: columns[i].key,
