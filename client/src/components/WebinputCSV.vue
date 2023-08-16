@@ -378,6 +378,7 @@
                     :id="data.label"
                     :value="data.field"
                     :options="harmonizationFields"
+                    :select-on-tab="true"
                     v-if="data.label != 'Actions'"
                     taggable
                     @input="(fieldname) => update(data.field, fieldname)"
