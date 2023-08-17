@@ -374,16 +374,26 @@
                 :items="tableData"
               >
                 <template #head()="data">
-                  <span class="text-info">{{ data.label }}</span>
                   <v-select
-                    :id="data.label"
+                    :id="data.field.key"
                     :value="data.field"
                     :options="harmonizationFields"
                     :select-on-tab="true"
                     v-if="data.label != 'Actions'"
                     taggable
-                    @input="(fieldname) => update(data.field, fieldname)"
-                  ></v-select>
+                    @input="(fieldname) => updateTableHeader(data, fieldname)"
+                  >
+                    <template #footer>
+                      <Transition
+                        :duration="{ leave: 1500 }"
+                        @enter="(element, done) => onInvalidFieldEnter(element, done, data.field.key)"
+                        >
+                        <div style="color: red" v-if="data.field.invalid">
+                          Multiple field assignment!
+                        </div>
+                      </Transition>
+                    </template>
+                  </v-select>
                 </template>
                 <template #cell(Actions)="row">
                   #{{ row.index + 1 }}
@@ -880,18 +890,35 @@ export default ({
     /**
      * Update the table header and refresh view.
      */
-    update: function(field, fieldname) {
-      if (fieldname == null) {
-        fieldname = "";
-      }
-      field.label = fieldname;
-      field.field = fieldname;
+    updateTableHeader: function(data, newFieldName) {
+      // find the column number by the unique 'key'
       let ndx = this.tableHeader.findIndex(item => {
-        if (item.key === field.key) {
+        if (item.key === data.field.key) {
           return true;
         }
       })
-      this.tableHeader[ndx] = field;
+
+      if (newFieldName == null) {
+        newFieldName = "";
+      } else {
+        // first remove encircling whitespace, then replace whitespace by _, then remove all unallowed characters
+        newFieldName = newFieldName.trim().toLowerCase().replaceAll(/ /g, '_').replaceAll(/[^a-z_0-9.]+/gi, '');
+
+        // check if the field name is already used elsewhere
+        for (let i in this.tableHeader) {
+          if (this.tableHeader[i].key === undefined || this.tableHeader[i].label == "" || this.tableHeader[i].key == data.column) {
+            // skip Actions columns, unassigned columns and this column
+          } else if (this.tableHeader[i].label == newFieldName) {
+            // Show the error message
+            // when setting the property directly, the message won't disappear
+            this.$set(this.tableHeader[ndx], 'invalid', true);
+          }
+        }
+      }
+
+      // set the new field
+      this.tableHeader[ndx].label = newFieldName;
+      this.tableHeader[ndx].field = newFieldName;
       this.$refs.table.refresh();
     },
     /**
@@ -921,6 +948,14 @@ export default ({
         }
         this.wrongCredentials = true
       })
+    },
+    onInvalidFieldEnter(element, done, key) {
+      let ndx = this.tableHeader.findIndex(item => {
+        if (item.key === key) {
+          return true;
+        }
+      })
+      setTimeout(function() {done(); this.tableHeader[ndx].invalid = false;}.bind(this), 5000);
     },
     /**
      * Trigger logout.
@@ -1038,15 +1073,23 @@ export default ({
           }
         });
       }
+      // construct tableHeader, mapping columns to field names
       this.tableHeader.length = 0;
       this.tableHeader.push('Actions')
       for (let i in columns) {
         let colname = "";
         if (columns[i].label) {
-          colname = "extra." + columns[i].label.trim().toLowerCase();
+          // clean the headers from any non-allowed characters
+          let sanitizedHeader = "extra." + columns[i].label.trim().toLowerCase().replaceAll(/ /g, '_').replaceAll(/[^a-z_0-9.]+/gi, '');
+          // assert that the header is not yet used, to prevent duplicates
+          if (this.tableHeader.map(x => x.label).indexOf(sanitizedHeader) === -1) {
+            colname = sanitizedHeader;
+          } else {
+            colname = '';
+          }
         }
         this.tableHeader.push({
-          key: columns[i].key,
+          key: columns[i].key,  // must correspond to the key in this.parserResult.data
           label: colname,  // displayed value
           field: colname,  // actual value
         })

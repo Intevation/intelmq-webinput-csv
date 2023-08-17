@@ -34,4 +34,10 @@ export default {
   text-align: center;
   color: #2c3e50;
 }
+.v-leave-active {
+  transition: opacity 2s ease;
+}
+.v-leave-to {
+  opacity: 0;
+}
 </style>
