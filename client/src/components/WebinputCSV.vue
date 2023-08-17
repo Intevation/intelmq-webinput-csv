@@ -409,7 +409,7 @@
                       size="sm"
                       @click="triggerShowRowModal(row)"
                       variant="info"
-                    >Show Processed Row</b-button>
+                    >🔎</b-button>
                   </b-overlay>
                 </template>
                 <template #cell()="row">
