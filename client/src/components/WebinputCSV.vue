@@ -184,7 +184,7 @@
                       </b-form-group>
                     </b-col>
                     <b-col>
-                      <b-form-group label-cols=7 label="Quote char">
+                      <b-form-group label-cols=7 label="Quote character">
                         <b-form-input
                           v-model="quoteChar"
                           type="text"
@@ -194,7 +194,7 @@
                       </b-form-group>
                     </b-col>
                     <b-col>
-                      <b-form-group label-cols=7 label="Escape char">
+                      <b-form-group label-cols=7 label="Escape character">
                         <b-form-input
                           v-model="escapeChar"
                           type="text"
@@ -210,6 +210,7 @@
                           @change="showOverlay"
                         ></b-form-checkbox>
                       </b-form-group>
+                      <small tabindex="-1" class="form-text text-muted">CSV data must not contain duplicate headers</small>
                     </b-col>
                     <b-col>
                       <b-form-group id="option1" label-cols=9 label="Skip initial Whitespace">
