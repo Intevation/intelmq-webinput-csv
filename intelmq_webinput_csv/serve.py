@@ -557,8 +557,9 @@ def process(body) -> dict:
         retval = {0: defaultdict(list)}
         first_message, line_valid = row_to_event(item, body, retval)
         if not line_valid:
+            NEWLINE = '\n'  # SyntaxError: f-string expression part cannot include a backslash
             return {'status': 'error',
-                    'log': f"Line was not valid: {'.'.join(retval[0].values())}"}
+                    'log': f"Line was not valid:\n{NEWLINE.join(chain.from_iterable(retval[0].values()))}"}
         bots_input.append(first_message)
 
     tracebacks = []
