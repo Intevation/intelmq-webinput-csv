@@ -117,7 +117,7 @@ for path in configfiles:
     if path and path.exists() and path.is_file():
         print(f"Loading config from {path}")
         config = True
-        with path.open() as f:
+        with path.open(encoding='utf-8') as f:
             CONFIG = json.load(f)
             ENDPOINT_PREFIX = CONFIG.get('prefix', '/webinput')
             if ENDPOINT_PREFIX.endswith('/'):
