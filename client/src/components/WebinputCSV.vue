@@ -1170,33 +1170,32 @@ export default ({
       let to;
       let body = '';
 
-        for(var lineindex = 0; lineindex < splitted.length; lineindex++) {
-          line = splitted[lineindex];
-          console.log('line:', line)
-          if (isHeader) {
-            console.log('is header')
-            if (line.slice(0, 2) == '--') {
-              line = '';
-              isMimeHeader = true;
-              isHeader = false;
-            } else if (line.slice(0, 9) == 'Subject: ') {
-              console.log('is subject')
-              subject = line.slice(9);
-            } else if (line.slice(0, 4) == 'To: ') {
-              console.log('is to')
-              to = line.slice(4)
-            }
-          } else if (isMimeHeader) {
-            if (line == '\r') {
-              isMimeHeader = false;
-              isBody = true;
-            }
-          } else if (isBody) {
-            if (line.slice(0, 2) == '--') {
-              isBody = false;
-            } else {
-              body += line + '\n';
-            }
+      for(var lineindex = 0; lineindex < splitted.length; lineindex++) {
+        line = splitted[lineindex];
+        console.log('line:', line)
+        if (isHeader) {
+          console.log('is header')
+          if (line.slice(0, 2) == '--') {
+            line = '';
+            isMimeHeader = true;
+            isHeader = false;
+          } else if (line.slice(0, 9) == 'Subject: ') {
+            console.log('is subject')
+            subject = line.slice(9);
+          } else if (line.slice(0, 4) == 'To: ') {
+            console.log('is to')
+            to = line.slice(4)
+          }
+        } else if (isMimeHeader) {
+          if (line == '\r') {
+            isMimeHeader = false;
+            isBody = true;
+          }
+        } else if (isBody) {
+          if (line.slice(0, 2) == '--') {
+            isBody = false;
+          } else {
+            body += line + '\n';
           }
         }
       return [subject, to, body]
