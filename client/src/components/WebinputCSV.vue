@@ -1169,6 +1169,7 @@ export default ({
       let subject;
       let to;
       let body = '';
+      let contentType = 'utf-8';  // utf-8 is the current default of mailgen, we can assume it as default and fallback
 
       for(var lineindex = 0; lineindex < splitted.length; lineindex++) {
         line = splitted[lineindex];
@@ -1190,6 +1191,13 @@ export default ({
           if (line == '\r') {
             isMimeHeader = false;
             isBody = true;
+          } else {
+            // extract the content-type
+            let parsed = line.match(/^Content-Type:.*?charset="(.*?)"/);
+            if (parsed !== null) {
+              console.log('parsed', parsed);
+              contentType = parsed[1];
+            }
           }
         } else if (isBody) {
           if (line.slice(0, 2) == '--') {
@@ -1198,7 +1206,20 @@ export default ({
             body += line + '\n';
           }
         }
-      return [subject, to, body]
+      }
+
+      // https://stackoverflow.com/a/75475328/2851664
+      // CC BY-SA https://stackoverflow.com/users/15702521/lukas
+      const dc = new TextDecoder(contentType);
+      let decodedBody = body.replace(/[\t\x20]$/gm, "").replace(/=(?:\r\n?|\n)/g, "").replace(/((?:=[a-fA-F0-9]{2})+)/g, (m) => {
+          const cd = m.substring(1).split('='), uArr=new Uint8Array(cd.length);
+          for (let i = 0; i < cd.length; i++) {
+              uArr[i] = parseInt(cd[i], 16);
+          }
+          return dc.decode(uArr);
+      });
+
+      return [subject, to, decodedBody]
     },
     /**
      * Show an Email Template preview
