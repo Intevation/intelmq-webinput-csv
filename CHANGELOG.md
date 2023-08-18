@@ -35,7 +35,7 @@ CHANGELOG
 ---------------------------------------
 
   * Design and usability updates.
-  * frontend: Cleanups and removal of deprectated single-template input field in favor of named templates.
+  * frontend: Cleanups and removal of deprecated single-template input field in favor of named templates.
   * frontend & backend: Previews per named template input group, using complete example data
   * backend: fixes
 
