@@ -368,6 +368,7 @@
                 ref="table"
                 striped
                 bordered
+                small
                 :current-page="currentPage"
                 :per-page="perPage"
                 :fields="tableHeader"
