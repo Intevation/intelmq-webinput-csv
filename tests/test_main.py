@@ -137,8 +137,8 @@ def test_preview_invalid():
                                                                                          })
     assert result.status == '200 OK'
     assert result.data['input_lines_invalid'] == 1
-    assert result.data['errors'] == {'0': ["Failed to add data '1270.0.0.1' as field 'source.ip': "
-                                           "invalid value '1270.0.0.1' (<class 'str'>) for key 'source.ip'"]}
+    assert result.data['errors'] == {'0': {"source.ip": ["Failed to add data '1270.0.0.1' as field 'source.ip': "
+                                                         "invalid value '1270.0.0.1' (<class 'str'>) for key 'source.ip'"]}}
 
 
 def test_version():

@@ -161,10 +161,11 @@ def row_to_event(item: dict, body: dict,
         time_observation = DateTime().generate_datetime_now()
     if retval is None:
         # is not used then, but to keep the code below cleaner
-        retval = defaultdict(list)
+        retval = defaultdict(dict)
 
     event = Event()
     line_valid = True
+    lineerrors = defaultdict(list)
     for key in item:
         value = item[key]
         if key.startswith('time.'):
@@ -174,29 +175,30 @@ def row_to_event(item: dict, body: dict,
                     value += body['timezone']
                     parsed = dateutil.parser.parse(value)
                 value = parsed.isoformat()
-            except ValueError:
+            except ValueError as exc:
+                lineerrors[key].append(f"Failed to parse {value!r} as time for field {key!r}: {exc!s}")
                 line_valid = False
         try:
             event.add(key, value)
         except IntelMQException as exc:
-            retval[lineno].append(f"Failed to add data {value!r} as field {key!r}: {exc!s}")
+            lineerrors[key].append(f"Failed to add data {value!r} as field {key!r}: {exc!s}")
             line_valid = False
     for key in CONSTANTS:
         if key not in event:
             try:
                 event.add(key, CONSTANTS[key])
             except InvalidValue as exc:
-                retval[lineno].append(f"Failed to add data {CONSTANTS[key]!r} as field {key!r}: {exc!s}")
+                lineerrors[-1].append(f"Failed to add data {CONSTANTS[key]!r} as field {key!r}: {exc!s}")
                 line_valid = False
     for key in body['custom']:
-        if not key.startswith('custom_'):
-            continue
-        if key[7:] not in event:
+        if key.startswith('custom_') and key[7:] not in event:
             try:
                 event.add(key[7:], body['custom'][key])
             except InvalidValue as exc:
-                retval[lineno].append(f"Failed to add data {body['custom'][key]!r} as field {key!r}: {exc!s}")
+                lineerrors[-1].append(f"Failed to add data {body['custom'][key]!r} as field {key!r}: {exc!s}")
                 line_valid = False
+
+    retval[lineno] = lineerrors
 
     if 'classification.type' not in event:
         event.add('classification.type', 'test')
@@ -264,7 +266,7 @@ def uploadCSV(body, request, response):
 
     for lineno, item in enumerate(data):
         if not item:
-            retval[lineno] = ('Line is empty', )
+            retval[lineno] = {-1: ('Line is empty', )}
             continue
 
         event, input_line_valid = row_to_event(item, body, retval, lineno, time_observation)
@@ -287,6 +289,7 @@ def uploadCSV(body, request, response):
                         bots_output.extend(queues['output'])
             # if > 0 errors and no valid messages, then the line is invalid
             if not bots_output and bot_raised_errors:
+                retval[lineno][-1].append(f"Bot {bot_id} raised an error. Please inspect the details with the magnifier symbol on the left.")
                 input_line_valid = False
                 break
             bots_input = bots_output
@@ -299,7 +302,7 @@ def uploadCSV(body, request, response):
                 if CONFIG.get('destination_pipeline_queue_formatted', False):
                     CONFIG['destination_pipeline_queue'].format(ev=event)
             except Exception as exc:
-                retval[lineno].append(f"Failed to generate destination_pipeline_queue {CONFIG['destination_pipeline_queue']}: {exc!s}")
+                retval[lineno][-1].append(f"Failed to generate destination_pipeline_queue {CONFIG['destination_pipeline_queue']}: {exc!s}")
                 input_line_valid = False
             if not input_line_valid:
                 continue
@@ -308,17 +311,18 @@ def uploadCSV(body, request, response):
                 diff = set(required_fields) - event.keys()
                 if diff:
                     input_line_valid = False
-                    retval[lineno].append(f"Line is missing these required fields: {', '.join(diff)}")
+                    retval[lineno][-1].append(f"Line is missing these required fields: {', '.join(diff)}")
 
             # if 'raw' not in event:
             #     event.add('raw', ''.join(raw_header + [handle_rewindable.current_line]))
             raw_message = MessageFactory.serialize(event)
             if body.get('submit', True) and input_line_valid:
                 destination_pipeline.send(raw_message)
-            if not input_line_valid:
-                input_lines_invalid += 1
         # if line was valid, increment the counter by 1
         input_lines_invalid += not input_line_valid
+
+        if not retval[lineno]:
+            del retval[lineno]
 
     output_lines_invalid = len(tracebacks)
 
@@ -550,11 +554,11 @@ def process(body) -> dict:
             return {'status': 'error',
                     'log': 'No data supplied for at least one row. Did you set fields for the columns?'}
         # log.info('message before converting: %r', item)
-        retval = {0: []}
+        retval = {0: defaultdict(list)}
         first_message, line_valid = row_to_event(item, body, retval)
         if not line_valid:
             return {'status': 'error',
-                    'log': f"Line was not valid: {'.'.join(retval[0])}"}
+                    'log': f"Line was not valid: {'.'.join(retval[0].values())}"}
         bots_input.append(first_message)
 
     tracebacks = []

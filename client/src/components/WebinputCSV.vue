@@ -397,21 +397,23 @@
                   </v-select>
                 </template>
                 <template #cell(Actions)="row">
-                  #{{ row.index + 1 }}
-                  <b-overlay
-                            :show="rowModalInProgress"
-                            rounded
-                            opacity="0.5"
-                            spinner-small
-                            spinner-variant="primary"
-                            class="d-inline-block"
-                          >
-                    <b-button
-                      size="sm"
-                      @click="triggerShowRowModal(row)"
-                      variant="info"
-                    >🔎</b-button>
-                  </b-overlay>
+                  <div :class="getTableActionCellClass(row)">
+                    <span v-b-tooltip.hover :title="getActionCellTooltip(row.index)">#{{ row.index + 1 }}</span>
+                    <b-overlay
+                              :show="rowModalInProgress"
+                              rounded
+                              opacity="0.5"
+                              spinner-small
+                              spinner-variant="primary"
+                              class="d-inline-block"
+                            >
+                      <b-button
+                        size="sm"
+                        @click="triggerShowRowModal(row)"
+                        variant="info"
+                      >🔎</b-button>
+                    </b-overlay>
+                  </div>
                 </template>
                 <template #cell()="row">
                   <div :class="getTableCellClass(row)">
@@ -720,6 +722,7 @@ export default ({
       classificationType: "test",
       code: "oneshot",
       tableHeader: [],
+      tableHeaderMapping: {},
       tableData: [],
       currentPage: 1,
       pageOptions: [5, 10, 25, 100],
@@ -921,6 +924,20 @@ export default ({
       this.tableHeader[ndx].label = newFieldName;
       this.tableHeader[ndx].field = newFieldName;
       this.$refs.table.refresh();
+
+      // refresh the field -> columnindex mapping
+      this.updateTableHeaderMapping();
+    },
+    /**
+     * Create a mapping of [CSV header key] -> [mapped field]
+     * used for the CSS class and tooltip selection of table cells
+     */
+    updateTableHeaderMapping: function() {
+      for (let i in this.tableHeader) {
+        if (!this.tableHeader[i].key)  // undefined or ""
+          continue;
+        this.tableHeaderMapping[this.tableHeader[i].key] = this.tableHeader[i].field;
+      }
     },
     /**
      * Trigger login.
@@ -1098,17 +1115,35 @@ export default ({
       }
       this.tableData = this.parserResult.data;
       this.overlay = false;
+
+      this.updateTableHeaderMapping();
     },
     getTableCellClass(row) {
       if (this.dataErrors[row.index]) {
+        if (this.dataErrors[row.index][this.tableHeaderMapping[row.field.key]]) {
+          return "table-danger"; // add a danger class to the row
+        } else {
+          // row has an issue, but not this cell in particular
+          return "table-warning";
+        }
+      }
+      return ""; // return an empty string for other rows
+    },
+    getTooltip(rowIndex, fieldKey) {
+      if (this.dataErrors[rowIndex] && this.dataErrors[rowIndex][this.tableHeaderMapping[fieldKey]]) {
+        return this.dataErrors[rowIndex][this.tableHeaderMapping[fieldKey]].join('. ');
+      }
+      return "";
+    },
+    getTableActionCellClass(row) {
+      if (this.dataErrors[row.index] && this.dataErrors[row.index][-1]) {
         return "table-danger"; // add a danger class to the row
       }
       return ""; // return an empty string for other rows
     },
-    getTooltip(rowIndex, columnIndex) {
-      console.log('getTooltip called with', rowIndex, columnIndex)
-      if (this.dataErrors[rowIndex]) {
-        return this.dataErrors[rowIndex].join('. ');
+    getActionCellTooltip(rowIndex) {
+      if (this.dataErrors[rowIndex] && this.dataErrors[rowIndex][-1]) {
+        return this.dataErrors[rowIndex][-1].join('. ');
       }
       return "";
     },
