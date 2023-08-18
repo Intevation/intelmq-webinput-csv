@@ -168,7 +168,7 @@ def row_to_event(item: dict, body: dict,
     lineerrors = defaultdict(list)
     for key in item:
         value = item[key]
-        if key.startswith('time.'):
+        if key.startswith('time.') and value:
             try:
                 parsed = dateutil.parser.parse(value, fuzzy=True)
                 if not parsed.tzinfo:
