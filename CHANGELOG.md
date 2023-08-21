@@ -2,6 +2,54 @@ CHANGELOG
 =========
 
 
+1.1.0: UI Enhancements (2023-08-21)
+-----------------------------------
+
+## Frontend
+- Notification preview: decode quoted-printable email body
+- Change the display of validation errors in table
+  - color the row orange for errors in this row,
+  - color a cell red for an error in this cell
+  - color the Actions-cell (first column) red for an unspecific error (e.g. missing field) and show a tooltip
+  - show the tooltip for cells only for errors on this cell
+- Make Table more compact (smaller padding)
+- Show small icon to show processed row instead of long text
+- Add warning on duplicate field assignments after detection
+- Link docs in navbar
+- Clean field names for defaults from CSV header and for entered field names:
+  - trim (remove surrounding whitespace)
+  - all lower case
+  - replace whitespaces with underscore
+  - remove all other disallowed characters
+- Field assignment selection: select on tab
+- packages:
+  - upgrade csv parser papaparse
+  - replace obsolete babel polyfill with core-js
+  - remove unused requirements mutationobserver-shim, popper.js, portal-vue
+
+## Backend
+- Data validation: group error messages for validation per field name in a row
+- format row-process error log with newlines for easier readability
+- only parse time-field if value is not empty
+- read configfile with encoding
+
+## Package
+- build-depend on hug to run the tests during build
+- set `NODE_OPTIONS=--openssl-legacy-provider`
+- require either yarn or yarnpkg
+- package dependency fixes
+
+## Tests
+- Add GitHub workflow to build debian packages
+- Add GitHub workflow for pycodestyle
+
+## Documentation
+- Add GitHub workflow to build and publish documentation
+- Ass missing change log sections for 1.0.0, 1.0.1, 1.0.2
+- Add screenshots
+- Switch from single Markdown files to Sphinx
+
+
 1.0.2: Bugfixes (2023-08-10)
 ----------------------------
 
