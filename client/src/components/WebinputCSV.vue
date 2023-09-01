@@ -277,11 +277,24 @@
                       :label="mailgenAvailableTargetGroups.tag_name || 'Target groups'"
                       label-cols=4
                       v-if="mailgenAvailable">
-                      <b-form-checkbox-group
-                        v-model="mailgenTargetGroups"
-                        :options="mailgenAvailableTargetGroups.tag_values"
-                        v-if="mailgenAvailableTargetGroupsStatus === true && mailgenAvailableTargetGroups.tag_values && mailgenAvailableTargetGroups.tag_values.length"
-                      ></b-form-checkbox-group>
+                      <b-row
+                        v-if="mailgenAvailableTargetGroupsStatus === true && mailgenAvailableTargetGroups.tag_values && mailgenAvailableTargetGroups.tag_values.length">
+                        <b-col cols="9">
+                          <b-form-checkbox-group
+                            v-model="mailgenTargetGroups"
+                            :options="mailgenAvailableTargetGroups.tag_values"
+                            v-if="mailgenAvailableTargetGroupsStatus === true && mailgenAvailableTargetGroups.tag_values && mailgenAvailableTargetGroups.tag_values.length"
+                          ></b-form-checkbox-group>
+                        </b-col>
+                        <b-col>
+                          <b-button @click="onTargetGroupsSelectAll" size="sm">
+                          Select all
+                          </b-button>
+                          <b-button @click="onTargetGroupsSelectNone" size="sm">
+                          Select none
+                          </b-button>
+                        </b-col>
+                      </b-row>
                       <span
                         v-if="mailgenAvailableTargetGroupsStatus === true && mailgenAvailableTargetGroups.tag_values && mailgenAvailableTargetGroups.tag_values.length == 0"
                         >None defined
@@ -1507,6 +1520,16 @@ export default ({
         }
       })
       this.$set(this.mailgenTemplates, index, newTemplate)
+    },
+    /**
+     * onTargetGroupsSelectAll / onTargetGroupsSelectNone
+     * Select all or none of the target groups available
+     */
+    onTargetGroupsSelectAll() {
+      this.mailgenTargetGroups = this.mailgenAvailableTargetGroups.tag_values
+    },
+    onTargetGroupsSelectNone() {
+      this.mailgenTargetGroups = [];
     }
   }
 })
