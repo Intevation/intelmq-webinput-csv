@@ -22,9 +22,11 @@ export default new Vuex.Store({
     mailgenAvailableTargetGroupsStatus: null,
     backendVersion: null,
     // the templates in the client. The client only modifies them and is able to compare them with the
-    mailgenTemplates: [{'name': '', 'body': ''}],
+    mailgenTemplates: [],
     // the templates on the server
-    mailgenTemplatesServer: []
+    mailgenTemplatesServer: [],
+    mailgenMultiTemplatesEnabled: false,
+    mailgenTemplatePrototype: null,
   },
   mutations: {
     SET_USER (state, user) {
@@ -79,6 +81,10 @@ export default new Vuex.Store({
       state.mailgenTemplates = data;
       // create a deep clone, otherwise both names have the same reference. deep clone is required as the list items are objects themselves
       state.mailgenTemplatesServer = JSON.parse(JSON.stringify(data));
+      state.mailgenTemplatePrototype = data[0].name
+    },
+    SET_MAILGEN_MULTI_TEMPLATES_ENABLED(state, data) {
+      state.mailgenMultiTemplatesEnabled = data;
     }
   },
   actions: {
@@ -210,12 +216,19 @@ export default new Vuex.Store({
               });
             }
             if (template_names.length == 0) {
+              // create an empty template to start with
               mapping = [{'name': '', 'body': ''}];
             }
             context.commit("SET_TEMPLATES", mapping)
           })
         }
-      )
+      );
+
+      Vue.http.get("api/mailgen/multi_templates_enabled").then(
+        response => response.json().then(templates_enabled => {
+          context.commit("SET_MAILGEN_MULTI_TEMPLATES_ENABLED", templates_enabled);
+        })
+      );
     }
   },
   modules: {

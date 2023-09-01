@@ -396,6 +396,14 @@ def mailgen_available():
     return bool(cb)
 
 
+@hug.get(ENDPOINT_PREFIX + '/api/mailgen/multi_templates_enabled', requires=session.token_authentication)
+def mailgen_multi_templates_enabled():
+    """
+    Returns true/false if mailgen is installed on the system.
+    """
+    return CONFIG.get('mailgen_multi_templates_enabled', False)
+
+
 @hug.post(ENDPOINT_PREFIX + '/api/mailgen/run', requires=session.token_authentication)
 def mailgen_run(body, request, response):
     """
@@ -416,7 +424,10 @@ def mailgen_run(body, request, response):
 
     try:
         mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
-        return {"result": cb.start(mailgen_config, process_all=True, templates={item['name']: item['body'] for item in body.get('templates', [])}, dry_run=body.get('dry_run')),
+        return {"result": cb.start(mailgen_config, process_all=True,
+                                   template=body.get('template'),
+                                   templates={item['name']: item['body'] for item in body.get('templates', [])},
+                                   dry_run=body.get('dry_run')),
                 "log": mailgen_log.getvalue().strip()}
     except Exception:
         response.status = falcon.HTTP_500
@@ -433,7 +444,7 @@ def mailgen_preview(body, request, response):
         response.status = falcon.HTTP_422
         return {'result': 'Empty template', 'log': ''}
 
-    if not FILENAME_RE.match(body.get('template_name')):
+    if body.get('template_name') and not FILENAME_RE.match(body.get('template_name')):
         response.status = falcon.HTTP_422
         return {'result': f'Template name does not match regular expression {FILENAME_RE.pattern!r}.'}
 
@@ -594,6 +605,7 @@ def process(body) -> dict:
 
         retval['log'] += mailgen_log.getvalue().strip()
         retval['notifications'] = cb.start(mailgen_config, process_all=True,
+                                           template=body.get('template'),
                                            templates={item['name']: item['body'] for item in body.get('templates', [])},
                                            get_preview=True,
                                            conn=conn,
@@ -625,8 +637,12 @@ def get_templates():
 @hug.put(ENDPOINT_PREFIX + '/api/mailgen/template', requires=session.token_authentication)
 def set_template(template_name: str, template_body: str, response):
     """
-    Saves a template to disk
+    Saves a template to disk.
+    Not allowed when mailgen_multi_templates_enabled is not true.
     """
+    if not CONFIG.get('mailgen_multi_templates_enabled', False):
+        return falcon.HTTP_403
+
     if not FILENAME_RE.match(template_name):
         response.status = falcon.HTTP_403
         return f'Template name does not match regular expression {FILENAME_RE.pattern!r}.'

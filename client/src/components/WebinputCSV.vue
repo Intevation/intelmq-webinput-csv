@@ -553,32 +553,19 @@
                     </b-overlay>
                   </b-col>
                 </b-row>
-                <h4>Templates:</h4>
-                <b-row align-h="center" style="margin-buttom: 30px">
-                  <span style="max-width: 700px">
-                    Mailgen started via this interface (only) uses the templates shown here. It does not matter if the templates are saved to the file on the server.
-                    Templates not saved to disk are not retained and are only available in this session.
-                    Mailgen started by other means (command line or automated jobs), uses the templates present on disk.
-                  </span>
-                </b-row>
-                <b-row v-for="(item, index) in mailgenTemplates" v-bind:key="index" class="item">
-                  <b-col>
+                <b-row v-if="!mailgenMultiTemplatesEnabled">
+                  <b-col cols="3">
                     <b-row>
-                      <b-form-group
-                        label="Template name"
-                        description="With an empty name, the template will be ignored"
-                        >
-                        <b-form-input
-                          v-model="item.name"
-                          @input="validateTemplateNameDebounced(index); validateTemplateContent(index)"
-                          :state="item.state"
-                        ></b-form-input>
-                        <b-form-invalid-feedback :id="'template-name-feedback-' + index">
-                          Duplicate Template Name
-                        </b-form-invalid-feedback>
-                      </b-form-group>
+                      <h4>Template</h4>
                     </b-row>
                     <b-row>
+                      <span style="max-width: 700px">
+                        The template given here is fixed for all notifications sent by this Mailgen run.
+                        The Template is not saved to disk.
+                        Mailgen started by other means (command line or automated jobs), uses the templates present on disk.
+                      </span>
+                    </b-row>
+                    <b-row align-h="center">
                       <b-overlay
                         :show="mailgenInProgress"
                         rounded
@@ -589,105 +576,180 @@
                       >
                         <b-button
                           v-b-tooltip.hover
-                          @click="previewMailgen(index, showDialog=true)"
+                          @click="previewMailgenTemplate(showDialog=true)"
                           variant="primary"
-                          :disabled="!mailgenAvailable || !item.body"
-                          title="Preview this template"
+                          :disabled="!mailgenAvailable || !mailgenTemplate"
+                          title="Template Preview"
                           block
-                          >Show Template {{ (item.validationStatus == 'text-danger') ? 'Log' : 'Preview' }}</b-button>
+                          >Show Template {{ (mailgenTemplateValidationStatus == 'text-danger') ? 'Log' : 'Preview' }}</b-button>
                       </b-overlay>
                     </b-row>
                     <b-row>
+                      <b-form-group label="Replace text with existing template from disk:">
+                        <v-select
+                          :options="mailgenTemplateNames"
+                          v-model="mailgenTemplatePrototype"
+                          @input="onMailgenTemplatePrototypeSelected"
+                          width="100%"></v-select>
+                      </b-form-group>
+                    </b-row>
+                    <b-row>
                       <span
-                        style="color: green"
-                        v-if="mailgenTemplatesServer[index] && mailgenTemplatesServer[index].name == ''"
-                        title="This template does not exist on the server"
-                        >new</span>
-                      <span
-                        style="color: green"
-                        v-if="mailgenTemplatesServer[index] && item.name.trim() != mailgenTemplatesServer[index].name.trim() && mailgenTemplatesServer[index].name != ''"
-                        >modified
+                        :class="mailgenTemplateValidationStatus"
+                          >{{mailgenTemplateValidationText}}
+                      </span>
+                    </b-row>
+                  </b-col>
+                  <b-col>
+                    <b-form-group width="100%">
+                      <b-form-textarea
+                      id="template"
+                      v-model="mailgenTemplate"
+                      description="E-Mail Template for Mailgen. First line is the subject. Use ${fieldname} to insert aggregated field names and ${events_as_csv} for a CSV attachment."
+                      rows="10"
+                      width="100%"
+                      @input="validateMailgenTemplateContentDebounce"
+                    ></b-form-textarea>
+                    </b-form-group>
+                  </b-col>
+                </b-row>
+                <h4 v-if="mailgenMultiTemplatesEnabled">Templates:</h4>
+                <b-row align-h="center" style="margin-buttom: 30px" v-if="mailgenMultiTemplatesEnabled">
+                  <span style="max-width: 700px">
+                    Mailgen started via this interface (only) uses the templates shown here. It does not matter if the templates are saved to the file on the server.
+                    Templates not saved to disk are not retained and are only available in this session.
+                    Mailgen started by other means (command line or automated jobs), uses the templates present on disk.
+                  </span>
+                </b-row>
+                <b-container v-if="mailgenMultiTemplatesEnabled">
+                  <b-row v-for="(item, index) in mailgenTemplates" v-bind:key="index" class="item">
+                    <b-col>
+                      <b-row>
+                        <b-form-group
+                          label="Template name"
+                          description="With an empty name, the template will be ignored"
+                          >
+                          <b-form-input
+                            v-model="item.name"
+                            @input="validateTemplateNameDebounced(index); validateTemplateContent(index)"
+                            :state="item.state"
+                          ></b-form-input>
+                          <b-form-invalid-feedback :id="'template-name-feedback-' + index">
+                            Duplicate Template Name
+                          </b-form-invalid-feedback>
+                        </b-form-group>
+                      </b-row>
+                      <b-row>
+                        <b-overlay
+                          :show="mailgenInProgress"
+                          rounded
+                          opacity="0.5"
+                          spinner-small
+                          spinner-variant="primary"
+                          class="d-inline-block"
+                        >
                           <b-button
-                            variant="info"
-                            size="sm"
-                            @click.prevent="item.name = mailgenTemplatesServer[index].name"
-                            title="Revert to the original state"
-                            style="margin-top: 10px"
-                            >↶
-                          </b-button>
-                        </span>
+                            v-b-tooltip.hover
+                            @click="previewMailgen(index, showDialog=true)"
+                            variant="primary"
+                            :disabled="!mailgenAvailable || !item.body"
+                            title="Preview this template"
+                            block
+                            >Show Template {{ (item.validationStatus == 'text-danger') ? 'Log' : 'Preview' }}</b-button>
+                        </b-overlay>
                       </b-row>
                       <b-row>
                         <span
-                          :class="item.validationStatus"
-                           >{{item.validationText}}
-                        </span>
-                      </b-row>
-                  </b-col>
-                  <b-col cols="8">
-                    <b-form-group
-                      label="Template content"
-                      description="First line is the subject. Use ${fieldname} to insert aggregated field names and ${events_as_csv} for a CSV attachment."
-                      >
-                      <b-form-textarea
-                        v-model="item.body"
-                        rows="10"
-                        @input="validateTemplateContent(index)"
-                      ></b-form-textarea>
-                    </b-form-group>
-                  </b-col>
-                  <b-col cols="1">
-                    <b-button
-                      block
-                      variant="info"
-                      size="sm"
-                      @click.prevent="deleteTemplateInput(index)"
-                      title="Remove this template input field. Does not remove it from the server."
-                      v-if="index != 0"
-                      style="font-size: 1.5em"
-                      >❌
-                    </b-button>
-                    <b-button
-                      block
-                      size="sm"
-                      variant="danger"
-                      :disabled="mailgenTemplatesServer[index] && item.name.trim() != mailgenTemplatesServer[index].name.trim()"
-                      @click.prevent="showTemplateDeletionModal(index, item.name)"
-                      title="Delete the template file from the server"
-                      style="font-size: 1.5em"
-                    >🗑️</b-button>
-                    <b-button
-                      block
-                      size="sm"
-                      variant="success"
-                      :disabled="mailgenTemplatesServer[index] && item.name.trim() == mailgenTemplatesServer[index].name.trim() && item.body.trim() == mailgenTemplatesServer[index].body.trim()"
-                      @click.prevent="saveTemplate(index, item.name, item.body)"
-                      title="Save the template file on the server"
-                      style="font-size: 1.5em"
-                    >💾</b-button>
-                    <span
-                      style="color: green"
-                      v-if="mailgenTemplatesServer[index] && item.body.trim() != mailgenTemplatesServer[index].body.trim() && mailgenTemplatesServer[index].name != ''"
-                      >modified
-                      <b-button
-                        variant="info"
-                        size="sm"
-                        @click.prevent="item.body = mailgenTemplatesServer[index].body"
-                        v-if="mailgenTemplatesServer[index] && item.body.trim() != mailgenTemplatesServer[index].body.trim()"
-                        title="Revert to the original state"
-                        style="margin-top: 10px"
-                        >↶
+                          style="color: green"
+                          v-if="mailgenTemplatesServer[index] && mailgenTemplatesServer[index].name == ''"
+                          title="This template does not exist on the server"
+                          >new</span>
+                        <span
+                          style="color: green"
+                          v-if="mailgenTemplatesServer[index] && item.name.trim() != mailgenTemplatesServer[index].name.trim() && mailgenTemplatesServer[index].name != ''"
+                          >modified
+                            <b-button
+                              variant="info"
+                              size="sm"
+                              @click.prevent="item.name = mailgenTemplatesServer[index].name"
+                              title="Revert to the original state"
+                              style="margin-top: 10px"
+                              >↶
+                            </b-button>
+                          </span>
+                        </b-row>
+                        <b-row>
+                          <span
+                            :class="item.validationStatus"
+                            >{{item.validationText}}
+                          </span>
+                        </b-row>
+                      </b-col>
+                      <b-col cols="8">
+                        <b-form-group
+                          label="Template content"
+                          description="First line is the subject. Use ${fieldname} to insert aggregated field names and ${events_as_csv} for a CSV attachment."
+                          >
+                          <b-form-textarea
+                            v-model="item.body"
+                            rows="10"
+                            @input="validateTemplateContent(index)"
+                          ></b-form-textarea>
+                        </b-form-group>
+                      </b-col>
+                      <b-col cols="1">
+                        <b-button
+                          block
+                          variant="info"
+                          size="sm"
+                          @click.prevent="deleteTemplateInput(index)"
+                          title="Remove this template input field. Does not remove it from the server."
+                          v-if="index != 0"
+                          style="font-size: 1.5em"
+                          >❌
                         </b-button>
-                      </span>
-                  </b-col>
-                </b-row>
-                <b-row>
-                  <b-button
-                    block
-                    @click="increaseTemplateCounter"
-                    variant="primary"
-                  >+</b-button>
-                </b-row>
+                        <b-button
+                          block
+                          size="sm"
+                          variant="danger"
+                          :disabled="mailgenTemplatesServer[index] && item.name.trim() != mailgenTemplatesServer[index].name.trim()"
+                          @click.prevent="showTemplateDeletionModal(index, item.name)"
+                          title="Delete the template file from the server"
+                          style="font-size: 1.5em"
+                        >🗑️</b-button>
+                        <b-button
+                          block
+                          size="sm"
+                          variant="success"
+                          :disabled="mailgenTemplatesServer[index] && item.name.trim() == mailgenTemplatesServer[index].name.trim() && item.body.trim() == mailgenTemplatesServer[index].body.trim()"
+                          @click.prevent="saveTemplate(index, item.name, item.body)"
+                          title="Save the template file on the server"
+                          style="font-size: 1.5em"
+                        >💾</b-button>
+                        <span
+                          style="color: green"
+                          v-if="mailgenTemplatesServer[index] && item.body.trim() != mailgenTemplatesServer[index].body.trim() && mailgenTemplatesServer[index].name != ''"
+                          >modified
+                          <b-button
+                            variant="info"
+                            size="sm"
+                            @click.prevent="item.body = mailgenTemplatesServer[index].body"
+                            v-if="mailgenTemplatesServer[index] && item.body.trim() != mailgenTemplatesServer[index].body.trim()"
+                            title="Revert to the original state"
+                            style="margin-top: 10px"
+                            >↶
+                            </b-button>
+                        </span>
+                    </b-col>
+                  </b-row>
+                  <b-row>
+                    <b-button
+                      block
+                      @click="increaseTemplateCounter"
+                      variant="primary"
+                    >+</b-button>
+                  </b-row>
+                </b-container>
               </b-container>
             </b-card-body>
           </b-collapse>
@@ -767,10 +829,20 @@ export default ({
       clientVersion: "1.1.0",
       templateDeletionModal: false,
       templateToDelete: {'index': null, 'template_name': null},
+      mailgenTemplate: '',
+      mailgenTemplateValidationText: '',
+      mailgenTemplateValidationStatus: null,
+      mailgenTemplatePrototype: null,
     }
   },
   computed: {
-    ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable', 'botsAvailable', 'mailgenAvailableTargetGroups', 'mailgenAvailableTargetGroupsStatus', 'backendVersion', 'mailgenTemplatesServer', 'mailgenTemplates']),
+    mailgenTemplateNames() {
+      return this.mailgenTemplatesServer.map(template => template.name)
+    },
+    mailgenTemplateMap() {
+      return Object.fromEntries(this.mailgenTemplatesServer.map((template) => [template.name, template.body]))
+    },
+    ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable', 'botsAvailable', 'mailgenAvailableTargetGroups', 'mailgenAvailableTargetGroupsStatus', 'backendVersion', 'mailgenTemplatesServer', 'mailgenTemplates', 'mailgenMultiTemplatesEnabled']),
   },
   mounted() {
     this.$store.dispatch("fetchBackendVersion");
@@ -1178,14 +1250,18 @@ export default ({
      * Trigger a mailgen run
      */
     runMailgen() {
-      //var me = this;
       this.mailgenInProgress = true;
       this.mailgenLog = '';
-      this.$http.post('api/mailgen/run', {
-        templates: this.mailgenTemplates,
+      let data = {
         verbose: this.mailgenVerbose,
         dry_run: this.mailgenDryRun
-        })
+      }
+      if (this.mailgenMultiTemplatesEnabled) {
+        data.templates = this.mailgenTemplates;
+      } else {
+        data.template = this.mailgenTemplate;
+      }
+      this.$http.post('api/mailgen/run', data)
         .then(response => {
           this.mailgenInProgress = false;
           response.json().then(data => {
@@ -1271,7 +1347,7 @@ export default ({
       return [subject, to, decodedBody]
     },
     /**
-     * Show an Email Template preview
+     * Show an Email Template preview with a list of templates (see mailgen_multi_templates_enabled in docs)
      */
     previewMailgen(template_index, showDialog=false) {
       //var me = this;
@@ -1334,6 +1410,74 @@ export default ({
           })
         });
     },
+    /**
+     * Show an Email Template preview for the singular mailgen template
+     */
+    previewMailgenTemplate(showDialog=false) {
+      this.mailgenInProgress = true;
+      this.mailgenLog = '';
+      this.$http.post('api/mailgen/preview',
+          {
+            template: this.mailgenTemplate,
+            verbose: this.mailgenVerbose,
+            dry_run: this.mailgenDryRun
+            })
+        .then(response => {
+          this.mailgenInProgress = false;
+          response.json().then(data => {
+            console.log('no error and json')
+            this.mailgenTemplateValidationStatus = "text-success";
+            this.mailgenPreview = data.result;
+            // clear the field, not used in case of success
+            this.mailgenTemplateValidationText = 'Validated OK';
+            this.mailgenLog = data.log;
+
+            let [subject, to, body] = this.parseMIME(this.mailgenPreview)
+            this.mailgenPreviewParsed = {subject: subject, to: to, body: body}
+            if (showDialog) {
+              this.showMailgenPreview = true;
+            }
+          }).catch(err => {
+            console.log('no error and no json')
+            // body was not JSON
+            this.mailgenTemplateValidationStatus = "text-danger";
+            this.mailgenTemplateValidationText = "Validation failed";
+            this.mailgenLog = err;
+            if (showDialog) {
+              this.showMailgenLog = true;
+            }
+            this.mailgenInProgress;
+        });
+        }, (response) => { // error
+          response.json().then(data => {
+            console.log('error and json')
+            this.mailgenPreview = data.result;
+            this.mailgenTemplateValidationStatus = "text-danger";
+            this.mailgenTemplateValidationText = data.result;
+            this.mailgenLog = data.log;
+            if (showDialog) {
+              this.showMailgenLog = true;
+            }
+            this.mailgenInProgress = false;
+          }).catch(err => {
+            console.log('error and not json')
+            // error response is not JSON
+            this.mailgenTemplateValidationStatus = "text-danger";
+            this.mailgenLog = response.body;
+            this.mailgenTemplateValidationText = err;
+            if (showDialog) {
+              this.showMailgenLog = true;
+            }
+            this.mailgenInProgress = false;
+          })
+        });
+    },
+    /**
+     * The debounced validation of the singular mailgen template input
+     */
+    validateMailgenTemplateContentDebounce: debounce(function () {
+      this.previewMailgenTemplate(false)
+    }, 1000),
     triggerShowRowModal (row) {
       this.rowModalInProgress = true;
       let data = []
@@ -1353,13 +1497,18 @@ export default ({
         }
       }
       data.push(sendItem);
-      this.$http.post('api/bots/process', {
+      let post_data = {
         data: data,
         custom: this.computeCustom(),
         dryrun: this.dryrun,
-        templates: this.mailgenTemplates,
         timezone: this.timezone,
-      })
+      }
+      if (this.mailgenMultiTemplatesEnabled) {
+        post_data.templates = this.mailgenTemplates;
+      } else {
+        post_data.template = this.mailgenTemplate;
+      }
+      this.$http.post('api/bots/process', post_data)
         .then(response => {
           response.json().then(data => {
             this.rowModalData = data;
@@ -1530,7 +1679,12 @@ export default ({
     },
     onTargetGroupsSelectNone() {
       this.mailgenTargetGroups = [];
-    }
-  }
+    },
+    onMailgenTemplatePrototypeSelected() {
+      this.mailgenTemplate = this.mailgenTemplateMap[this.mailgenTemplatePrototype];
+      // trigger a validation of the template
+      this.previewMailgenTemplate(false);
+    },
+  },
 })
 </script>

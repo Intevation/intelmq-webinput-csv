@@ -50,6 +50,15 @@ Mailgen configuration parameters
    file.
 -  ``target_groups``: Configuration how the backend can query the
    available target groups. See below.
+-  ``mailgen_multi_templates_enabled``: Enable the mutli-template editor.
+   It shows all available templates, validates them during editing, allows
+   a preview for each, with buttons for reset to the original state and the
+   possibility to drop them from the current mailgen run.
+   Additionally it allows the user to save the template to the disk and
+   delete templates from the disk, resulting in a complete template editor
+   for mailgen.
+   If disabled, a single template input is show in the UI, which is fixed for
+   all notifications.
 
 Usage
 -----
