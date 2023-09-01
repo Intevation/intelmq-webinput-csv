@@ -81,7 +81,7 @@
       </b-modal>
       <b-modal v-model="showMailgenPreview" scrollable centered size="xl" id="mailgenPreview-popup" title="Mailgen Template Preview">
         <small>Please note that this preview uses example data and thus does not take the CERTbund rules into account. The example data contains more data and aggregated fields than real data. To consider the input data, use the tools in the "Data Validation and Submission" section.</small>
-        <h5 title="Subject">Subject: {{mailgenPreviewParsed.subject}}</h5>
+        <h5 title="Subject" style="margin-top: 10px;">Subject: {{mailgenPreviewParsed.subject}}</h5>
         <h6 title="To">To: {{mailgenPreviewParsed.to}}</h6>
         <code class="text-black"><pre>{{ mailgenPreviewParsed.body }}</pre></code>
         <template #modal-footer>
