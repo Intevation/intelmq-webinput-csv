@@ -642,7 +642,9 @@ def set_template(template_name: str, template_body: str, response):
     Not allowed when mailgen_multi_templates_enabled is not true.
     """
     if not CONFIG.get('mailgen_multi_templates_enabled', False):
-        return falcon.HTTP_403
+        response.status = falcon.HTTP_403
+        return ('Multi templates and template editor is not enabled, saving templates not allowed. '
+                'Please see the documentation on help to enable this feature.')
 
     if not FILENAME_RE.match(template_name):
         response.status = falcon.HTTP_403
