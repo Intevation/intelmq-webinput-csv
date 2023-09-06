@@ -4,12 +4,12 @@ Section: net
 Priority: optional
 Build-Depends: debhelper (>= 9), dh-exec, dh-python, python3-setuptools,
  python3-all, yarn | yarnpkg (>= 1.21.1), rsync, python3-hug (>= 2.2.0),
- intelmq (>= 3.2.0), python3-psycopg2
+ intelmq (>= 3.2.0), python3-psycopg2, python3-importlib-metadata
 Standards-Version: 3.9.6
 
 Package: intelmq-webinput-csv-client
 Architecture: all
-Depends: ${misc:Depends}, apache2, apache2-utils
+Depends: ${misc:Depends}, apache2, apache2-utils, python3-importlib-metadata
 Description: intelmq-webinput-csv is a simple web interface allowing
  the user to insert data into intelmq's pipelines interactively with
  preview from the parser.

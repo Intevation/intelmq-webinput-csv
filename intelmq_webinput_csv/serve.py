@@ -45,8 +45,18 @@ from pathlib import Path
 from re import compile
 from subprocess import run
 from typing import Optional
-from importlib.metadata import version
-import importlib.resources as importlib_resources
+try:
+    from importlib.metadata import version as importlib_version
+except ImportError:  # Ubuntu 20.04 and Ubuntu 22.04 with Python 3.7-3.8 has issues with importlib.resources
+    importlib_version = None
+    from pkg_resources import get_distribution
+try:
+    import importlib.resources as importlib_resources
+    importlib_resources.files  # Try to access relevant attribute, fails if importlib-resources is too old?
+except (ImportError, AttributeError):  # Ubuntu 20.04 has no importlib.resources
+    importlib_resources = None
+    from pkg_resources import resource_filename
+
 
 import dateutil.parser
 import falcon
@@ -89,7 +99,10 @@ try:
     EVENT_FIELDS = load_configuration(HARMONIZATION_CONF_FILE)
 except ValueError:
     # Fallback to internal harmonization file
-    EVENT_FIELDS = load_configuration(importlib_resources.files('intelmq') / 'etc/harmonization.conf')
+    if importlib_resources:  # Ubuntu 22.04
+        EVENT_FIELDS = load_configuration(importlib_resources.files('intelmq') / 'etc/harmonization.conf')
+    else:  # Ubuntu 20.04
+        EVENT_FIELDS = load_configuration(resource_filename('intelmq', 'etc/harmonization.conf'))
 
 # Logging
 logging.basicConfig(format='%(asctime)s %(name)s %(levelname)s - %(message)s')
@@ -685,7 +698,10 @@ def version():
             return git_describe.stdout.strip()
     except FileNotFoundError:
         pass
-    return version('intelmq-webinput-csv')
+    if importlib_version:
+        return importlib_version('intelmq-webinput-csv')
+    else:
+        return get_distribution('intelmq-webinput-csv').version
 
 
 if __name__ == '__main__':
