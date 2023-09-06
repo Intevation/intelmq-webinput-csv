@@ -8,7 +8,7 @@ on: [push, pull_request]
 
 jobs:
   unittests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     name: Run unit tests with pytest
     strategy:
       fail-fast: false
@@ -54,7 +54,7 @@ jobs:
       if: ${{ matrix.with_mailgen == 'true' }}
 
     - name: Install pytest
-      run: pip install pytest
+      run: pip install pytest importlib-metadata
 
     - name: Install
       run: pip install -e .
