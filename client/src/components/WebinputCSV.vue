@@ -944,7 +944,7 @@ export default ({
             }
 
             const num_errors = Object.keys(data.errors).length;
-            me.transferred = (submit ? "Submitted " : "Validated ") + (data.input_lines) + " lines. Of these, " + (data.input_lines - data.input_lines_invalid) + " were valid. This resulted in " + num_errors + " validation errors and in total " + data.input_lines_invalid + " lines were invalid" + (submit ? ", these were not submitted" : "") + ".";
+            me.transferred = (submit ? "Submitted " : "Validated ") + (data.input_lines) + " lines" + (submit ? (this.validateWithBots ? " to IntelMQ database" : " to IntelMQ processing queue") : "") + ". Of these, " + (data.input_lines - data.input_lines_invalid) + " were valid. This resulted in " + num_errors + " validation errors and in total " + data.input_lines_invalid + " lines were invalid" + (submit ? ", these were not submitted" : "") + ".";
             if (this.validateWithBots) {
               me.transferred = me.transferred + " After bot validation the input data resulted in " + data.output_lines + " events and " + data.output_lines_invalid + " errors occured (invalid events).";
             }
