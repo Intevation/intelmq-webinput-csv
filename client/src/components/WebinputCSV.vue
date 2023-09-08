@@ -1379,6 +1379,7 @@ export default ({
             verbose: this.mailgenVerbose,
             dry_run: this.mailgenDryRun,
             assigned_columns: this.tableHeaderFlat,
+            data: this.csvToArray(1),
             })
         .then(response => {
           this.mailgenInProgress = false;
@@ -1442,6 +1443,7 @@ export default ({
             verbose: this.mailgenVerbose,
             dry_run: this.mailgenDryRun,
             assigned_columns: this.tableHeaderFlat,
+            data: this.csvToArray(1),
             })
         .then(response => {
           this.mailgenInProgress = false;

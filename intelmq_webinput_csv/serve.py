@@ -486,6 +486,8 @@ def mailgen_preview(body, request, response):
     format_spec = build_table_format(
         "Webinput Fallback",
         tuple(((field, field) for field in body.get('assigned_columns', FALLBACK_ASSIGNED_COLUMNS) if field)))
+    example_data = EXAMPLE_CERTBUND_EVENT.copy()
+    example_data.update(body.get('data', [{}])[0])
 
     try:
         mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
@@ -495,9 +497,9 @@ def mailgen_preview(body, request, response):
         try:
             cur = conn.cursor()
             cur.execute('INSERT INTO events ("{keys}") VALUES ({values})'
-                        ''.format(keys='", "'.join(EXAMPLE_CERTBUND_EVENT.keys()),
-                                  values=', '.join(['%s'] * len(EXAMPLE_CERTBUND_EVENT))),
-                        list(EXAMPLE_CERTBUND_EVENT.values()))
+                        ''.format(keys='", "'.join(example_data.keys()),
+                                  values=', '.join(['%s'] * len(example_data))),
+                        list(example_data.values()))
             cur.execute('START TRANSACTION')
             cur.execute('SELECT id FROM directives ORDER BY id DESC LIMIT 1;')
             last_id = cur.fetchone()['id'] if cur.rowcount else None
