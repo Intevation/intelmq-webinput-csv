@@ -2,6 +2,29 @@ CHANGELOG
 =========
 
 
+1.2.0: Single template input (2023-09-08)
+-----------------------------------------
+
+## Frontend
+- Redesign to a single template input. The multi-template editor is hidden and can be activated with the parameter `mailgen_multi_templates_enabled`
+- Pass assigned columns to the backend for notification preview and data submission
+- Minor style enhancement in email preview
+- Minor: add more spacing between the explanation text and the subject
+- Target groups: add select all/none buttons
+- Separate function for converting data to table
+
+## Backend
+- Allow single template input and pass to mailgen
+- Do not send data to the redis queue if validation/submission with bots is active (would be a double-submit)
+- Refactor format_spec creation, more checks/sanitation
+- Template preview: use first line of data instead of fully relying on example data, use the first line of input data if available
+- Use assigned columns as default table format: the columns assigned by the user in the frontend are used as default table format for mailgen
+- Compatibility changes on deprecated pkg_resources / importlib replacement, make it compatible on both Ubuntu 20.04 and 22.04, update tests and GitHub Workflows
+
+## Documentation
+- Add section about the behaviour of the Frontend's "Submit/Validate with Bots" parameter
+
+
 1.1.0: UI Enhancements (2023-08-21)
 -----------------------------------
 
@@ -148,7 +171,7 @@ CHANGELOG
 - Do not throw errors on badly formatted time fields (#65).
 - Add optional parameter `destination_pipeline_queue_formatted` and allow formatting of `destination_pipeline_queue`.
 - Log exception if sending data to the pipeline did not work.
-- For type-detection do not apply sanitiation as this results in strange detections some times (#69).
+- For type-detection do not apply sanitation as this results in strange detections some times (#69).
 - Save `raw` field including header for each event (#66).
 
 ### Configuration
