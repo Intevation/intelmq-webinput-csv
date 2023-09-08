@@ -28,7 +28,7 @@ Usual configuration parameters
    used to configure the pipeline, see the user-guide of intelmq for
    details.
 -  ``destination_pipeline_queue``: It is the queue/routing key to push
-   the messages into.
+   the messages into if the user does not check *Validate/Submit with Bots*.
 -  ``destination_pipeline_queue_formatted``: Optional, if true, the
    ``destination_pipeline_queue`` is formatted like a python format
    string with the event as ``ev``. E.g.
@@ -41,7 +41,48 @@ Usual configuration parameters
    list), all lines need to have these fields, otherwise they are marked
    as invalid and not submitted to IntelMQ. Example:
    ``required_fields: ["time.source", "source.ip"]``
--  ``bots``: FIXME
+-  ``bots``: An optional directory of bot definitions with the same structure as
+   IntelMQ's runtime configuration. If the Webinput user checks
+   *Validate/Submit with Bots* in the Frontend, these bots will be used for data
+   validation and submission. Needs to contain a processing chain of any number
+   of experts and exactly one output bot.
+   For validation, output bots are not called. For submission, only the output
+   bot writes the data to the destination, the data is not additionally pushed
+   to the redis queue as specified in the configuration parameter
+   ``destination_pipeline_queue``.
+   Example configuration:
+
+   .. code:: json
+
+      "bots": {
+          "taxonomy": {
+              "module": "intelmq.bots.experts.taxonomy.expert"
+          },
+          "url": {
+              "module": "intelmq.bots.experts.url.expert"
+          },
+          "gethostbyname": {
+              "module": "intelmq.bots.experts.gethostbyname.expert"
+          },
+          "sql": {
+              "module": "intelmq_webinput_csv.sql_output",
+              "parameters": {
+                  "autocommit": false,
+                  "engine": "postgresql",
+                  "database": "eventdb",
+                  "host": "intelmq-database",
+                  "port": 5432,
+                  "user": "intelmq",
+                  "password": "secret",
+                  "sslmode": "allow",
+                  "table": "events"
+              }
+          }
+      }
+
+   Warning: If no SQL output bot is configured, and the user uses validation/submission
+   with bots, no data will be written anywhere, neither to an IntelMQ pipeline,
+   nor to the database!
 
 Mailgen configuration parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

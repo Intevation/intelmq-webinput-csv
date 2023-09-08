@@ -314,27 +314,29 @@ def uploadCSV(body, request, response):
             bots_output = [event]
         output_lines += len(bots_output)
 
-        for event in bots_output:
-            try:
-                if CONFIG.get('destination_pipeline_queue_formatted', False):
-                    CONFIG['destination_pipeline_queue'].format(ev=event)
-            except Exception as exc:
-                retval[lineno][-1].append(f"Failed to generate destination_pipeline_queue {CONFIG['destination_pipeline_queue']}: {exc!s}")
-                input_line_valid = False
-            if not input_line_valid:
-                continue
-
-            if required_fields:
-                diff = set(required_fields) - event.keys()
-                if diff:
+        if not body.get('validate_with_bots', False):
+            for event in bots_output:
+                try:
+                    if CONFIG.get('destination_pipeline_queue_formatted', False):
+                        CONFIG['destination_pipeline_queue'].format(ev=event)
+                except Exception as exc:
+                    retval[lineno][-1].append(f"Failed to generate destination_pipeline_queue {CONFIG['destination_pipeline_queue']}: {exc!s}")
                     input_line_valid = False
-                    retval[lineno][-1].append(f"Line is missing these required fields: {', '.join(diff)}")
+                if not input_line_valid:
+                    continue
 
-            # if 'raw' not in event:
-            #     event.add('raw', ''.join(raw_header + [handle_rewindable.current_line]))
-            raw_message = MessageFactory.serialize(event)
-            if body.get('submit', True) and input_line_valid:
-                destination_pipeline.send(raw_message)
+                if required_fields:
+                    diff = set(required_fields) - event.keys()
+                    if diff:
+                        input_line_valid = False
+                        retval[lineno][-1].append(f"Line is missing these required fields: {', '.join(diff)}")
+
+                # if 'raw' not in event:
+                #     event.add('raw', ''.join(raw_header + [handle_rewindable.current_line]))
+                raw_message = MessageFactory.serialize(event)
+                if body.get('submit', True) and input_line_valid:
+                    destination_pipeline.send(raw_message)
+
         # if line was valid, increment the counter by 1
         input_lines_invalid += not input_line_valid
 

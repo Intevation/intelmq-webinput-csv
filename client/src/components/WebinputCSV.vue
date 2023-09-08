@@ -265,7 +265,7 @@
                         @change="onDryRunChange"
                       ></b-form-checkbox>
                     </b-form-group>
-                    <b-form-group v-b-tooltip.hover label-cols=4 label="Validate with bots" title="Validate the data with all configured IntelMQ Bots included.">
+                    <b-form-group v-b-tooltip.hover label-cols=4 label="Validate/Submit with bots" title="Validate the data with all configured IntelMQ Bots included. If unchecked on submission, data will be submitted to the IntelMQ processing pipeline, not the configured output bot.">
                       <b-form-checkbox
                         v-model="validateWithBots"
                         switch
