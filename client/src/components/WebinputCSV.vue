@@ -842,6 +842,10 @@ export default ({
     mailgenTemplateMap() {
       return Object.fromEntries(this.mailgenTemplatesServer.map((template) => [template.name, template.body]))
     },
+    tableHeaderFlat() {
+      // returns only the names of assigned columns
+      return this.tableHeader.slice(1).map(header => header.field).filter(entry => entry)
+    },
     ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable', 'botsAvailable', 'mailgenAvailableTargetGroups', 'mailgenAvailableTargetGroupsStatus', 'backendVersion', 'mailgenTemplatesServer', 'mailgenTemplates', 'mailgenMultiTemplatesEnabled']),
   },
   mounted() {
@@ -904,6 +908,7 @@ export default ({
         username: this.username,
         password: this.password,
         validate_with_bots: this.validateWithBots,
+        assigned_columns: this.tableHeaderFlat,
       }
       var me = this;
       this.$http.post('api/upload', send)
@@ -1254,7 +1259,8 @@ export default ({
       this.mailgenLog = '';
       let data = {
         verbose: this.mailgenVerbose,
-        dry_run: this.mailgenDryRun
+        dry_run: this.mailgenDryRun,
+        assigned_columns: this.tableHeaderFlat,
       }
       if (this.mailgenMultiTemplatesEnabled) {
         data.templates = this.mailgenTemplates;
@@ -1358,7 +1364,8 @@ export default ({
             template: this.mailgenTemplates[template_index]['body'],
             template_name: this.mailgenTemplates[template_index]['name'],
             verbose: this.mailgenVerbose,
-            dry_run: this.mailgenDryRun
+            dry_run: this.mailgenDryRun,
+            assigned_columns: this.tableHeaderFlat,
             })
         .then(response => {
           this.mailgenInProgress = false;
@@ -1420,7 +1427,8 @@ export default ({
           {
             template: this.mailgenTemplate,
             verbose: this.mailgenVerbose,
-            dry_run: this.mailgenDryRun
+            dry_run: this.mailgenDryRun,
+            assigned_columns: this.tableHeaderFlat,
             })
         .then(response => {
           this.mailgenInProgress = false;
@@ -1502,6 +1510,7 @@ export default ({
         custom: this.computeCustom(),
         dryrun: this.dryrun,
         timezone: this.timezone,
+        assigned_columns: this.tableHeaderFlat,
       }
       if (this.mailgenMultiTemplatesEnabled) {
         post_data.templates = this.mailgenTemplates;
@@ -1512,7 +1521,6 @@ export default ({
         .then(response => {
           response.json().then(data => {
             this.rowModalData = data;
-            console.log('data:', data)
 
             if (data.notifications) {
               this.rowModalData.notifications = data.notifications.map(notification => this.parseMIME(notification))

@@ -89,6 +89,7 @@ from psycopg2.extensions import register_adapter
 try:
     from intelmqmail import cb
     from intelmqmail.db import open_db_connection
+    from intelmqmail.tableformat import build_table_format
 except ImportError:
     cb = None
 
@@ -140,6 +141,8 @@ for path in configfiles:
 
 # 255 bytes is a safe maximum length to allow
 FILENAME_RE = compile('^[a-zA-Z0-9. _-][a-zA-Z0-9. _-]{,254}$')
+
+FALLBACK_ASSIGNED_COLUMNS = ("source.asn", "source.ip", "time.source", "source.port", "destination.ip", "destination.port", "destination.fqdn", "protocol.transport")
 
 
 @hug.startup()
@@ -436,12 +439,17 @@ def mailgen_run(body, request, response):
         response.status = falcon.HTTP_500
         return {"result": "intelmqmail is not available on this system."}
 
+    format_spec = build_table_format(
+        "Webinput",
+        tuple(((field, field) for field in body['assigned_columns'] if field))) if 'assigned_columns' in body else None
+
     try:
         mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
         return {"result": cb.start(mailgen_config, process_all=True,
                                    template=body.get('template'),
                                    templates={item['name']: item['body'] for item in body.get('templates', [])},
-                                   dry_run=body.get('dry_run')),
+                                   dry_run=body.get('dry_run'),
+                                   default_format_spec=format_spec),
                 "log": mailgen_log.getvalue().strip()}
     except Exception:
         response.status = falcon.HTTP_500
@@ -475,6 +483,10 @@ def mailgen_preview(body, request, response):
         response.status = falcon.HTTP_500
         return {"result": "intelmqmail is not available on this system."}
 
+    format_spec = build_table_format(
+        "Webinput Fallback",
+        tuple(((field, field) for field in body.get('assigned_columns', FALLBACK_ASSIGNED_COLUMNS) if field)))
+
     try:
         mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
         conn = open_db_connection(mailgen_config, connection_factory=RealDictConnection)
@@ -496,7 +508,7 @@ def mailgen_preview(body, request, response):
                                        template=body.get('template'),
                                        get_preview=True,
                                        additional_directive_where=additional_directive_where,
-                                       conn=conn)[0],  # only transmit the first notification
+                                       conn=conn, default_format_spec=format_spec)[0],  # only transmit the first notification
                     "log": mailgen_log.getvalue().strip()}
         finally:
             try:
@@ -617,6 +629,10 @@ def process(body) -> dict:
         # select only the new directives
         additional_directive_where = (mailgen_config['database'].get('additional_directive_where', '') + (' AND' if 'additional_directive_where' in mailgen_config['database'] else '') + f' d3.id > {last_id}') if last_id else None
 
+        format_spec = build_table_format(
+            "Webinput",
+            tuple(((field, field) for field in body['assigned_columns'] if field))) if 'assigned_columns' in body else None
+
         retval['log'] += mailgen_log.getvalue().strip()
         retval['notifications'] = cb.start(mailgen_config, process_all=True,
                                            template=body.get('template'),
@@ -624,7 +640,8 @@ def process(body) -> dict:
                                            get_preview=True,
                                            conn=conn,
                                            dry_run=True,
-                                           additional_directive_where=additional_directive_where)
+                                           additional_directive_where=additional_directive_where,
+                                           default_format_spec=format_spec)
         # in dry_run, mailgen calls conn.rollback() itself
 
         retval['log'] += mailgen_log.getvalue()

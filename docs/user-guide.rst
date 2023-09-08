@@ -168,9 +168,12 @@ notifications, IntelMQ Mailgen needs to filter by the criteria again
 when querying the database.
 
 The user can use two different mailgen-instance, a “normal” one and one
-for the one-shot data. Two features are useful for this: 
+for the one-shot data. Two features are useful for this:
 
-1. intelmqcbmail has a command line parameter ``--config`` / ``-c`` to read 
+1. By default, intelmqcbmail loads and uses
+   ``/etc/intelmq/intelmq-mailgen.conf``.
+
+   intelmqcbmail has a command line parameter ``--config`` / ``-c`` to read
    alternative configuration files instead of the default
    ``/etc/intelmq/intelmq-mailgen.conf``.
    For example:
@@ -180,24 +183,59 @@ for the one-shot data. Two features are useful for this:
        > intelmqcbmail -c /etc/intelmq/intelmq-mailgen-oneshot.conf
 
    See for more details: https://github.com/Intevation/intelmq-mailgen#user-content-configuration
+
+   IntelMQ Webinput can select a different configuration file for
+   `intelmqmail` using the `mailgen_config_file` configuration parameter.
+   For example:
+
+   .. code:: json
+
+      "mailgen_config_file": "/etc/intelmq/intelmq-mailgen-oneshot.conf"
 2. The configuration parameter ``additional_directive_where``, adding
    additional conditions to the WHERE-clause of the SQL-statement for the
    directives:
 
-   .. code:: sql
+   .. code:: json
 
       "additional_directive_where": "\"template_name\" = 'qakbot_provider'"
 
    It is also possible to filter by the event’s attributes. For this
    purpose, the events-table will be joined automatically.
 
-   .. code:: sql
+   .. code:: json
 
       "additional_directive_where": "events.\"feed.provider\" = 'my-organization'"
 
    Filtering by events-data decreases the performance, it is recommended to
    use filters on the directives only when possible. Documentation:
    https://github.com/Intevation/intelmq-mailgen#user-content-database-1
+
+Using different scripts (formats)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The mailgen configuration specific to Webinput can contain a different path to
+other Mailgen scripts, for example:
+
+.. code:: json
+
+   "script_directory": "/opt/formats/oneshot"
+
+In contrast to normal mailgen operation, webinput passes the assigned columns of
+the input to the script as default table format.
+The table format was in earlier versions of mailgen a mandatory parameter of
+``context.mail_format_as_csv`` an defines which data columns the CSV attachement
+of the e-mail notifications contains.
+If the script does not by itself pass a table format to ``mail_format_as_csv``,
+Mailgen uses the columns which the user assigned in the Webinput user interface.
+
+Thus, the most simple mailgen script is:
+
+.. code:: python
+
+   def create_notifications(context):
+       # always create notifications, never postpone
+       return context.mail_format_as_csv(substitutions={})
+
 
 Mailgen Templates
 ~~~~~~~~~~~~~~~~~
