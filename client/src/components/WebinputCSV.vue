@@ -874,14 +874,19 @@ export default ({
     }
   },
   methods: {
-    /**
-     * Prepare and aggregate data and send the post request.
-     */
-    sendData: function(submit=true) {
-      this.inProgress = true;
-      this.transferred = "in progress..."
-      let data = []
-      for (let item of this.parserResult.data) {
+    csvToArray(maxRows=null) {
+      /**
+       * Converts the CSV input data (parser result) into an Array ready for submission to the backend
+       * Parameters:
+       *   maxRows (int): maximum number of rows to process: null (default) for all
+       */
+      if (this.parserResult.data === undefined)
+        return []
+
+      let data = [];
+      for (let [row, item] of this.parserResult.data.entries()) {
+        if (maxRows && row >= maxRows)
+          break;
         let sendItem = {};
         for (let ndx in this.tableHeader) {
           // check for header in csv. data is array or object
@@ -898,10 +903,18 @@ export default ({
         }
         data.push(sendItem);
       }
+      return data;
+    },
+    /**
+     * Prepare and aggregate data and send the post request.
+     */
+    sendData: function(submit=true) {
+      this.inProgress = true;
+      this.transferred = "in progress..."
       let custom = this.computeCustom();
       let send = {
         timezone: this.timezone,
-        data: data,
+        data: this.csvToArray(),
         custom: custom,
         dryrun: this.dryrun,
         submit: submit,
