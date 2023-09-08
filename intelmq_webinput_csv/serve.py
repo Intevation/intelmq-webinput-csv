@@ -439,9 +439,7 @@ def mailgen_run(body, request, response):
         response.status = falcon.HTTP_500
         return {"result": "intelmqmail is not available on this system."}
 
-    format_spec = build_table_format(
-        "Webinput",
-        tuple(((field, field) for field in body['assigned_columns'] if field))) if 'assigned_columns' in body else None
+    format_spec = build_format_spec(body.get('assigned_columns'))
 
     try:
         mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
@@ -483,9 +481,7 @@ def mailgen_preview(body, request, response):
         response.status = falcon.HTTP_500
         return {"result": "intelmqmail is not available on this system."}
 
-    format_spec = build_table_format(
-        "Webinput Fallback",
-        tuple(((field, field) for field in body.get('assigned_columns', FALLBACK_ASSIGNED_COLUMNS) if field)))
+    format_spec = build_format_spec(body.get('assigned_columns'))
     example_data = EXAMPLE_CERTBUND_EVENT.copy()
     example_data.update(body.get('data', [{}])[0])
 
@@ -631,9 +627,7 @@ def process(body) -> dict:
         # select only the new directives
         additional_directive_where = (mailgen_config['database'].get('additional_directive_where', '') + (' AND' if 'additional_directive_where' in mailgen_config['database'] else '') + f' d3.id > {last_id}') if last_id else None
 
-        format_spec = build_table_format(
-            "Webinput",
-            tuple(((field, field) for field in body['assigned_columns'] if field))) if 'assigned_columns' in body else None
+        format_spec = build_format_spec(body.get('assigned_columns'))
 
         retval['log'] += mailgen_log.getvalue().strip()
         retval['notifications'] = cb.start(mailgen_config, process_all=True,
@@ -721,6 +715,18 @@ def version():
         return importlib_version('intelmq-webinput-csv')
     else:
         return get_distribution('intelmq-webinput-csv').version
+
+
+def build_format_spec(assigned_columns: Optional[list] = None) -> 'TableFormat':
+    """
+    If assigned_columns in the request is null or an empty array, use the fallback
+
+    """
+    assigned_columns = list(filter(None, assigned_columns))  # filter empty strings
+    assigned_columns = assigned_columns if assigned_columns else FALLBACK_ASSIGNED_COLUMNS
+    print('resulting assigned columns:', assigned_columns)
+    return build_table_format("Webinput Fallback",
+                              tuple(((field, field) for field in assigned_columns if field)))
 
 
 if __name__ == '__main__':
