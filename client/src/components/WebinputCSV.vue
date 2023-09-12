@@ -381,6 +381,7 @@
                 ref="table"
                 striped
                 bordered
+                fixed
                 small
                 :current-page="currentPage"
                 :per-page="perPage"
