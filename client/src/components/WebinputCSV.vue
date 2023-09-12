@@ -393,7 +393,6 @@
                     :id="data.field.key"
                     :value="data.field"
                     :options="harmonizationFields"
-                    :select-on-tab="true"
                     v-if="data.label != 'Actions'"
                     taggable
                     autoscroll
