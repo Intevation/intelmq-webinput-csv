@@ -485,7 +485,14 @@ def mailgen_preview(body, request, response):
 
     format_spec = build_format_spec(body.get('assigned_columns'))
     example_data = EXAMPLE_CERTBUND_EVENT.copy()
-    example_data.update(body.get('data', [{}])[0])
+    user_data = Event()
+    # validate the user data so that we only have syntactically correct values
+    # otherwise the database INSERT may fail because of incorrect types
+    for key, value in body.get('data', {}).items():
+        # we ignore errors here
+        # the goal is to show a template preview and give feedback on the template, not on the data
+        user_data.add(key, value, sanitize=True, overwrite=True, raise_failure=False)
+    example_data.update(user_data)
 
     try:
         mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))

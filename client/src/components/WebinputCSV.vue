@@ -827,7 +827,7 @@ export default ({
       errorMessage: null,
       showErrorModal: false,
       mailgenTargetGroups: [],
-      clientVersion: "1.2.1",
+      clientVersion: "1.2.2",
       templateDeletionModal: false,
       templateToDelete: {'index': null, 'template_name': null},
       mailgenTemplate: '',
@@ -1438,13 +1438,15 @@ export default ({
     previewMailgenTemplate(showDialog=false) {
       this.mailgenInProgress = true;
       this.mailgenLog = '';
+      let previewData = this.csvToArray(1);
+      previewData = previewData.length ? previewData[0] : {};
       this.$http.post('api/mailgen/preview',
           {
             template: this.mailgenTemplate,
             verbose: this.mailgenVerbose,
             dry_run: this.mailgenDryRun,
             assigned_columns: this.tableHeaderFlat,
-            data: this.csvToArray(1),
+            data: previewData,
             })
         .then(response => {
           this.mailgenInProgress = false;

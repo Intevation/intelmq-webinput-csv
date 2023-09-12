@@ -2,6 +2,13 @@ CHANGELOG
 =========
 
 
+1.2.2: Validate Template Preview Data (2023-09-12)
+--------------------------------------------------
+
+## Backend
+- The user data, (first line of parsed input data), used for the template content validation and preview, validated (sanitized) by IntelMQ before using it for the template preview, otherwise syntactically incorrect values could lead to PostgreSQL errors. Invalid fields are ignored and replaced by example data.
+
+
 1.2.1: UI Corrections (2023-09-12)
 ----------------------------------
 
