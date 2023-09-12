@@ -2,6 +2,16 @@ CHANGELOG
 =========
 
 
+1.2.1: UI Corrections (2023-09-12)
+----------------------------------
+
+## Frontend
+- field assignment: disable buggy select on tab behaviour than the now missing fiel assignment with tab, see https://github.com/sagalbot/vue-select/issues/1797
+- field assignment: enable autoscroll
+- table: fixed column widths, prevent wobbling on interaction with vue-select element
+- show overflows of vue-select elements
+
+
 1.2.0: Single template input (2023-09-08)
 -----------------------------------------
 

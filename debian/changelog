@@ -1,3 +1,13 @@
+intelmq-webinput-csv (1.2.1-1) stable; urgency=medium
+
+  * Frontend
+    * field assignment: disable buggy select on tab behaviour than the now missing fiel assignment with tab, see https://github.com/sagalbot/vue-select/issues/1797
+    * field assignment: enable autoscroll
+    * table: fixed column widths, prevent wobbling on interaction with vue-select element
+    * show overflows of vue-select elements
+
+ -- Sebastian Wagner <swagner@intevation.de>  Tue, 12 Sep 2023 20:46:59 +0200
+
 intelmq-webinput-csv (1.2.0-1) stable; urgency=medium
 
   * Frontend
