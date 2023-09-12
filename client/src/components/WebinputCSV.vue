@@ -396,6 +396,7 @@
                     :select-on-tab="true"
                     v-if="data.label != 'Actions'"
                     taggable
+                    autoscroll
                     @input="(fieldname) => updateTableHeader(data, fieldname)"
                   >
                     <template #footer>
