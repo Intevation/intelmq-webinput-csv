@@ -6,6 +6,7 @@ import Resource from 'vue-resource'
 import './plugins/bootstrap-vue'
 import App from './App.vue'
 import store from './store'
+import "./custom.css";
 
 Vue.config.productionTip = false
 
