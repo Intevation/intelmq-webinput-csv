@@ -1321,6 +1321,7 @@ export default ({
       let subject;
       let to;
       let body = '';
+      let previousHeader;
       let contentType = 'utf-8';  // utf-8 is the current default of mailgen, we can assume it as default and fallback
 
       for(var lineindex = 0; lineindex < splitted.length; lineindex++) {
@@ -1335,9 +1336,23 @@ export default ({
           } else if (line.slice(0, 9) == 'Subject: ') {
             console.log('is subject')
             subject = line.slice(9);
+            previousHeader = 'subject';
           } else if (line.slice(0, 4) == 'To: ') {
             console.log('is to')
             to = line.slice(4)
+            previousHeader = 'to';
+          } else if (line.slice(0, 1) == ' ' && previousHeader !== undefined) {
+            console.log('is continuation of', previousHeader)
+            switch (previousHeader) {
+              case 'subject':
+                subject = subject + ' ' + line.slice(1);
+                break;
+              case 'to':
+                to = to + ' ' + line.slice(1);
+                break;
+            }
+          } else {
+            previousHeader = undefined;
           }
         } else if (isMimeHeader) {
           if (line == '\r') {
