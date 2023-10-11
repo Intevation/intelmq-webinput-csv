@@ -1203,10 +1203,15 @@ export default ({
       for (let i in columns) {
         let colname = "";
         if (columns[i].label) {
+          // basic sanitiation of the label
+          let labelLower = columns[i].label.trim().toLowerCase();
           // clean the headers from any non-allowed characters
-          let sanitizedHeader = "extra." + columns[i].label.trim().toLowerCase().replaceAll(/ /g, '_').replaceAll(/[^a-z_0-9.]+/gi, '');
-          // assert that the header is not yet used, to prevent duplicates
-          if (this.tableHeader.map(x => x.label).indexOf(sanitizedHeader) === -1) {
+          let sanitizedHeader = "extra." + labelLower.replaceAll(/ /g, '_').replaceAll(/[^a-z_0-9.]+/gi, '');
+          console.log('types:', this.harmonizationFields);
+          if (this.harmonizationFields.indexOf(labelLower) !== -1) {
+            colname = labelLower;
+            // assert that the header is not yet used, to prevent duplicates
+          } else if (this.tableHeader.map(x => x.label).indexOf(sanitizedHeader) === -1) {
             colname = sanitizedHeader;
           } else {
             colname = '';
