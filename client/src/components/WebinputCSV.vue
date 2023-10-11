@@ -1170,9 +1170,11 @@ export default ({
         }
       });
       if (this.parserResult.meta.aborted) {
+        this.overlay = false;
         return;
       }
       if (this.parserResult.data.length === 0) {
+        this.overlay = false;
         return;
       }
       this.lines = this.parserResult.data.length;
