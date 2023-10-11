@@ -26,7 +26,7 @@ To get the Webinput-CSV up and running, clone the repo and use
    $ pip3 install .
    $ hug -f intelmq_webinput_csv/serve.py -p 8002
 
-For more details see the `Installation guide <./docs/INSTALL.md>`__.
+For more details see the `Installation guide <https://intevation.github.io/intelmq-webinput-csv/installation.html>`__.
 
 User Guide
 ----------
@@ -36,7 +36,7 @@ The Webinput-CSV can be started with default values and is fully usable
 for the input are available in the Frontend and are self explaining.
 
 For detailed description of configuration and parameters see the `user
-guide <./docs/User-Guide.md>`__.
+guide <https://intevation.github.io/intelmq-webinput-csv/user-guide.html>`__.
 
 Development
 -----------
@@ -56,7 +56,7 @@ Like hug, yarn provides this for the client using
    $ yarn && yarn serve
 
 For detailed developer information and how to develop with docker see
-`developer guide <./docs/Developers-Guide.md>`__
+`developer guide <https://intevation.github.io/intelmq-webinput-csv/developers-guide.html>`__
 
 Licence
 -------
