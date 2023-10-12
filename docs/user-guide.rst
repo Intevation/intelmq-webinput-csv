@@ -277,6 +277,18 @@ Thus, the most simple mailgen script is:
        # always create notifications, never postpone
        return context.mail_format_as_csv(substitutions={})
 
+Defining CSV attachment columns
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The table format (also: format spec) defines which data fields of the entire
+event data will be included in the CSV attachment file in the notifications.
+
+Mailgen's behavior is described in `its documentation <http://intevation.github.io/intelmq-mailgen/scripts.html#format-spec-also-table-format>`_.
+
+Webinput passes the name of the columns, which are assigned by the operator, to mailgen.
+
+If the Mailgen scripts do not define any other format spec, the notifications will contain exactly the columns assigned by the operator.
+If the Mailgen scripts do define a format spec, they take precedence.
 
 Mailgen Templates
 ~~~~~~~~~~~~~~~~~
