@@ -13,7 +13,7 @@ CHANGELOG
 ----------------------------------
 
 ## Frontend
-- field assignment: disable buggy select on tab behaviour than the now missing fiel assignment with tab, see https://github.com/sagalbot/vue-select/issues/1797
+- field assignment: disable buggy select on tab behaviour than the now missing field assignment with tab, see https://github.com/sagalbot/vue-select/issues/1797
 - field assignment: enable autoscroll
 - table: fixed column widths, prevent wobbling on interaction with vue-select element
 - show overflows of vue-select elements

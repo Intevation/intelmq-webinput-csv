@@ -41,7 +41,7 @@ Data Validation
 Assign data columns to IntelMQ fields and validate the data:
 
 .. figure:: ./images/data-validation.png
-   :alt: field asssignment and data validation
+   :alt: field assignment and data validation
 
 Data Row preview
 ~~~~~~~~~~~~~~~~

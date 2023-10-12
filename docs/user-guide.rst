@@ -264,7 +264,7 @@ other Mailgen scripts, for example:
 In contrast to normal mailgen operation, webinput passes the assigned columns of
 the input to the script as default table format.
 The table format was in earlier versions of mailgen a mandatory parameter of
-``context.mail_format_as_csv`` an defines which data columns the CSV attachement
+``context.mail_format_as_csv`` an defines which data columns the CSV attachment
 of the e-mail notifications contains.
 If the script does not by itself pass a table format to ``mail_format_as_csv``,
 Mailgen uses the columns which the user assigned in the Webinput user interface.
