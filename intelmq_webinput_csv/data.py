@@ -5,6 +5,8 @@ Software engineering by Intevation GmbH <https://intevation.de>
 """
 from copy import deepcopy
 
+from intelmq.lib.message import Event
+
 """
 Fields left out in this example event are:
 destination.geolocation.latitude
@@ -40,7 +42,7 @@ EXAMPLE_EVENT = {
     "destination.port": "1682",
     "destination.registry": "ARIN",
     "destination.reverse_dns": "reverse-destination.example.com",
-    "destination.tor_node": "0",
+    "destination.tor_node": False,
     "destination.url": "https://destination.example.org/bar",
     "destination.urlpath": "/bar",
     "event_description.target": "Event Description Target",
@@ -85,7 +87,7 @@ EXAMPLE_EVENT = {
     "source.port": "80",
     "source.registry": "RIPE",
     "source.reverse_dns": "reverse-source.example.org",
-    "source.tor_node": "0",
+    "source.tor_node": False,
     "source.url": "http://source.example.org/foo",
     "source.urlpath": "/foo",
     "status": "online",
@@ -93,6 +95,7 @@ EXAMPLE_EVENT = {
     "time.source": "2023-06-29 08:44:22+00",
     "tlp": "GREEN",
 }
+EXAMPLE_EVENT = Event(EXAMPLE_EVENT)
 
 EXAMPLE_DIRECTIVES = {
     "source_directives": [
@@ -112,4 +115,4 @@ EXAMPLE_DIRECTIVES = {
 }
 
 EXAMPLE_CERTBUND_EVENT = EXAMPLE_EVENT.copy()
-EXAMPLE_CERTBUND_EVENT['extra']['certbund'] = EXAMPLE_DIRECTIVES
+EXAMPLE_CERTBUND_EVENT.add('extra.certbund', EXAMPLE_DIRECTIVES)

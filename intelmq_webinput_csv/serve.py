@@ -492,7 +492,9 @@ def mailgen_preview(body, request, response):
         # we ignore errors here
         # the goal is to show a template preview and give feedback on the template, not on the data
         user_data.add(key, value, sanitize=True, overwrite=True, raise_failure=False)
-    example_data.update(user_data)
+    example_data.update(user_data)  # TODO:
+    # this converts extra-keys to a single dict, so the INSERT below works
+    example_data = example_data.to_dict(jsondict_as_string=True)
 
     try:
         mailgen_config = cb.read_configuration(CONFIG.get('mailgen_config_file'))
@@ -501,11 +503,11 @@ def mailgen_preview(body, request, response):
 
         try:
             cur = conn.cursor()
+            cur.execute('START TRANSACTION')
             cur.execute('INSERT INTO events ("{keys}") VALUES ({values})'
                         ''.format(keys='", "'.join(example_data.keys()),
                                   values=', '.join(['%s'] * len(example_data))),
                         list(example_data.values()))
-            cur.execute('START TRANSACTION')
             cur.execute('SELECT id FROM directives ORDER BY id DESC LIMIT 1;')
             last_id = cur.fetchone()['id'] if cur.rowcount else None
             # ignore the additional_directive_where in mailgen config as that causes we are not seeing the test event
