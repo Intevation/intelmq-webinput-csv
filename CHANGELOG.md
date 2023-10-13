@@ -2,6 +2,36 @@ CHANGELOG
 =========
 
 
+1.2.3: CSV special case corrections, extra data in notifications, documentation (2023-10-13)
+--------------------------------------------------------------------------------------------
+
+* Corrections to handling of extra data in mailgen template preview
+* Corrections for special cases in CSV data
+* Extended Documentation
+
+## Backend
+* convert example data to Event to handle extra data in database insert:
+  for the mailgen preview, convert the example data to an IntelMQ event
+  and before submitting it to the database, to a dict with extra as a
+  string.
+  Previously, extra-data provided by the user could not be inserted,
+  raising an error
+
+## Frontend
+* frontend: detect if csv data header can be used as field name and use it:
+  if the csv column name (table header) contains a legitimate IntelMQ
+  field name, use this one and skip the further sanitation steps
+* frontend: handle CSV data with no body, but only with a header:
+  if the CSV data contains just one line and the header option is active,
+  the data is body/content-less
+  handle these special cases by aborting the parse and disabling the
+  spinner
+
+## Documentation
+* docs: document format spec (mailgen) influence
+* docs: change URLs to rendered sphinx docs in README
+
+
 1.2.2: Validate Template Preview Data (2023-09-12)
 --------------------------------------------------
 

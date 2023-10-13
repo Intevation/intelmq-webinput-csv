@@ -1,3 +1,24 @@
+intelmq-webinput-csv (1.2.3-1) UNRELEASED; urgency=medium
+
+  * backend: convert example data to Event to handle extra data in database insert:
+    for the mailgen preview, convert the example data to an IntelMQ event
+    and before submitting it to the database, to a dict with extra as a
+    string.
+    Previously, extra-data provided by the user could not be inserted,
+    raising an error
+  * docs: document format spec (mailgen) influence
+  * docs: change URLs to rendered sphinx docs in README
+  * frontend: detect if csv data header can be used as field name and use it:
+    if the csv column name (table header) contains a legitimate IntelMQ
+    field name, use this one and skip the further sanitation steps
+  * frontend: handle CSV data with no body, but only with a header:
+    if the CSV data contains just one line and the header option is active,
+    the data is body/content-less
+    handle these special cases by aborting the parse and disabling the
+    spinner
+
+ -- Sebastian Wagner <swagner@intevation.de>  Fri, 13 Oct 2023 17:48:08 +0200
+
 intelmq-webinput-csv (1.2.2-1) stable; urgency=medium
 
   * Validate Template Preview Data: The user data, (first line of parsed input data), used for the template content validation and preview, validated (sanitized) by IntelMQ before using it for the template preview, otherwise syntactically incorrect values could lead to PostgreSQL errors. Invalid fields are ignored and replaced by example data.
