@@ -242,7 +242,7 @@
           </b-card>
         </b-overlay>
 
-        <b-card no-body class="mb-1" style="overflow: visible;">
+        <b-card no-body class="mb-1" style="overflow-x: visible;">
           <b-card-header header-tag="header" class="p-1" role="tab">
             <b-button :disabled="!csvFile && csvText === ''" block v-b-toggle.accordion-3 variant="info">Data Validation and Submission</b-button>
           </b-card-header>
@@ -497,7 +497,7 @@
             </b-card-body>
           </b-collapse>
         </b-card>
-        <b-card no-body class="mb-1" style="overflow: visible;">
+        <b-card no-body class="mb-1" style="overflow-x: visible;">
 
           <b-card-header header-tag="header" class="p-1" role="tab">
             <b-button :disabled="!mailgenAvailable" block v-b-toggle.accordion-notifications variant="info" :title="mailgenAvailable ? 'Set Mailgen Templates and Start a Mailgen Run' : 'Mailgen is not installed/available'">Send Notifications</b-button>
