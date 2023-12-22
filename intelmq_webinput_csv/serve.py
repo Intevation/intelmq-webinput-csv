@@ -735,7 +735,6 @@ def build_format_spec(assigned_columns: Optional[list] = None) -> 'TableFormat':
     """
     assigned_columns = list(filter(None, assigned_columns))  # filter empty strings
     assigned_columns = assigned_columns if assigned_columns else FALLBACK_ASSIGNED_COLUMNS
-    print('resulting assigned columns:', assigned_columns)
     return build_table_format("Webinput Fallback",
                               tuple(((field, field) for field in assigned_columns if field)))
 
