@@ -403,5 +403,10 @@ Configuring this feature works as follows:
                "password": "secret",
                "dbname": "contactdb"
            },
-           "query": "SELECT tag_value FROM tags WHERE tag_name_id = 2"
+           "tag_name_query": "SELECT tag_name FROM tag WHERE tag_name_id = 2",
+           "tag_value_query": "SELECT tag_value FROM tag WHERE tag_name_id = 2 ORDER BY tag_value"
        }
+
+The first value of the ``tag_name_query`` query is used as label for the input field, e.g. *Target Group*.
+
+The values of the ``tag_value_query`` define the possible input values for the multiple-choice checkboxes.
