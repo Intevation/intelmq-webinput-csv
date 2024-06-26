@@ -360,7 +360,7 @@
                   </b-col>
                   <b-col>
                     <h4>Constant fields (fallback values)</h4>
-                    <b-form-group label-cols=4 label="classification type">
+                    <b-form-group label-cols=4 label="classification.type" label-class="text-monospace">
                       <b-form-select
                         v-model="classificationType"
                         :options="classificationTypes"
