@@ -397,7 +397,7 @@
                     autoscroll
                     @input="(fieldname) => updateTableHeader(data, fieldname)"
                   >
-                    <template #footer>
+                    <template #header>
                       <Transition
                         :duration="{ leave: 1500 }"
                         @enter="(element, done) => onInvalidFieldEnter(element, done, data.field.key)"

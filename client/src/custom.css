@@ -1,3 +1,20 @@
 .b-table-sticky-header {
     overflow-x: visible;
 }
+
+.vs__selected-options {
+    /* vue-select: Prevent that long field names cause the input field to grow vertically (without using the space actually) */
+    flex-wrap: nowrap;
+    /* Prevent that the action buttons disappear to the right behind other elements */
+    max-width: 80%;
+}
+
+.vs__clear {
+    /* vue-select: instead of light grey which is hard to read above text, make the clear button black */
+    fill: var(--vs-controls--dark);
+}
+
+.vs__actions {
+    /* Put action buttons always on top of text */
+    z-index: 10;
+}
