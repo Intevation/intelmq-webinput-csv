@@ -68,7 +68,7 @@ try:
 except ImportError:
     BotLibSettings = None
     Bot = None
-from intelmq.lib.exceptions import InvalidValue, IntelMQException
+from intelmq.lib.exceptions import InvalidValue, IntelMQException, InvalidKey
 from intelmq.lib.harmonization import DateTime
 from intelmq.lib.message import Event, MessageFactory
 from intelmq.lib.pipeline import PipelineFactory
@@ -737,6 +737,20 @@ def build_format_spec(assigned_columns: Optional[list] = None) -> 'TableFormat':
     assigned_columns = assigned_columns if assigned_columns else FALLBACK_ASSIGNED_COLUMNS
     return build_table_format("Webinput Fallback",
                               tuple(((field, field) for field in assigned_columns if field)))
+
+
+@hug.post(ENDPOINT_PREFIX + '/api/harmonization/fieldname_validity')
+def check_fieldname_validity(fieldname: str):
+    """
+    Check if a field name is valid
+    """
+    ev = Event()
+    try:
+        ev.is_valid(fieldname, None)
+    except InvalidKey as exc:
+        return {"status": False, "reason": str(exc)}
+    else:
+        return {"status": True}
 
 
 if __name__ == '__main__':

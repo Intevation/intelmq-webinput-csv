@@ -396,16 +396,15 @@
                     taggable
                     autoscroll
                     @input="(fieldname) => updateTableHeader(data, fieldname)"
+                    @option:deselected="(fieldname) => updateTableHeader(data, null)"
                   >
                     <template #header>
-                      <Transition
-                        :duration="{ leave: 1500 }"
-                        @enter="(element, done) => onInvalidFieldEnter(element, done, data.field.key)"
-                        >
-                        <div style="color: red" v-if="data.field.invalid">
-                          Multiple field assignment!
-                        </div>
-                      </Transition>
+                      <div style="color: red" v-if="data.field.invalid">
+                        {{ data.field.invalid }}
+                      </div>
+                      <div style="color: orange" v-if="data.field.warning">
+                        {{ data.field.warning }}
+                      </div>
                     </template>
                   </v-select>
                 </template>
@@ -1007,6 +1006,8 @@ export default ({
 
       if (newFieldName == null) {
         newFieldName = "";
+        // After deleting the field name, it can't be a multiple field assignement
+        this.$set(this.tableHeader[ndx], 'warning', false);
       } else {
         // first remove encircling whitespace, then replace whitespace by _, then remove all unallowed characters
         newFieldName = newFieldName.trim().toLowerCase().replaceAll(/ /g, '_').replaceAll(/[^a-z_0-9.]+/gi, '');
@@ -1017,11 +1018,37 @@ export default ({
             // skip Actions columns, unassigned columns and this column
           } else if (this.tableHeader[i].label == newFieldName) {
             // Show the error message
-            // when setting the property directly, the message won't disappear
-            this.$set(this.tableHeader[ndx], 'invalid', true);
+            this.$set(this.tableHeader[ndx], 'warning', 'Multiple field assignment!');
+            console.error('Multiple field assignment!');
+            break
+          } else {
+            this.$set(this.tableHeader[ndx], 'warning', false);
           }
         }
+
+        // check if the new field name is a valid IntelMQ field name
+        this.$http.post('api/harmonization/fieldname_validity', {'fieldname': newFieldName})
+          .then(response => {
+            if (response.status !== 200) {
+              this.$set(this.tableHeader[ndx], 'invalid', 'Validity check failed');
+              console.error('Field name validity check failed. Response code:', response.status, ' Content:', response.content)
+              return;
+            }
+            response.json().then(data => {
+              if (data.status == false) {
+                this.$set(this.tableHeader[ndx], 'invalid', 'Invalid field name');
+                console.error('Field name validity check. Result:', data)
+              }
+            })
+          }, (response) => { // error
+            this.$set(this.tableHeader[ndx], 'invalid', 'Validity check failed');
+            console.error('Field name validity check failed. Response code:', response.status, ' Content:', response.content)
+            return;
+          });
       }
+
+      // if the field is valid, set invalid to false in case the field was previously invalid
+      this.$set(this.tableHeader[ndx], 'invalid', false);
 
       // set the new field
       this.tableHeader[ndx].label = newFieldName;
