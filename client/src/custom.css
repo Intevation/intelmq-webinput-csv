@@ -1,20 +1,48 @@
-.b-table-sticky-header {
-    overflow-x: visible;
-}
+/* VUE-SELECT */
 
+/* The container of the input form */
 .vs__selected-options {
     /* vue-select: Prevent that long field names cause the input field to grow vertically (without using the space actually) */
     flex-wrap: nowrap;
-    /* Prevent that the action buttons disappear to the right behind other elements */
-    max-width: 80%;
+    /* wrap long field names to make them visible and not a hidden overflow */
+    overflow-wrap: anywhere;
+}
+.b-table-sticky-header .vs__selected-options {
+    /* use more space for the field names to reduce the need for wrapping */
+    padding: 0;
 }
 
+/* The action buttons in the input form */
 .vs__clear {
     /* vue-select: instead of light grey which is hard to read above text, make the clear button black */
     fill: var(--vs-controls--dark);
 }
-
 .vs__actions {
     /* Put action buttons always on top of text */
     z-index: 10;
+}
+
+/* The selected, current and visible value of the drop down menu */
+.b-table-sticky-header .vs__dropdown-selected {
+    /* use more space for the field names to reduce the need for wrapping */
+    margin: 0;
+    padding: 0;
+}
+
+/* The options in the drop down */
+.vs__dropdown-option {
+    /* wrap long field names to make them visible and not a hidden overflow */
+    overflow-wrap: anywhere;
+    white-space: initial;
+    /* use more space for the field names to reduce the need for wrapping */
+    padding: 0;
+}
+.b-table-sticky-header .vs__selected {
+    /* use more space for the field names to reduce the need for wrapping */
+    padding: 0;
+}
+
+/* An input field with no displayed content. Reduce its size to save space */
+.vs__search {
+    padding: 0;
 }

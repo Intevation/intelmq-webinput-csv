@@ -395,6 +395,7 @@
                     v-if="data.label != 'Actions'"
                     taggable
                     autoscroll
+                    appendToBody
                     @input="(fieldname) => updateTableHeader(data, fieldname)"
                     @option:deselected="(fieldname) => updateTableHeader(data, null)"
                   >
