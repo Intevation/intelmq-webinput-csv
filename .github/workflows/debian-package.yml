@@ -1,4 +1,4 @@
-#SPDX-FileCopyrightText: 2023 Intevation GmbH
+#SPDX-FileCopyrightText: 2023-2024 Intevation GmbH
 #SPDX-License-Identifier: AGPL-3.0-or-later
 
 name: "Build Debian packages"
@@ -6,7 +6,7 @@ on: [push, pull_request]
 
 jobs:
   build-debian-package:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     name: Build Debian packages
 
     steps:

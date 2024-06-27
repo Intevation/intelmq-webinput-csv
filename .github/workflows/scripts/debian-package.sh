@@ -13,13 +13,13 @@ if [ "$ID" == "debian" ]; then
 elif [ "$ID" == "ubuntu" ]; then
     os_repo_name="xUbuntu"
 fi
-echo "deb http://download.opensuse.org/repositories/home:/sebix:/intelmq/${os_repo_name}_${VERSION_ID}/ /" | sudo tee /etc/apt/sources.list.d/intelmq.list
-wget -O - https://download.opensuse.org/repositories/home:sebix:intelmq/${os_repo_name}_${VERSION_ID}/Release.key | sudo apt-key add -
-echo "deb https://deb.nodesource.com/node_14.x ${VERSION_CODENAME} main" | sudo tee /etc/apt/sources.list.d/nodesource.list
-wget -O - https://deb.nodesource.com/gpgkey/nodesource.gpg.key | sudo apt-key add -
-echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarnpkg.list
-wget -O - https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-sudo apt update
+echo "deb [signed-by=/etc/apt/trusted.gpg.d/sebix.asc] http://download.opensuse.org/repositories/home:/sebix:/intelmq/${os_repo_name}_${VERSION_ID}/ /" | sudo tee /etc/apt/sources.list.d/intelmq.list
+wget -O /etc/apt/trusted.gpg.d/sebix.asc https://download.opensuse.org/repositories/home:sebix:intelmq/${os_repo_name}_${VERSION_ID}/Release.key
+echo "deb [signed-by=/etc/apt/trusted.gpg.d/nodesource.asc] https://deb.nodesource.com/node_14.x ${VERSION_CODENAME} main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+wget -O /etc/apt/trusted.gpg.d/nodesource.asc  https://deb.nodesource.com/gpgkey/nodesource.gpg.key
+echo "deb [signed-by=/etc/apt/trusted.gpg.d/yarn.asc] https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarnpkg.list
+wget -O /etc/apt/trusted.gpg.d/yarn.asc https://dl.yarnpkg.com/debian/pubkey.gpg
+sudo apt-get update
 
 # install build dependencies
 DEBIAN_FRONTEND="noninteractive" sudo -E apt-get update -qq
