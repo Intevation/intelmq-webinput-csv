@@ -403,7 +403,7 @@ Configuring this feature works as follows:
                "password": "secret",
                "dbname": "contactdb"
            },
-           "tag_name_query": "SELECT tag_name FROM tag WHERE tag_name_id = 2",
+           "tag_name_query": "SELECT tag_name FROM tag_name WHERE tag_name_id = 2",
            "tag_value_query": "SELECT tag_value FROM tag WHERE tag_name_id = 2 ORDER BY tag_value"
        }
 
