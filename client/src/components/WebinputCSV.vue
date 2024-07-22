@@ -826,7 +826,7 @@ export default ({
       errorMessage: null,
       showErrorModal: false,
       mailgenTargetGroups: [],
-      clientVersion: "1.2.3",
+      clientVersion: "1.2.4",
       templateDeletionModal: false,
       templateToDelete: {'index': null, 'template_name': null},
       mailgenTemplate: '',

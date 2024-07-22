@@ -1,4 +1,21 @@
-intelmq-webinput-csv (1.2.3-1) UNRELEASED; urgency=medium
+intelmq-webinput-csv (1.2.4-1) stable; urgency=medium
+
+  * Backend: New API endpoint to check the validity of a field name with IntelMQ.
+  * Frontend: Updated dependencies: babel/traverse, browserify-sign
+  * Frontend: Mail parser: handle multi-line subject/to
+  * Frontend: yarn.lock: re-resolve all packages
+  * Frontend: Field name drop downs:
+      * prevent overflows
+      * add wrapping and reduce paddings
+      * improve  visibility of action buttons
+      * check the validity of an entered field name with IntelMQ
+  * Frontend: validate checkbox: show reason if no bots available
+  * Frontend: other minor improvements
+  * Documentation: minor changes
+
+ -- Sebastian Wagner <swagner@intevation.de>  Thu, 27 Jun 2024 11:49:50 +0200
+
+intelmq-webinput-csv (1.2.3-1) stable; urgency=medium
 
   * backend: convert example data to Event to handle extra data in database insert:
     for the mailgen preview, convert the example data to an IntelMQ event

@@ -2,6 +2,27 @@ CHANGELOG
 =========
 
 
+1.2.4: Field name selector improvements
+---------------------------------------
+
+## Backend
+* New API endpoint to check the validity of a field name with IntelMQ.
+
+## Frontend
+* Updated dependencies: babel/traverse, browserify-sign
+* Mail parser: handle multi-line subject/to
+* yarn.lock: re-resolve all packages
+* Field name drop downs:
+    * prevent overflows
+    * add wrapping and reduce paddings
+    * improve  visibility of action buttons
+    * check the validity of an entered field name with IntelMQ
+* validate checkbox: show reason if no bots available
+* other minor improvements
+
+## Documentation
+* minor changes
+
 1.2.3: CSV special case corrections, extra data in notifications, documentation (2023-10-13)
 --------------------------------------------------------------------------------------------
 
