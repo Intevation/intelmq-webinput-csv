@@ -158,6 +158,20 @@ to create and deliver
 notifications to network owners, some additional tweaks add more value
 and flexibility to the system.
 
+A few things need to be considered for the setup and configuration:
+
+1. The Database user, used by Mailgen via Webinput needs to have permission on the events table:
+
+   .. code:: sql
+
+      GRANT INSERT ON TABLE events TO intelmq_mailgen;
+      GRANT INSERT ON events_id_seq TO intelmq_mailgen;
+
+2. For OpenPGP-signatures in maigen, the webserver user must have sufficient privileges to the gnupg home directory
+
+   1. write access on the directory itself to create temporary files
+   2. read access to all files in the directoy
+
 Applying different bots on one-shot data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -232,7 +246,7 @@ for the one-shot data. Two features are useful for this:
    .. code:: json
 
       "mailgen_config_file": "/etc/intelmq/intelmq-mailgen-oneshot.conf"
-2. The configuration parameter ``additional_directive_where``, adding
+2. The mailgen configuration parameter ``additional_directive_where``, adding
    additional conditions to the WHERE-clause of the SQL-statement for the
    directives:
 
