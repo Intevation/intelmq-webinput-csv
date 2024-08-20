@@ -1,3 +1,22 @@
+intelmq-webinput-csv (1.2.5-1) stable; urgency=medium
+
+  * Configuration
+    * New parameter `allowed_event_fields` to limit the list of allowed event field names.
+      Default (unset) is to allow all fields.
+  * Backend
+    * Add check for `allowed_event_fields`
+  * Frontend
+    * Template preview
+      * Add support for unsigned (plain/text) e-mails
+      * Show Content Type of resulting e-mail
+    * Modal window for row details (events, bot logs):
+      * add line-wrapping for code blocks
+      * format the section headings better
+  * Documentation
+    * mailgen: add notes on database privs and gnupg
+
+ -- Sebastian Wagner <swagner@intevation.de>  Tue, 20 Aug 2024 18:17:42 +0200
+
 intelmq-webinput-csv (1.2.4-1) stable; urgency=medium
 
   * Backend: New API endpoint to check the validity of a field name with IntelMQ.

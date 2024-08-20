@@ -2,6 +2,27 @@ CHANGELOG
 =========
 
 
+1.2.5: Limit allowed Event fields
+---------------------------------
+
+## Configuration
+* New parameter `allowed_event_fields` to limit the list of allowed event field names.
+  Default (unset) is to allow all fields.
+
+## Backend
+* Add check for `allowed_event_fields`
+
+## Frontend
+* Template preview
+     * Add support for unsigned (plain/text) e-mails
+     * Show Content Type of resulting e-mail
+* Modal window for row details (events, bot logs):
+     * add line-wrapping for code blocks
+     * format the section headings better
+
+## Documentation
+* mailgen: add notes on database privs and gnupg
+
 1.2.4: Field name selector improvements
 ---------------------------------------
 

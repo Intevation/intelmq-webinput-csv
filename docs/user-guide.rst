@@ -84,7 +84,7 @@ Usual configuration parameters
    with bots, no data will be written anywhere, neither to an IntelMQ pipeline,
    nor to the database!
 - ``allowed_event_fields``: A list of `IntelMQ Event Field Names
-  <https://docs.intelmq.org/latest/user/event/#fields-reference>_` which are
+  <https://docs.intelmq.org/latest/user/event/#fields-reference>`_ which are
   allowed for user input. If left empty, all fields are allowed (default).
   The check is applied in the frontend (field selection for columns) and backend.
   The check does **not** apply to constant fields and custom input fields!
@@ -172,7 +172,7 @@ A few things need to be considered for the setup and configuration:
       GRANT INSERT ON TABLE events TO intelmq_mailgen;
       GRANT INSERT ON events_id_seq TO intelmq_mailgen;
 
-2. For OpenPGP-signatures in maigen, the webserver user must have sufficient privileges to the gnupg home directory
+2. For OpenPGP-signatures in mailgen, the webserver user (or the user running the WSGI process) must have sufficient privileges to the gnupg home directory
 
    1. write access on the directory itself to create temporary files
    2. read access to all files in the directoy
