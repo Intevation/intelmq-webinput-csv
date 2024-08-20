@@ -119,7 +119,6 @@ ENDPOINT_PREFIX = '/webinput'
 # Read parameters from config
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'webinput_csv.conf')
 ENV_CONFIG_FILE = os.environ.get("WEBINPUT_CSV_CONFIG")
-config = False
 
 configfiles = [
     Path(CONFIG_FILE),
@@ -131,7 +130,6 @@ if ENV_CONFIG_FILE:
 for path in configfiles:
     if path and path.exists() and path.is_file():
         print(f"Loading config from {path}")
-        config = True
         with path.open(encoding='utf-8') as f:
             CONFIG = json.load(f)
             ENDPOINT_PREFIX = CONFIG.get('prefix', '/webinput')
