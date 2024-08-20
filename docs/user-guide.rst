@@ -86,7 +86,8 @@ Usual configuration parameters
 - ``allowed_event_fields``: A list of `IntelMQ Event Field Names
   <https://docs.intelmq.org/latest/user/event/#fields-reference>_` which are
   allowed for user input. If left empty, all fields are allowed (default).
-  The check is applied in the frontend and backend.
+  The check is applied in the frontend (field selection for columns) and backend.
+  The check does **not** apply to constant fields and custom input fields!
 
 Mailgen configuration parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

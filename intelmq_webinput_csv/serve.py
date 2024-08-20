@@ -97,13 +97,13 @@ except ImportError:
 # automatic conversion of python dicts to postgres' json
 register_adapter(dict, Json)
 try:
-    EVENT_FIELDS = load_configuration(HARMONIZATION_CONF_FILE)
+    HARMONIZATION_CONF = load_configuration(HARMONIZATION_CONF_FILE)
 except ValueError:
     # Fallback to internal harmonization file
     if importlib_resources:  # Ubuntu 22.04
-        EVENT_FIELDS = load_configuration(importlib_resources.files('intelmq') / 'etc/harmonization.conf')
+        HARMONIZATION_CONF = load_configuration(importlib_resources.files('intelmq') / 'etc/harmonization.conf')
     else:  # Ubuntu 20.04
-        EVENT_FIELDS = load_configuration(resource_filename('intelmq', 'etc/harmonization.conf'))
+        HARMONIZATION_CONF = load_configuration(resource_filename('intelmq', 'etc/harmonization.conf'))
 
 # Logging
 logging.basicConfig(format='%(asctime)s %(name)s %(levelname)s - %(message)s')
@@ -139,13 +139,13 @@ for path in configfiles:
 
 ALLOWED_EVENT_FIELDS = CONFIG.get('allowed_event_fields', {})
 if ALLOWED_EVENT_FIELDS:
-    EVENT_FIELD_WHITELIST = {
-        'event': {k: v for (k, v) in EVENT_FIELDS['event'].items() if k in ALLOWED_EVENT_FIELDS}
+    EVENT_HARMONIZATION = {
+        'event': {k: v for (k, v) in HARMONIZATION_CONF['event'].items() if k in ALLOWED_EVENT_FIELDS}
     }
-    FIELD_TEST_EVENT = Event(harmonization=EVENT_FIELD_WHITELIST)
 else:
-    ALLOWED_EVENT_FIELDS = EVENT_FIELDS['event'].keys()
-    FIELD_TEST_EVENT = Event()
+    EVENT_HARMONIZATION = HARMONIZATION_CONF
+ALLOWED_EVENT_FIELDS = EVENT_HARMONIZATION['event'].keys()
+FIELD_TEST_EVENT = Event(harmonization=EVENT_HARMONIZATION)
 
 # 255 bytes is a safe maximum length to allow
 FILENAME_RE = compile('^[a-zA-Z0-9. _-][a-zA-Z0-9. _-]{,254}$')
@@ -288,7 +288,6 @@ def uploadCSV(body, request, response):
     tracebacks = []
     input_lines_invalid = 0
     output_lines = 0
-    output_lines_invalid = 0
 
     for lineno, item in enumerate(data):
         if not item:
@@ -297,7 +296,6 @@ def uploadCSV(body, request, response):
 
         event, input_line_valid = row_to_event(item, body, retval, lineno, time_observation)
         if not input_line_valid:
-            output_lines_invalid += 1
             continue
 
         bots_input = [event]
@@ -311,7 +309,6 @@ def uploadCSV(body, request, response):
                 except Exception:
                     bot_raised_errors = True
                     tracebacks.append(traceback.format_exc())
-                    output_lines_invalid += 1
                 else:
                     # for output bots, the output queue is empty, don't consider it
                     if bot.bottype is not BotType.OUTPUT:
@@ -497,7 +494,7 @@ def mailgen_preview(body, request, response):
 
     format_spec = build_format_spec(body.get('assigned_columns'))
     example_data = EXAMPLE_CERTBUND_EVENT.copy()
-    user_data = Event()
+    user_data = Event()  # we can't use the allowed_event_fields setting here, as we also need to consider fields produced by bots
     # validate the user data so that we only have syntactically correct values
     # otherwise the database INSERT may fail because of incorrect types
     for key, value in body.get('data', {}).items():
