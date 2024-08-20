@@ -123,7 +123,7 @@ export default new Vuex.Store({
       Vue.http.get("api/harmonization/event/fields").then(
         response => response.json().then(data => {
           if (data) {
-            context.commit("SET_FIELDS", Object.keys(data));
+            context.commit("SET_FIELDS", data);
           }
         })
       )

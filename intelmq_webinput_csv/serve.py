@@ -137,6 +137,16 @@ for path in configfiles:
                 ENDPOINT_PREFIX = ENDPOINT_PREFIX[:-1]
             CONSTANTS = CONFIG.get('constant_fields', '{}')
 
+ALLOWED_EVENT_FIELDS = CONFIG.get('allowed_event_fields', {})
+if ALLOWED_EVENT_FIELDS:
+    EVENT_FIELD_WHITELIST = {
+        'event': {k: v for (k, v) in EVENT_FIELDS['event'].items() if k in ALLOWED_EVENT_FIELDS}
+    }
+    FIELD_TEST_EVENT = Event(harmonization=EVENT_FIELD_WHITELIST)
+else:
+    ALLOWED_EVENT_FIELDS = EVENT_FIELDS['event'].keys()
+    FIELD_TEST_EVENT = Event()
+
 # 255 bytes is a safe maximum length to allow
 FILENAME_RE = compile('^[a-zA-Z0-9. _-][a-zA-Z0-9. _-]{,254}$')
 
@@ -194,6 +204,7 @@ def row_to_event(item: dict, body: dict,
                 lineerrors[key].append(f"Failed to parse {value!r} as time for field {key!r}: {exc!s}")
                 line_valid = False
         try:
+            FIELD_TEST_EVENT.is_valid(key, None, sanitize=False)  # raises InvalidKey if key is not in list of allowed keys
             event.add(key, value)
         except IntelMQException as exc:
             lineerrors[key].append(f"Failed to add data {value!r} as field {key!r}: {exc!s}")
@@ -367,7 +378,7 @@ def classification_types():
 
 @hug.get(ENDPOINT_PREFIX + '/api/harmonization/event/fields', requires=session.token_authentication)
 def harmonization_event_fields():
-    return EVENT_FIELDS['event']
+    return ALLOWED_EVENT_FIELDS
 
 
 @hug.get(ENDPOINT_PREFIX + '/api/custom/fields', requires=session.token_authentication)
@@ -742,9 +753,8 @@ def check_fieldname_validity(fieldname: str):
     """
     Check if a field name is valid
     """
-    ev = Event()
     try:
-        ev.is_valid(fieldname, None)
+        FIELD_TEST_EVENT.is_valid(fieldname, None)
     except InvalidKey as exc:
         return {"status": False, "reason": str(exc)}
     else:

@@ -83,6 +83,10 @@ Usual configuration parameters
    Warning: If no SQL output bot is configured, and the user uses validation/submission
    with bots, no data will be written anywhere, neither to an IntelMQ pipeline,
    nor to the database!
+- ``allowed_event_fields``: A list of `IntelMQ Event Field Names
+  <https://docs.intelmq.org/latest/user/event/#fields-reference>_` which are
+  allowed for user input. If left empty, all fields are allowed (default).
+  The check is applied in the frontend and backend.
 
 Mailgen configuration parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
