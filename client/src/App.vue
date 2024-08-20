@@ -40,4 +40,7 @@ export default {
 .v-leave-to {
   opacity: 0;
 }
+pre {
+  white-space: break-spaces;
+}
 </style>
