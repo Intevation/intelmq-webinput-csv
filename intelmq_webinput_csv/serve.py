@@ -296,6 +296,7 @@ def uploadCSV(body, request, response):
 
         event, input_line_valid = row_to_event(item, body, retval, lineno, time_observation)
         if not input_line_valid:
+            input_lines_invalid += 1
             continue
 
         bots_input = [event]
