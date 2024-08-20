@@ -127,6 +127,7 @@ configfiles = [
 if ENV_CONFIG_FILE:
     configfiles.insert(0, Path(ENV_CONFIG_FILE).resolve())
 
+CONFIG = {}
 for path in configfiles:
     if path and path.exists() and path.is_file():
         print(f"Loading config from {path}")
