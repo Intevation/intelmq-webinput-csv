@@ -83,6 +83,7 @@
         <small>Please note that this preview uses example data and thus does not take the CERTbund rules into account. The example data contains more data and aggregated fields than real data. To consider the input data, use the tools in the "Data Validation and Submission" section.</small>
         <h5 title="Subject" style="margin-top: 10px;">Subject: {{mailgenPreviewParsed.subject}}</h5>
         <h6 title="To">To: {{mailgenPreviewParsed.to}}</h6>
+        <h6 title="Content-Type">Content Type: {{ mailgenPreviewParsed.contentType }}</h6>
         <code class="text-black"><pre>{{ mailgenPreviewParsed.body }}</pre></code>
         <template #modal-footer>
           <b-button
@@ -451,6 +452,7 @@
                   <b-container v-for="notification in rowModalData.notifications" v-bind:key="notification.index">
                     <h6>Subject: {{ notification[0] }}</h6>
                     <h6>To: {{ notification[1] }}</h6>
+                    <h6>Content Type: {{ notification[3] }}</h6>
                     <code><pre>{{ notification[2] }}</pre></code>
                   </b-container>
                 </div>
@@ -1439,7 +1441,7 @@ export default ({
           return dc.decode(uArr);
       });
 
-      return [subject, to, decodedBody]
+      return [subject, to, decodedBody, contentType]
     },
     /**
      * Show an Email Template preview with a list of templates (see mailgen_multi_templates_enabled in docs)
@@ -1467,8 +1469,8 @@ export default ({
             this.mailgenTemplates[template_index].validationText = 'Validated OK';
             this.mailgenLog = data.log;
 
-            let [subject, to, body] = this.parseMIME(this.mailgenPreview)
-            this.mailgenPreviewParsed = {subject: subject, to: to, body: body}
+            let [subject, to, body, contentType] = this.parseMIME(this.mailgenPreview)
+            this.mailgenPreviewParsed = {subject: subject, to: to, body: body, contentType: contentType}
             if (showDialog) {
               this.showMailgenPreview = true;
             }
@@ -1533,8 +1535,8 @@ export default ({
             this.mailgenTemplateValidationText = 'Validated OK';
             this.mailgenLog = data.log;
 
-            let [subject, to, body] = this.parseMIME(this.mailgenPreview)
-            this.mailgenPreviewParsed = {subject: subject, to: to, body: body}
+            let [subject, to, body, contentType] = this.parseMIME(this.mailgenPreview)
+            this.mailgenPreviewParsed = {subject: subject, to: to, body: body, contentType: contentType}
             if (showDialog) {
               this.showMailgenPreview = true;
             }
