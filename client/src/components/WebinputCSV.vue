@@ -448,7 +448,7 @@
                 size="xl"
                 ok-only>
                 <div v-if="rowModalData.notifications">
-                  <p>Notifications ({{ rowModalData.notifications.length }}):</p>
+                  <h5>Notifications ({{ rowModalData.notifications.length }}):</h5>
                   <b-container v-for="notification in rowModalData.notifications" v-bind:key="notification.index">
                     <h6>Subject: {{ notification[0] }}</h6>
                     <h6>To: {{ notification[1] }}</h6>
@@ -457,11 +457,11 @@
                   </b-container>
                 </div>
                 <div v-if="rowModalData.messages">
-                  <p>Messages ({{rowModalData.messages.length}}) after processing by bots (excluding output bots):</p>
+                  <h5>Messages ({{rowModalData.messages.length}}) after processing by bots (excluding output bots):</h5>
                   <code><pre>{{rowModalData.messages}}</pre></code>
                 </div>
                 <div v-if="rowModalData.log">
-                  <p>Log:</p>
+                  <h5>Log:</h5>
                   <code><pre>{{rowModalData.log}}</pre></code>
                 </div>
               </b-modal>
