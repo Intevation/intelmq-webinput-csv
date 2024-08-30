@@ -3,11 +3,6 @@
     <b-navbar toggleable="lg" type="dark" variant="info">
       <b-navbar-brand href="#">IntelMQ - Webinput CSV</b-navbar-brand>
       <b-navbar-nav>
-        <b-nav-item href="https://intevation.github.io/intelmq-webinput-csv/" target="_blank">
-          <small>
-            Documentation
-          </small>
-        </b-nav-item>
         <b-nav-text>
           <small>
             Client Version: {{ clientVersion }}
@@ -18,6 +13,11 @@
             Backend Version: {{ backendVersion }}
           </small>
         </b-nav-text>
+        <b-nav-item href="https://intevation.github.io/intelmq-webinput-csv/" target="_blank">
+          <small style="text-decoration: underline;">
+            Documentation ↗
+          </small>
+        </b-nav-item>
       </b-navbar-nav>
       <b-navbar-nav v-if="hasAuth" class="ml-auto">
         <b-button v-if="!loggedIn" v-b-modal.login-popup size="sm" class="my-2 my-sm-0" type="submit">Login</b-button>
