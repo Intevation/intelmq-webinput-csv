@@ -2,6 +2,38 @@ CHANGELOG
 =========
 
 
+1.2.6: Usability improvements
+-----------------------------
+
+## Configuration
+* new parameter: `mailgen_default_template_name`
+  new parameter for the frontend to set a default template name
+  if not set, the first template is used by default
+
+## Frontend
+* redesign notification section
+  re-organize the elements in the "Send Notifications" section (accordion)
+  one row for control elements, one row for the template input
+* submit data: close auth confirm after submit
+  hide the modal authConfirm directly after submission
+  progress is shown in the main pane
+* light grey background on input form groups
+  clarity for the user the the association between label and input
+* submit button text: to database/intelmq
+  depending to the 'validate with bots' switch, change the text of the
+  submit button for more clarity
+* improve documentation link
+  feedback by customer: move to right
+  underline
+  add link-arrow
+* set hasHeader to true by default
+  most CSV/TSV files have headers, use a sensible default
+* fallback values: remove monospace
+  for space efficiency and request by customer, use a normal font for the
+  field names
+* small space between target group select buttons
+
+
 1.2.5: Limit allowed Event fields
 ---------------------------------
 
