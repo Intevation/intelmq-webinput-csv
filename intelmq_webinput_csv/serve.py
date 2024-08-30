@@ -426,12 +426,15 @@ def mailgen_available():
     return bool(cb)
 
 
-@hug.get(ENDPOINT_PREFIX + '/api/mailgen/multi_templates_enabled', requires=session.token_authentication)
-def mailgen_multi_templates_enabled():
+@hug.get(ENDPOINT_PREFIX + '/api/mailgen/settings', requires=session.token_authentication)
+def mailgen_settings():
     """
     Returns true/false if mailgen is installed on the system.
     """
-    return CONFIG.get('mailgen_multi_templates_enabled', False)
+    return {
+        'multi_templates_enabled': CONFIG.get('mailgen_multi_templates_enabled', False),
+        'default_template_name': CONFIG.get('mailgen_default_template_name')
+    }
 
 
 @hug.post(ENDPOINT_PREFIX + '/api/mailgen/run', requires=session.token_authentication)

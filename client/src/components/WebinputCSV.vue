@@ -509,7 +509,7 @@
           <b-card-header header-tag="header" class="p-1" role="tab">
             <b-button :disabled="!mailgenAvailable" block v-b-toggle.accordion-notifications variant="info" :title="mailgenAvailable ? 'Set Mailgen Templates and Start a Mailgen Run' : 'Mailgen is not installed/available'">Send Notifications</b-button>
           </b-card-header>
-          <b-collapse id="accordion-notifications" visible accordion="my-accordion" role="tabpanel">
+          <b-collapse id="accordion-notifications" visible accordion="my-accordion" role="tabpanel" @show="onShowNotificationAccordion">
             <b-card-body>
               <b-container fluid>
                 <b-row align-v="center">
@@ -854,7 +854,7 @@ export default ({
       // returns only the names of assigned columns
       return this.tableHeader.slice(1).map(header => header.field).filter(entry => entry)
     },
-    ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable', 'botsAvailable', 'mailgenAvailableTargetGroups', 'mailgenAvailableTargetGroupsStatus', 'backendVersion', 'mailgenTemplatesServer', 'mailgenTemplates', 'mailgenMultiTemplatesEnabled']),
+    ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable', 'botsAvailable', 'mailgenAvailableTargetGroups', 'mailgenAvailableTargetGroupsStatus', 'backendVersion', 'mailgenTemplatesServer', 'mailgenTemplates', 'mailgenMultiTemplatesEnabled', 'mailgenTemplateDefaultTemplateName']),
   },
   mounted() {
     this.$store.dispatch("fetchBackendVersion");
@@ -1094,7 +1094,7 @@ export default ({
         this.$store.dispatch("fetchMailgenAvailable");
         this.$store.dispatch("fetchBotsAvailable");
         this.$store.dispatch("fetchMailgenAvailableTargetGroups");
-        this.$store.dispatch("fetchTemplates");
+        this.$store.dispatch("fetchMailgenTemplates");
       }, (response) => {
         if (response.status !== 200) {
           this.loginErrorText = "Server not reachable.";
@@ -1793,6 +1793,13 @@ export default ({
       // trigger a validation of the template
       this.previewMailgenTemplate(false);
     },
+    onShowNotificationAccordion() {
+      if (this.mailgenTemplateDefaultTemplateName)
+        this.mailgenTemplatePrototype = this.mailgenTemplateDefaultTemplateName;
+      else
+        this.mailgenTemplatePrototype = this.templates[0].name;
+      this.onMailgenTemplatePrototypeSelected()
+    }
   },
 })
 </script>

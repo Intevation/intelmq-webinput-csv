@@ -105,6 +105,8 @@ Mailgen configuration parameters
    for mailgen.
    If disabled, a single template input is show in the UI, which is fixed for
    all notifications.
+- ``mailgen_default_template``: Name of the template selected by default in
+   the Webinterface
 
 Usage
 -----

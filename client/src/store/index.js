@@ -25,7 +25,7 @@ export default new Vuex.Store({
     // the templates on the server
     mailgenTemplatesServer: [],
     mailgenMultiTemplatesEnabled: false,
-    mailgenTemplatePrototype: null,
+    mailgenTemplateDefaultTemplateName: null,
   },
   mutations: {
     SET_USER (state, user) {
@@ -77,10 +77,12 @@ export default new Vuex.Store({
       state.mailgenTemplates = data;
       // create a deep clone, otherwise both names have the same reference. deep clone is required as the list items are objects themselves
       state.mailgenTemplatesServer = JSON.parse(JSON.stringify(data));
-      state.mailgenTemplatePrototype = data[0].name
     },
     SET_MAILGEN_MULTI_TEMPLATES_ENABLED(state, data) {
       state.mailgenMultiTemplatesEnabled = data;
+    },
+    SET_MAILGEN_DEFAULT_TEMPLATE_NAME(state, data) {
+      state.mailgenTemplateDefaultTemplateName = data;
     }
   },
   actions: {
@@ -196,7 +198,7 @@ export default new Vuex.Store({
             })
         });
     },
-    fetchTemplates(context) {
+    fetchMailgenTemplates(context) {
       Vue.http.get('api/mailgen/templates').then(
         response => {
           response.json().then(data => {
@@ -219,9 +221,10 @@ export default new Vuex.Store({
         }
       );
 
-      Vue.http.get("api/mailgen/multi_templates_enabled").then(
-        response => response.json().then(templates_enabled => {
-          context.commit("SET_MAILGEN_MULTI_TEMPLATES_ENABLED", templates_enabled);
+      Vue.http.get("api/mailgen/settings").then(
+        response => response.json().then(data => {
+          context.commit("SET_MAILGEN_MULTI_TEMPLATES_ENABLED", data['multi_templates_enabled']);
+          context.commit("SET_MAILGEN_DEFAULT_TEMPLATE_NAME", data['default_template_name']);
         })
       );
     }
