@@ -365,15 +365,15 @@
                     </b-container>
                   </b-col>
                   <b-col>
-                    <h4>Constant fields (fallback values)</h4>
-                    <b-form-group label-cols=4 label="classification.type" label-class="text-monospace">
+                    <h4>Fallback values</h4>
+                    <b-form-group label-cols=4 label="classification.type">
                       <b-form-select
                         v-model="classificationType"
                         :options="classificationTypes"
                         :disabled="dryrun"
                       ></b-form-select>
                     </b-form-group>
-                    <b-form-group v-for="field in customFieldsMapping" :key="field.key" :id="field.key" label-cols=4 :label="field.key" label-class="text-monospace">
+                    <b-form-group v-for="field in customFieldsMapping" :key="field.key" :id="field.key" label-cols=4 :label="field.key">
                       <b-form-input
                         v-model="field.value"
                         type="text"
