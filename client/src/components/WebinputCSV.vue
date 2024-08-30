@@ -932,12 +932,12 @@ export default ({
         assigned_columns: this.tableHeaderFlat,
       }
       var me = this;
+      me.$bvModal.hide("authconfirm-popup");
       this.$http.post('api/upload', send)
         .then(response => {
           // authentication was successful, auth errors are treated below (401)
           me.authConfirmSubmit = false;
           me.authConfirmErrorText = null;
-          me.$bvModal.hide("authconfirm-popup");
           if (response.status !== 200) {
             me.transferStatus = "text-danger";
             me.transferred = "Send failed!";
@@ -975,7 +975,6 @@ export default ({
               // auth was successful nevertheless, close the login and clear errors
               me.authConfirmSubmit = false;
               me.authConfirmErrorText = null;
-              me.$bvModal.hide("authconfirm-popup");
             }
             me.inProgress = false;
             return;
