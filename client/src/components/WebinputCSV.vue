@@ -793,7 +793,7 @@ export default ({
       ],
       quoteChar: '"',
       escapeChar: "\\",
-      hasHeader: false,
+      hasHeader: true,
       initialWhitespace: false,
       skipLines: 0,
       parserResult: {},
