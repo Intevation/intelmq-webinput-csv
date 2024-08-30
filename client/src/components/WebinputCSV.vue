@@ -287,12 +287,18 @@
                           ></b-form-checkbox-group>
                         </b-col>
                         <b-col>
-                          <b-button @click="onTargetGroupsSelectAll" size="sm">
-                          Select all
-                          </b-button>
-                          <b-button @click="onTargetGroupsSelectNone" size="sm">
-                          Select none
-                          </b-button>
+                          <b-row>
+                            <b-col style="margin-bottom: 2px;">
+                              <b-button @click="onTargetGroupsSelectAll" size="sm">
+                              Select all
+                              </b-button>
+                            </b-col>
+                            <b-col>
+                              <b-button @click="onTargetGroupsSelectNone" size="sm">
+                              Select none
+                              </b-button>
+                            </b-col>
+                          </b-row>
                         </b-col>
                       </b-row>
                       <span
