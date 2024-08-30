@@ -46,3 +46,7 @@
 .vs__search {
     padding: 0;
 }
+
+fieldset:hover {
+    background: #f7f7f7;
+}
