@@ -334,7 +334,7 @@
                             spinner-variant="primary"
                             class="d-inline-block"
                           >
-                            <b-button @click="onSendData" variant="primary">Send data</b-button>
+                            <b-button @click="onSendData" variant="primary">Submit to {{ validateWithBots ? 'database for mailgen' : 'IntelMQ' }}</b-button>
                           </b-overlay>
                         </b-col>
                         <b-col>
