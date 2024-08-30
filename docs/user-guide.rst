@@ -175,7 +175,7 @@ A few things need to be considered for the setup and configuration:
 2. For OpenPGP-signatures in mailgen, the webserver user (or the user running the WSGI process) must have sufficient privileges to the gnupg home directory
 
    1. write access on the directory itself to create temporary files
-   2. read access to all files in the directoy
+   2. read access to all files in the directory
 
 Applying different bots on one-shot data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
