@@ -517,6 +517,8 @@
                     <b-form-group
                       label-cols="auto"
                       label="Verbose Logs"
+                      v-b-tooltip.hover
+                      title="Activate verbose logging in Mailgen for more details on processing"
                     >
                       <b-form-checkbox
                         v-model="mailgenVerbose"
@@ -526,7 +528,8 @@
                     <b-form-group
                       label-cols="auto"
                       label="Simulate"
-                      title="Do not send notifications"
+                      v-b-tooltip.hover
+                      title="Only simulate Mailgen run, do not actually send notifications"
                     >
                       <a href="http://intevation.github.io/intelmq-mailgen/intelmqcbmail.html#dry-run-simulation" target="_blank">?</a>
                       <b-form-checkbox
@@ -534,6 +537,25 @@
                         switch
                       ></b-form-checkbox>
                     </b-form-group>
+                  </b-col>
+                  <b-col>
+                    <b-overlay
+                        :show="mailgenInProgress"
+                        rounded
+                        opacity="0.5"
+                        spinner-small
+                        spinner-variant="primary"
+                        class="d-inline-block"
+                      >
+                        <b-button
+                          v-b-tooltip.hover
+                          @click="previewMailgenTemplate(showDialog=true)"
+                          variant="primary"
+                          :disabled="!mailgenAvailable || !mailgenTemplate"
+                          title="Template Preview"
+                          block
+                          >Show Template {{ (mailgenTemplateValidationStatus == 'text-danger') ? 'Log' : 'Preview' }}</b-button>
+                      </b-overlay>
                   </b-col>
                   <b-col>
                     <b-overlay
@@ -562,63 +584,53 @@
                   </b-col>
                 </b-row>
                 <b-row v-if="!mailgenMultiTemplatesEnabled">
-                  <b-col cols="3">
-                    <b-row>
-                      <h4>Template</h4>
-                    </b-row>
-                    <b-row>
-                      <span style="max-width: 700px">
-                        The template given here is fixed for all notifications sent by this Mailgen run.
-                        The Template is not saved to disk.
-                        Mailgen started by other means (command line or automated jobs), uses the templates present on disk.
-                      </span>
-                    </b-row>
-                    <b-row align-h="center">
-                      <b-overlay
-                        :show="mailgenInProgress"
-                        rounded
-                        opacity="0.5"
-                        spinner-small
-                        spinner-variant="primary"
-                        class="d-inline-block"
-                      >
-                        <b-button
-                          v-b-tooltip.hover
-                          @click="previewMailgenTemplate(showDialog=true)"
-                          variant="primary"
-                          :disabled="!mailgenAvailable || !mailgenTemplate"
-                          title="Template Preview"
-                          block
-                          >Show Template {{ (mailgenTemplateValidationStatus == 'text-danger') ? 'Log' : 'Preview' }}</b-button>
-                      </b-overlay>
-                    </b-row>
-                    <b-row>
-                      <b-form-group label="Replace text with existing template from disk:">
-                        <v-select
-                          :options="mailgenTemplateNames"
-                          v-model="mailgenTemplatePrototype"
-                          @input="onMailgenTemplatePrototypeSelected"
-                          width="100%"></v-select>
-                      </b-form-group>
-                    </b-row>
-                    <b-row>
-                      <span
-                        :class="mailgenTemplateValidationStatus"
-                          >{{mailgenTemplateValidationText}}
-                      </span>
-                    </b-row>
+                  <b-col>
+                    <h4>Template</h4>
+                  </b-col>
+                </b-row>
+                <b-row v-if="!mailgenMultiTemplatesEnabled">
+                  <b-col cols="3" style="text-align: left;">
+                    <p>
+                      The template given here is fixed for all notifications sent by this Mailgen run.
+                      The Template is not saved to disk.
+                    </p>
+                    <p>First line is the subject. Use <code>${fieldname}</code> to insert aggregated field names and <code>${events_as_csv}</code> for a CSV attachment.</p>
+                    <p>If the Template is empty, Mailgen uses its default templates.</p>
+                    <p>Mailgen started by other means (command line or automated jobs), uses the templates present on disk.</p>
                   </b-col>
                   <b-col>
-                    <b-form-group width="100%">
-                      <b-form-textarea
-                      id="template"
-                      v-model="mailgenTemplate"
-                      description="E-Mail Template for Mailgen. First line is the subject. Use ${fieldname} to insert aggregated field names and ${events_as_csv} for a CSV attachment."
-                      rows="10"
-                      width="100%"
-                      @input="validateMailgenTemplateContentDebounce"
-                    ></b-form-textarea>
-                    </b-form-group>
+                    <b-row>
+                      <b-col>
+                        <span
+                          :class="mailgenTemplateValidationStatus"
+                          >{{mailgenTemplateValidationText}}
+                      </span>
+                      </b-col>
+                      <b-col>
+                        <b-form-group
+                          label="Replace text with existing template from disk:"
+                          label-cols="auto">
+                          <v-select
+                            :options="mailgenTemplateNames"
+                            v-model="mailgenTemplatePrototype"
+                            @input="onMailgenTemplatePrototypeSelected"
+                            width="100%"></v-select>
+                      </b-form-group>
+                      </b-col>
+                    </b-row>
+                    <b-row>
+                      <b-col>
+                        <b-form-group width="100%">
+                          <b-form-textarea
+                          id="template"
+                          v-model="mailgenTemplate"
+                          rows="10"
+                          width="100%"
+                          @input="validateMailgenTemplateContentDebounce"
+                        ></b-form-textarea>
+                        </b-form-group>
+                      </b-col>
+                    </b-row>
                   </b-col>
                 </b-row>
                 <h4 v-if="mailgenMultiTemplatesEnabled">Templates:</h4>
