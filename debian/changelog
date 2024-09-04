@@ -1,3 +1,12 @@
+intelmq-webinput-csv (1.2.6-2) stable; urgency=medium
+
+  * client: fix MIME multipart e-mail parsing
+    the body part was ignored and the signature was displayed
+    now display the body correctly, along the attachment and ignore the
+    signature
+
+ -- Sebastian Wagner <swagner@intevation.de>  Wed, 04 Sep 2024 15:46:40 +0200
+
 intelmq-webinput-csv (1.2.6-1) stable; urgency=medium
 
   * Configuration

@@ -1427,6 +1427,12 @@ export default ({
               console.log('parsed line for charset detection', parsed);
               contentCharset = parsed[1];
             }
+            parsed = line.match(/Content-Type: *?application\/pgp-signature/);
+            if (parsed !== null) {
+              console.log('MIME part is PGP Signature, ignore it')
+              isBody = false;
+              isMimeHeader = false;
+            }
           }
         } else if (!isBody && contentType == 'multipart/signed') {
           if (line.slice(0, 17) == '--===============') {
@@ -1438,6 +1444,7 @@ export default ({
           if (contentType == 'multipart/signed') {
             if (line.slice(0, 17) == '--===============') {
               isBody = false;
+              isMimeHeader = true;
             } else {
               body += line + '\n';
             }
