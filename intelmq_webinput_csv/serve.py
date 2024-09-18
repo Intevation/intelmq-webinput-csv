@@ -136,8 +136,8 @@ for path in configfiles:
             ENDPOINT_PREFIX = CONFIG.get('prefix', '/webinput')
             if ENDPOINT_PREFIX.endswith('/'):
                 ENDPOINT_PREFIX = ENDPOINT_PREFIX[:-1]
-            CONSTANTS = CONFIG.get('constant_fields', '{}')
 
+CONSTANTS = CONFIG.get('constant_fields', '{}')
 ALLOWED_EVENT_FIELDS = CONFIG.get('allowed_event_fields', {})
 if ALLOWED_EVENT_FIELDS:
     EVENT_HARMONIZATION = {
@@ -210,19 +210,19 @@ def row_to_event(item: dict, body: dict,
         except IntelMQException as exc:
             lineerrors[key].append(f"Failed to add data {value!r} as field {key!r}: {exc!s}")
             line_valid = False
-    for key in CONSTANTS:
-        if key not in event:
-            try:
-                event.add(key, CONSTANTS[key])
-            except InvalidValue as exc:
-                lineerrors[-1].append(f"Failed to add data {CONSTANTS[key]!r} as field {key!r}: {exc!s}")
-                line_valid = False
     for key in body['custom']:
         if key.startswith('custom_') and key[7:] not in event:
             try:
                 event.add(key[7:], body['custom'][key])
             except InvalidValue as exc:
                 lineerrors[-1].append(f"Failed to add data {body['custom'][key]!r} as field {key!r}: {exc!s}")
+                line_valid = False
+    for key in CONSTANTS:
+        if key not in event:
+            try:
+                event.add(key, CONSTANTS[key])
+            except InvalidValue as exc:
+                lineerrors[-1].append(f"Failed to add data {CONSTANTS[key]!r} as field {key!r}: {exc!s}")
                 line_valid = False
 
     retval[lineno] = lineerrors
@@ -505,6 +505,8 @@ def mailgen_preview(body, request, response):
     for key, value in body.get('data', {}).items():
         # we ignore errors here
         # the goal is to show a template preview and give feedback on the template, not on the data
+        user_data.add(key, value, sanitize=True, overwrite=True, raise_failure=False)
+    for key, value in CONSTANTS.items():
         user_data.add(key, value, sanitize=True, overwrite=True, raise_failure=False)
     example_data.update(user_data)  # TODO:
     # this converts extra-keys to a single dict, so the INSERT below works

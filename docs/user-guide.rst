@@ -36,7 +36,7 @@ Usual configuration parameters
 -  ``custom_input_fields``: These fields are shown in the interface with
    the given default values, see also below.
 -  ``constant_fields``: Similar to above, but not shown to the user and
-   added to all processed events.
+   added to all processed events, overwriting user input.
 -  ``required_fields``: A list of IntelMQ field names. If set (not empty
    list), all lines need to have these fields, otherwise they are marked
    as invalid and not submitted to IntelMQ. Example:
