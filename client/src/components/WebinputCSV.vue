@@ -267,13 +267,13 @@
                         title="Override the values of classification.type and (if set as fallback value) classification.identifier with 'test'."
                       ></b-form-checkbox>
                     </b-form-group>
-                    <b-form-group label-cols=4 label="Validate/Submit with bots">
+                    <b-form-group label-cols=4 label="Use custom workflow">
                       <b-form-checkbox
                         v-model="validateWithBots"
                         switch
                         :disabled="!botsAvailable.status"
                         v-b-tooltip.hover
-                        :title="'Process the data with all configured IntelMQ Bots included, prepared for sending the e-mail notifications. If unchecked on submission, data will be submitted to the IntelMQ processing pipeline, not the configured output bot. ' + (!botsAvailable.status ? botsAvailable.reason : '')"
+                        :title="'Off: Submit data to standard IntelMQ workflow using existing templates for notifications.\nOn: Submit data to custom workflow.' + (!botsAvailable.status ? botsAvailable.reason : '')"
                       ></b-form-checkbox>
                     </b-form-group>
                     <b-form-group
@@ -337,7 +337,7 @@
                             spinner-variant="primary"
                             class="d-inline-block"
                           >
-                            <b-button @click="onSendData" variant="primary">Submit to {{ validateWithBots ? 'database for mailgen' : 'IntelMQ' }}</b-button>
+                            <b-button @click="onSendData" variant="primary">Submit to {{ validateWithBots ? 'custom workflow' : 'standard workflow' }}</b-button>
                           </b-overlay>
                         </b-col>
                         <b-col>
