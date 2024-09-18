@@ -534,7 +534,6 @@
                       v-b-tooltip.hover
                       title="Only simulate Mailgen run, do not actually send notifications"
                     >
-                      <a href="http://intevation.github.io/intelmq-mailgen/intelmqcbmail.html#dry-run-simulation" target="_blank">?</a>
                       <b-form-checkbox
                         v-model="mailgenDryRun"
                         switch
