@@ -259,18 +259,22 @@
                         :options="timezones"
                       ></b-form-select>
                     </b-form-group>
-                    <b-form-group v-b-tooltip.hover label-cols=4 label="Dryrun" title="Override the values of Classification Type and Classification Identifier to 'test'.">
+                    <b-form-group label-cols=4 label="Dryrun">
                       <b-form-checkbox
                         v-model="dryrun"
                         switch
                         @change="onDryRunChange"
+                        v-b-tooltip.hover
+                        title="Override the values of classification.type and classification.identifier with 'test'."
                       ></b-form-checkbox>
                     </b-form-group>
-                    <b-form-group v-b-tooltip.hover label-cols=4 label="Validate/Submit with bots" :title="'Validate the data with all configured IntelMQ Bots included. If unchecked on submission, data will be submitted to the IntelMQ processing pipeline, not the configured output bot. ' + (!botsAvailable.status ? botsAvailable.reason : '')">
+                    <b-form-group label-cols=4 label="Validate/Submit with bots">
                       <b-form-checkbox
                         v-model="validateWithBots"
                         switch
                         :disabled="!botsAvailable.status"
+                        v-b-tooltip.hover
+                        :title="'Process the data with all configured IntelMQ Bots included, prepared for sending the e-mail notifications. If unchecked on submission, data will be submitted to the IntelMQ processing pipeline, not the configured output bot. ' + (!botsAvailable.status ? botsAvailable.reason : '')"
                       ></b-form-checkbox>
                     </b-form-group>
                     <b-form-group
