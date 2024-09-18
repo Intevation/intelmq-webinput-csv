@@ -819,7 +819,6 @@ export default ({
       timezone: '+00:00',
       dryrun: true,
       classificationType: "test",
-      code: "oneshot",
       tableHeader: [],
       tableHeaderMapping: {},
       tableData: [],
@@ -1154,7 +1153,6 @@ export default ({
       this.timezone = '+00:00';
       this.dryrun = true;
       this.classificationType = "blacklist";
-      this.code = "oneshot";
       this.currentPage = 1;
       this.perPage = 25;
       this.$store.dispatch("logout")
