@@ -1,3 +1,18 @@
+intelmq-webinput-csv (1.2.7-1) stable; urgency=medium
+
+  * Frontend
+    * show classification types sorted and grouped
+    * vertically align checkboxes in row
+    * remove unused variable 'code'
+    * show checkboxes only for checkbox, not whole row
+    * fix name of CERT-Bund
+    * fix MIME multipart e-mail parsing
+      the body part was ignored and the signature was displayed
+      now display the body correctly, along the attachment and ignore the
+      signature
+
+ -- Sebastian Wagner <swagner@intevation.de>  Wed, 18 Sep 2024 09:08:49 +0200
+
 intelmq-webinput-csv (1.2.6-2) stable; urgency=medium
 
   * client: fix MIME multipart e-mail parsing

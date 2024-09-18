@@ -2,6 +2,21 @@ CHANGELOG
 =========
 
 
+1.2.7: UI improvements
+----------------------
+
+### Frontend
+* show classification types sorted and grouped
+* vertically align checkboxes in row
+* remove unused variable 'code'
+* show checkboxes only for checkbox, not whole row
+* fix name of CERT-Bund
+* fix MIME multipart e-mail parsing
+  the body part was ignored and the signature was displayed
+  now display the body correctly, along the attachment and ignore the
+  signature
+
+
 1.2.6: Usability improvements
 -----------------------------
 
