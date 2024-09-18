@@ -104,12 +104,12 @@ EXAMPLE_DIRECTIVES = {
             # only useful for previews/rendering tests
             # a deep copy is required otherwise the json dump called by psycopg2 detects a circular reference
             "aggregate_identifier": deepcopy(EXAMPLE_EVENT),
-            "event_data_format": "oneshot_fallback_csv_inline",
+            "event_data_format": "webinput_fallback_csv_inline",
             "medium": "email",
             "notification_format": "default",
             "notification_interval": 86400,
             "recipient_address": "provider@localhost",
-            "template_name": "oneshot_fallback_provider"
+            "template_name": "webinput_fallback_provider"
         }
     ]
 }
