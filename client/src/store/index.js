@@ -115,7 +115,28 @@ export default new Vuex.Store({
       Vue.http.get("api/classification/types").then(
         response => response.json().then(data => {
           if (data) {
-            context.commit("SET_TYPES", Object.keys(data));
+            // construct the object expected by b-form-select: https://bootstrap-vue.org/docs/components/form-select#form-select
+            let groupedTypes = Object();
+            for (let [type, taxonomy] of Object.entries(data)) {
+              if (!(taxonomy in groupedTypes)) {
+                groupedTypes[taxonomy] = []
+              }
+              groupedTypes[taxonomy].push(type)
+            }
+            let typeInputOptions
+            let typeOptions = []
+            for (let taxonomy of Object.keys(groupedTypes)) {
+              typeInputOptions = []
+              groupedTypes[taxonomy].sort()  // is in-place sorting
+              for (let type of groupedTypes[taxonomy]) {
+                typeInputOptions.push({value: type, text: type})
+              }
+              typeOptions.push({
+                label: taxonomy,
+                options: typeInputOptions
+              })
+            }
+            context.commit("SET_TYPES", typeOptions);
             context.commit("SET_TYPE_MAPPING", data);
           }
         })
