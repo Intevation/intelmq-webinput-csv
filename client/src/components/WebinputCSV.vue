@@ -263,9 +263,8 @@
                       <b-form-checkbox
                         v-model="dryrun"
                         switch
-                        @change="onDryRunChange"
                         v-b-tooltip.hover
-                        title="Override the values of classification.type and classification.identifier with 'test'."
+                        title="Override the values of classification.type and (if set as fallback value) classification.identifier with 'test'."
                       ></b-form-checkbox>
                     </b-form-group>
                     <b-form-group label-cols=4 label="Validate/Submit with bots">
@@ -1664,15 +1663,22 @@ export default ({
         });
     },
     computeCustom() {
-      let custom = {
-          "custom_classification.type": this.classificationType,
-      };
+      let custom = {};
+      if (this.dryrun) {
+        custom["custom_classification.type"] = 'test'
+      } else {
+        custom["custom_classification.type"] = this.classificationType
+      }
       // if target groups are available for selection, add the data (even if none selected, then it's an empty list). Otherwise, do not add the data.
       if (this.mailgenAvailableTargetGroupsStatus === true && this.mailgenAvailableTargetGroups && this.mailgenAvailableTargetGroups.tag_values && this.mailgenAvailableTargetGroups.tag_values.length) {
         custom["custom_extra.target_groups"] = this.mailgenTargetGroups.map(value => this.mailgenAvailableTargetGroups.tag_name + ":" + value)
       }
       for (let field of this.customFieldsMapping) {
-        custom["custom_"+field.key] = field.value;
+        if (field.key == 'classification.identifier' && this.dryrun) {
+          custom["custom_classification.type"] = 'test'
+        } else {
+          custom["custom_"+field.key] = field.value;
+        }
       }
       return custom;
     },
@@ -1755,20 +1761,6 @@ export default ({
           this.showErrorModal = true;
           this.templateToDelete = {'index': null, 'template_name': null}
         });
-    },
-    /**
-     * When dryrun is changed, set the fields type and identifier to test, to show the dry run effect
-     */
-    onDryRunChange() {
-      if (this.dryrun) {
-        this.classificationType = 'test';
-        for (let field of this.customFieldsMapping) {
-          if (field.key == 'classification.identifier') {
-            field.value = 'test';
-            break;
-          }
-        }
-      }
     },
     /**
      * Syntactically validate the template body
