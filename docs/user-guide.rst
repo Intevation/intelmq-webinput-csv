@@ -202,7 +202,7 @@ different bots. The configuration parameters ``constant_fields`` and
            "feed.provider": "my-organization"
        }
 
-If a CERTBund Rules expert may receive data from IntelMQ Webinput, but
+If a CERT-Bund Rules expert may receive data from IntelMQ Webinput, but
 should ignore it, a rule similar to this example can be used:
 
 .. code:: python
@@ -314,7 +314,7 @@ If the Mailgen scripts do define a format spec, they take precedence.
 Mailgen Templates
 ~~~~~~~~~~~~~~~~~
 
-The CERTBund Rules expert bases its decision which Template to use
+The CERT-Bund Rules expert bases its decision which Template to use
 solely on the event itself. Additional information can be added by the
 Webinput operator.
 
@@ -333,7 +333,7 @@ Add a new input field to the Webinput Configuration like this:
            "extra.template_prefix": ""
        }
 
-A rule of the CERTBund Contact rules expert may look like this:
+A rule of the CERT-Bund Contact rules expert may look like this:
 
 .. code:: python
 
@@ -391,8 +391,8 @@ To do the complete workflow of IntelMQ and Mailgen in the webinput:
 -  configure all necessary IntelMQ bots
 
    -  any that you wish, plus
-   -  CERTBund Contact Expert
-   -  CERTBund Rules Expert
+   -  CERT-Bund Contact Expert
+   -  CERT-Bund Rules Expert
    -  SQL Output, with the special module
       ``intelmq_webinput_csv.sql_output``
 
@@ -410,7 +410,7 @@ available values depend on the result of an SQL query to the `fody
 database <https://github.com/Intevation/intelmq-fody-backend>`__
 (contactdb tags) and the users can select values from multiple-choice
 checkboxes. The selected values are saved in the event field
-``extra.target_groups``. The CERTBund Rules Expert’s rules can use this
+``extra.target_groups``. The CERT-Bund Rules Expert’s rules can use this
 information to generate the correct directives.
 
 Configuring this feature works as follows:
