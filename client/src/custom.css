@@ -50,3 +50,8 @@
 fieldset:hover {
     background: #f7f7f7;
 }
+
+fieldset .form-row {
+    /* Vertically center smaller items (e.g. checkboxes) in b-form-group  */
+    align-items: center;
+}
