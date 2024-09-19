@@ -867,7 +867,7 @@ export default ({
       // returns only the names of assigned columns
       return this.tableHeader.slice(1).map(header => header.field).filter(entry => entry)
     },
-    ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable', 'botsAvailable', 'mailgenAvailableTargetGroups', 'mailgenAvailableTargetGroupsStatus', 'backendVersion', 'mailgenTemplatesServer', 'mailgenTemplates', 'mailgenMultiTemplatesEnabled', 'mailgenTemplateDefaultTemplateName']),
+    ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable', 'botsAvailable', 'mailgenAvailableTargetGroups', 'mailgenAvailableTargetGroupsStatus', 'backendVersion', 'mailgenTemplatesServer', 'mailgenTemplates', 'mailgenMultiTemplatesEnabled', 'mailgenTemplateDefaultTemplateName', 'customWorkflowDefault']),
   },
   mounted() {
     this.$store.dispatch("fetchBackendVersion");
@@ -892,6 +892,11 @@ export default ({
     }
     for (var j = 0; j < this.timezones.length; j++) {
         this.timezones[j] = this.timezones[j] + ':00';
+    }
+  },
+  watch: {
+    customWorkflowDefault: function (newCustomWorkflowDefault) {
+      this.customWorkflow = newCustomWorkflowDefault;
     }
   },
   methods: {
@@ -1108,6 +1113,7 @@ export default ({
         this.$store.dispatch("fetchBotsAvailable");
         this.$store.dispatch("fetchMailgenAvailableTargetGroups");
         this.$store.dispatch("fetchMailgenTemplates");
+        this.$store.dispatch("fetchSettings");
       }, (response) => {
         if (response.status !== 200) {
           this.loginErrorText = "Server not reachable.";

@@ -26,6 +26,7 @@ export default new Vuex.Store({
     mailgenTemplatesServer: [],
     mailgenMultiTemplatesEnabled: false,
     mailgenTemplateDefaultTemplateName: null,
+    customWorkflowDefault: false,
   },
   mutations: {
     SET_USER (state, user) {
@@ -83,6 +84,9 @@ export default new Vuex.Store({
     },
     SET_MAILGEN_DEFAULT_TEMPLATE_NAME(state, data) {
       state.mailgenTemplateDefaultTemplateName = data;
+    },
+    SET_SETTNGS(state, data) {
+      state.customWorkflowDefault = data['custom_workflow_default'];
     }
   },
   actions: {
@@ -248,6 +252,15 @@ export default new Vuex.Store({
           context.commit("SET_MAILGEN_DEFAULT_TEMPLATE_NAME", data['default_template_name']);
         })
       );
+    },
+    fetchSettings(context) {
+      Vue.http.get('api/settings').then(
+        response => {
+          response.json().then(data => {
+            context.commit("SET_SETTNGS", data)
+          })
+        }
+      )
     }
   },
   modules: {

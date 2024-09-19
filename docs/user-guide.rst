@@ -88,6 +88,8 @@ Usual configuration parameters
   allowed for user input. If left empty, all fields are allowed (default).
   The check is applied in the frontend (field selection for columns) and backend.
   The check does **not** apply to constant fields and custom input fields!
+- ``custom_workflow_default``: If true (default: false), then the switch "Use custom workflow"
+  in the "Data validation and submission" section is enabled by default.
 
 Mailgen configuration parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -437,6 +437,16 @@ def mailgen_settings():
     }
 
 
+@hug.get(ENDPOINT_PREFIX + '/api/settings', requires=session.token_authentication)
+def settings():
+    """
+    Returns some configuration options
+    """
+    return {
+        'custom_workflow_default': CONFIG.get('custom_workflow_default', False)
+    }
+
+
 @hug.post(ENDPOINT_PREFIX + '/api/mailgen/run', requires=session.token_authentication)
 def mailgen_run(body, request, response):
     """
