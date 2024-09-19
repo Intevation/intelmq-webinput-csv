@@ -269,7 +269,7 @@
                     </b-form-group>
                     <b-form-group label-cols=4 label="Use custom workflow">
                       <b-form-checkbox
-                        v-model="validateWithBots"
+                        v-model="customWorkflow"
                         switch
                         :disabled="!botsAvailable.status"
                         v-b-tooltip.hover
@@ -337,7 +337,7 @@
                             spinner-variant="primary"
                             class="d-inline-block"
                           >
-                            <b-button @click="onSendData" variant="primary">Submit to {{ validateWithBots ? 'custom workflow' : 'standard workflow' }}</b-button>
+                            <b-button @click="onSendData" variant="primary">Submit to {{ customWorkflow ? 'custom workflow' : 'standard workflow' }}</b-button>
                           </b-overlay>
                         </b-col>
                         <b-col>
@@ -840,7 +840,7 @@ export default ({
       showMailgenPreview: false,
       showMailgenPreviewRaw: false,
       mailgenPreviewParsed: {},
-      validateWithBots: false,
+      customWorkflow: false,
       showRowModal: false,
       rowModalData: {},
       rowModalInProgress: false,
@@ -941,7 +941,7 @@ export default ({
         submit: submit,
         username: this.username,
         password: this.password,
-        validate_with_bots: this.validateWithBots,
+        validate_with_bots: this.customWorkflow,
         assigned_columns: this.tableHeaderFlat,
       }
       var me = this;
@@ -965,8 +965,8 @@ export default ({
             }
 
             const num_errors = Object.keys(data.errors).length;
-            me.transferred = (submit ? "Submitted " : "Validated ") + (data.input_lines) + " lines" + (submit ? (this.validateWithBots ? " to IntelMQ database" : " to IntelMQ processing queue") : "") + ". Of these, " + (data.input_lines - data.input_lines_invalid) + " were valid. This resulted in " + num_errors + " validation errors and in total " + data.input_lines_invalid + " lines were invalid" + (submit ? ", these were not submitted" : "") + ".";
-            if (this.validateWithBots) {
+            me.transferred = (submit ? "Submitted " : "Validated ") + (data.input_lines) + " lines" + (submit ? (this.customWorkflow ? " to IntelMQ database" : " to IntelMQ processing queue") : "") + ". Of these, " + (data.input_lines - data.input_lines_invalid) + " were valid. This resulted in " + num_errors + " validation errors and in total " + data.input_lines_invalid + " lines were invalid" + (submit ? ", these were not submitted" : "") + ".";
+            if (this.customWorkflow) {
               me.transferred = me.transferred + " After bot validation the input data resulted in " + data.output_lines + " events and " + data.output_lines_invalid + " errors occured (invalid events).";
             }
             me.dataErrors = data.errors;
