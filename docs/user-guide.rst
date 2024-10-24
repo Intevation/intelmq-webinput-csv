@@ -90,6 +90,8 @@ Usual configuration parameters
   The check does **not** apply to constant fields and custom input fields!
 - ``custom_workflow_default``: If true (default: false), then the switch "Use custom workflow"
   in the "Data validation and submission" section is enabled by default.
+- ``allow_validation_override``: If true (default), the the user is allowed to submit data if
+  the previous validation run did not succeed (not all lines/events were valid).
 
 Mailgen configuration parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

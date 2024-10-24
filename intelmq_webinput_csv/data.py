@@ -1,5 +1,5 @@
 """
-SPDX-FileCopyrightText: 2016, 2017, 2022-2023 Bundesamt für Sicherheit in der Informationstechnik
+SPDX-FileCopyrightText: 2016, 2017, 2022-2024 Bundesamt für Sicherheit in der Informationstechnik
 SPDX-License-Identifier: AGPL-3.0-or-later
 Software engineering by Intevation GmbH <https://intevation.de>
 """

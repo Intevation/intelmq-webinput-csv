@@ -337,7 +337,11 @@
                             spinner-variant="primary"
                             class="d-inline-block"
                           >
-                            <b-button @click="onSendData" variant="primary">Submit to {{ customWorkflow ? 'custom workflow' : 'standard workflow' }}</b-button>
+                            <b-button @click="onSendData" variant="primary"
+                              :disabled="(!validatedCurrentData || validationNumErrors > 0) && allowValidationOverride == false"
+                              v-b-tooltip.hover
+                              :title="(!validatedCurrentData && allowValidationOverride == false) ? 'Data validation required before' : ((validationNumErrors > 0 && allowValidationOverride == false) ? 'Data validation failed' : '')"
+                              >Submit to {{ customWorkflow ? 'custom workflow' : 'standard workflow' }}</b-button>
                           </b-overlay>
                         </b-col>
                         <b-col>
@@ -854,6 +858,8 @@ export default ({
       mailgenTemplateValidationText: '',
       mailgenTemplateValidationStatus: null,
       mailgenTemplatePrototype: null,
+      validationNumErrors: null,
+      validatedCurrentData: false
     }
   },
   computed: {
@@ -867,7 +873,7 @@ export default ({
       // returns only the names of assigned columns
       return this.tableHeader.slice(1).map(header => header.field).filter(entry => entry)
     },
-    ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable', 'botsAvailable', 'mailgenAvailableTargetGroups', 'mailgenAvailableTargetGroupsStatus', 'backendVersion', 'mailgenTemplatesServer', 'mailgenTemplates', 'mailgenMultiTemplatesEnabled', 'mailgenTemplateDefaultTemplateName', 'customWorkflowDefault']),
+    ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable', 'botsAvailable', 'mailgenAvailableTargetGroups', 'mailgenAvailableTargetGroupsStatus', 'backendVersion', 'mailgenTemplatesServer', 'mailgenTemplates', 'mailgenMultiTemplatesEnabled', 'mailgenTemplateDefaultTemplateName', 'customWorkflowDefault', 'allowValidationOverride']),
   },
   mounted() {
     this.$store.dispatch("fetchBackendVersion");
@@ -969,18 +975,21 @@ export default ({
               me.inProgress = false;
             }
 
-            const num_errors = Object.keys(data.errors).length;
-            me.transferred = (submit ? "Submitted " : "Validated ") + (data.input_lines) + " lines" + (submit ? (this.customWorkflow ? " to IntelMQ database" : " to IntelMQ processing queue") : "") + ". Of these, " + (data.input_lines - data.input_lines_invalid) + " were valid. This resulted in " + num_errors + " validation errors and in total " + data.input_lines_invalid + " lines were invalid" + (submit ? ", these were not submitted" : "") + ".";
+            this.validatedCurrentData = true;  // independent of the result, the data validation was run
+
+            this.validationNumErrors = Object.keys(data.errors).length;
+            me.transferred = (submit ? "Submitted " : "Validated ") + (data.input_lines) + " lines" + (submit ? (this.customWorkflow ? " to IntelMQ database" : " to IntelMQ processing queue") : "") + ". Of these, " + (data.input_lines - data.input_lines_invalid) + " were valid. This resulted in " + this.validationNumErrors + " validation errors and in total " + data.input_lines_invalid + " lines were invalid" + (submit ? ", these were not submitted" : "") + ".";
             if (this.customWorkflow) {
               me.transferred = me.transferred + " After bot validation the input data resulted in " + data.output_lines + " events and " + data.output_lines_invalid + " errors occured (invalid events).";
             }
             me.dataErrors = data.errors;
-            if (num_errors) {
+            if (this.validationNumErrors) {
               me.transferStatus = "text-danger";
             } else {
               me.transferStatus = "text-black";
             }
             me.inProgress = false;
+            console.log("Debug:", this.validatedCurrentData, this.validationNumErrors > 0, this.allowValidationOverride, this.allowValidationOverride == false, this.validationNumErrors > 0 && this.allowValidationOverride == false, (!this.validatedCurrentData || this.validationNumErrors > 0) && this.allowValidationOverride == false)
           })
         }, (response) => { // error
             if (response.status == 401) {
@@ -1191,6 +1200,8 @@ export default ({
      * Parse the csv data and apply user options.
      */
     parseCSV() {
+      this.validatedCurrentData = false;
+
       if (this.csvText === "") {
         this.overlay = false;
       }

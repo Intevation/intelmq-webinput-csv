@@ -9,7 +9,7 @@ Development: call like
 
 Several configuration methods are shown within the code.
 
-SPDX-FileCopyrightText: 2016, 2017, 2022-2023 Bundesamt für Sicherheit in der Informationstechnik
+SPDX-FileCopyrightText: 2016, 2017, 2022-2024 Bundesamt für Sicherheit in der Informationstechnik
 SPDX-License-Identifier: AGPL-3.0-or-later
 
 Software engineering by Intevation GmbH <https://intevation.de>
@@ -210,12 +210,13 @@ def row_to_event(item: dict, body: dict,
         except IntelMQException as exc:
             lineerrors[key].append(f"Failed to add data {value!r} as field {key!r}: {exc!s}")
             line_valid = False
-    for key in body['custom']:
+    for key, value in body['custom'].items():
         if key.startswith('custom_') and key[7:] not in event:
+            key = key[7:]
             try:
-                event.add(key[7:], body['custom'][key])
+                event.add(key, value)
             except InvalidValue as exc:
-                lineerrors[-1].append(f"Failed to add data {body['custom'][key]!r} as field {key!r}: {exc!s}")
+                lineerrors[-1].append(f"Failed to add data {value!r} as field {key!r}: {exc!s}")
                 line_valid = False
     for key in CONSTANTS:
         if key not in event:
@@ -443,7 +444,8 @@ def settings():
     Returns some configuration options
     """
     return {
-        'custom_workflow_default': CONFIG.get('custom_workflow_default', False)
+        'custom_workflow_default': CONFIG.get('custom_workflow_default', False),
+        'allow_validation_override': CONFIG.get('allow_validation_override', True)
     }
 
 

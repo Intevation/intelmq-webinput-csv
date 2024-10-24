@@ -27,6 +27,7 @@ export default new Vuex.Store({
     mailgenMultiTemplatesEnabled: false,
     mailgenTemplateDefaultTemplateName: null,
     customWorkflowDefault: false,
+    allowValidationOverride: true
   },
   mutations: {
     SET_USER (state, user) {
@@ -87,6 +88,7 @@ export default new Vuex.Store({
     },
     SET_SETTNGS(state, data) {
       state.customWorkflowDefault = data['custom_workflow_default'];
+      state.allowValidationOverride = data['allow_validation_override'];
     }
   },
   actions: {
