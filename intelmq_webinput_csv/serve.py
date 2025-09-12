@@ -72,7 +72,7 @@ from intelmq.lib.exceptions import InvalidValue, IntelMQException, InvalidKey
 from intelmq.lib.harmonization import DateTime
 from intelmq.lib.message import Event, MessageFactory
 from intelmq.lib.pipeline import PipelineFactory
-from intelmq.lib.utils import load_configuration, LOG_FORMAT_STREAM
+from intelmq.lib.utils import load_configuration, LOG_FORMAT_STREAM, get_bot_module_name
 from intelmq.lib.datatypes import BotType, Dict39
 
 from webinput_session import config, session
@@ -278,10 +278,13 @@ def uploadCSV(body, request, response):
     bots = []
     for bot_id, bot_config in CONFIG.get('bots', {}).items() if body.get('validate_with_bots', False) else {}:
         try:
-            bot = import_module(bot_config['module']).BOT
-            kwargs = {}
-            if bot is WebinputSQLOutputBot:
+            if bot_config['1module'] == 'intelmq_webinput_csv.sql_output':
+                bot = WebinputSQLOutputBot
                 kwargs = {'connection': conn}
+            else:
+                module_name = get_bot_module_name()
+                bot = import_module(module_name).BOT
+                kwargs = {}
             bots.append((bot_id, bot(bot_id, **kwargs, settings=BotLibSettings | bot_config.get('parameters', {}))))
         except Exception:
             return {'status': 'error',
@@ -606,9 +609,8 @@ def process(body) -> dict:
     for bot_id, bot_config in CONFIG.get('bots', {}).items():
         try:
             logging.getLogger(bot_id).addHandler(log_handler)
-            bot = import_module(bot_config['module']).BOT
-            kwargs = {}
-            if bot is WebinputSQLOutputBot:
+            if bot_config['module'] == 'intelmq_webinput_csv.sql_output':
+                bot = WebinputSQLOutputBot
                 if not conn:
                     conn = connect(database=bot_config['parameters']['database'],
                                    user=bot_config['parameters']['user'],
@@ -618,6 +620,12 @@ def process(body) -> dict:
                                    connection_factory=RealDictConnection)
                     conn.autocommit = False
                 kwargs = {'connection': conn}
+            else:
+                module_name = get_bot_module_name(bot_config['module'])
+                if not module_name:
+                    raise ValueError(f"Bot Module {bot_config['module']!r} is not available.")
+                bot = import_module(module_name).BOT
+                kwargs = {}
             bots.append((bot_id, bot(bot_id, **kwargs, settings=BotLibSettings | Dict39({'logging_level': 'DEBUG'}) | Dict39(bot_config.get('parameters', {})))))
         except Exception:
             return {'status': 'error',
