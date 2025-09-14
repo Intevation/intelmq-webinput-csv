@@ -688,9 +688,12 @@ def process(body) -> dict:
         # in dry_run, mailgen calls conn.rollback() itself
 
         retval['log'] += mailgen_log.getvalue()
-    elif conn:
-        # for the SQL output bot, if mailgen was not running
-        conn.rollback()
+    else:
+        # for consistency
+        retval['notifications'] = []
+        if conn:
+            # for the SQL output bot, if mailgen was not running
+            conn.rollback()
 
     return retval
 
@@ -769,6 +772,7 @@ def build_format_spec(assigned_columns: Optional[list] = None) -> 'TableFormat':
     If assigned_columns in the request is null or an empty array, use the fallback
 
     """
+    assigned_columns = assigned_columns if assigned_columns else []
     assigned_columns = list(filter(None, assigned_columns))  # filter empty strings
     assigned_columns = assigned_columns if assigned_columns else FALLBACK_ASSIGNED_COLUMNS
     return build_table_format("Webinput Fallback",

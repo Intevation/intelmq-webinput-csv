@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2023 Bundesamt für Sicherheit in der Informationstechni
 SPDX-License-Identifier: AGPL-3.0-or-later
 Software engineering by Intevation GmbH <https://intevation.de>
 
-This is a special SQL Output Bot which re-uses a connection instance
+This is a special SQL Output Bot which reuses a connection instance
 
 Use this bot as module intelmq_webinput_csv.sql_output
 """
@@ -13,7 +13,7 @@ from intelmq.bots.outputs.sql.output import SQLOutputBot, itemgetter_tuple
 
 class WebinputSQLOutputBot(SQLOutputBot):
     """
-    Re-uses a given connection object to use the transaction
+    Reuses a given connection object to use the transaction
     Only postgresql is supported
 
     The bot must not do any error-handling by itself like re-connecting etc.

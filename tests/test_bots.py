@@ -97,6 +97,7 @@ def test_process_bot():
     assert 'Bot initialization completed.' in result.data['log']
     del result.data['log']
     assert result.data == {'status': 'success',
+                           'notifications': [],
                            'messages': EXAMPLE_DATA_URL_PROCESSED}
 
 
@@ -116,6 +117,7 @@ def test_process_bot_multi_messages():
     assert 'Bot initialization completed.' in result.data['log']
     del result.data['log']
     assert result.data == {'status': 'success',
+                           'notifications': [],
                            'messages': EXAMPLE_DATA_URL_PROCESSED * 2}
 
 
@@ -159,6 +161,7 @@ def test_bots_library_time():
     assert 'Bot initialization completed.' in result.data['log']
     del result.data['log']
     assert result.data == {'status': 'success',
+                           'notifications': [],
                            'messages': [{'classification.identifier': 'test', 'classification.type': 'test',
                                          'classification.taxonomy': 'test', 'feed.code': 'webinput', 'feed.provider': 'my-organization',
                                          'time.source': '2023-01-08T17:01:01+00:00'}]}
@@ -208,11 +211,11 @@ def test_bot_process_raises():
                         }}):
             with mock.patch('intelmq_webinput_csv.serve.get_bot_module_name', new=lambda x: x):  # imported from intelmq.lib.utils
                 result = test.call('POST', intelmq_webinput_csv.serve, '/api/bots/process/', body={'submit': False,
-                                                                                                'data': [{'event_description.text': 'text'}],
-                                                                                                'custom': {},
-                                                                                                'dryrun': True,
-                                                                                                'validate_with_bots': True,
-                                                                                                })
+                                                                                                   'data': [{'event_description.text': 'text'}],
+                                                                                                   'custom': {},
+                                                                                                   'dryrun': True,
+                                                                                                   'validate_with_bots': True,
+                                                                                                   })
     assert result.status == '200 OK'
     print(result.data)
     assert result.data['status'] == 'error'
@@ -232,11 +235,11 @@ def test_bot_upload_invalid():
                         }}):
             with mock.patch('intelmq_webinput_csv.serve.get_bot_module_name', new=lambda x: x):  # imported from intelmq.lib.utils
                 result = test.call('POST', intelmq_webinput_csv.serve, '/api/upload/', body={'submit': False,
-                                                                                            'data': [{'event_description.text': 'text'}],
-                                                                                            'custom': {},
-                                                                                            'dryrun': True,
-                                                                                            'validate_with_bots': True,
-                                                                                            })
+                                                                                             'data': [{'event_description.text': 'text'}],
+                                                                                             'custom': {},
+                                                                                             'dryrun': True,
+                                                                                             'validate_with_bots': True,
+                                                                                             })
     assert result.status == '200 OK'
     print(result.data)
     assert result.data['input_lines_invalid'] == 1
@@ -260,11 +263,11 @@ def test_bot_upload_valid_with_one():
                         }}):
             with mock.patch('intelmq_webinput_csv.serve.get_bot_module_name', new=lambda x: x):  # imported from intelmq.lib.utils
                 result = test.call('POST', intelmq_webinput_csv.serve, '/api/upload/', body={'submit': False,
-                                                                                            'data': [{'event_description.text': 'text'}],
-                                                                                            'custom': {},
-                                                                                            'dryrun': True,
-                                                                                            'validate_with_bots': True,
-                                                                                            })
+                                                                                             'data': [{'event_description.text': 'text'}],
+                                                                                             'custom': {},
+                                                                                             'dryrun': True,
+                                                                                             'validate_with_bots': True,
+                                                                                             })
     assert result.status == '200 OK'
     print(result.data)
     assert result.data['input_lines_invalid'] == 0
