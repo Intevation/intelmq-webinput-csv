@@ -10,6 +10,7 @@ intelmq-webinput-csv (1.2.7-1) stable; urgency=medium
       the body part was ignored and the signature was displayed
       now display the body correctly, along the attachment and ignore the
       signature
+    * compatibility with IntelMQ 3.5.0
 
  -- Sebastian Wagner <swagner@intevation.de>  Wed, 18 Sep 2024 09:08:49 +0200
 

@@ -73,7 +73,7 @@ from intelmq.lib.harmonization import DateTime
 from intelmq.lib.message import Event, MessageFactory
 from intelmq.lib.pipeline import PipelineFactory
 from intelmq.lib.utils import load_configuration, LOG_FORMAT_STREAM, get_bot_module_name
-from intelmq.lib.datatypes import BotType, Dict39
+from intelmq.lib.datatypes import BotType
 
 from webinput_session import config, session
 from intelmq_webinput_csv.sql_output import WebinputSQLOutputBot
@@ -626,7 +626,7 @@ def process(body) -> dict:
                     raise ValueError(f"Bot Module {bot_config['module']!r} is not available.")
                 bot = import_module(module_name).BOT
                 kwargs = {}
-            bots.append((bot_id, bot(bot_id, **kwargs, settings=BotLibSettings | Dict39({'logging_level': 'DEBUG'}) | Dict39(bot_config.get('parameters', {})))))
+            bots.append((bot_id, bot(bot_id, **kwargs, settings=BotLibSettings | {'logging_level': 'DEBUG'} | bot_config.get('parameters', {}))))
         except Exception:
             return {'status': 'error',
                     'log': traceback.format_exc()}

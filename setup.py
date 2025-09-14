@@ -28,6 +28,7 @@ setup(
         # https://github.com/pypa/pip/issues/10805
         'hug',
         'psycopg2',
+        'intelmq',
     ],
     license='AGPLv3',
     description='This is a simple web interface allowing the user to '
