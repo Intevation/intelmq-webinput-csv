@@ -26,7 +26,7 @@ EXAMPLE_DATA_URL_PROCESSED = [EXAMPLE_DATA_URL[0] | {'source.fqdn': 'example.com
                                                      'source.urlpath': '/',
                                                      'protocol.application': 'http', 'protocol.transport': 'tcp',
                                                      'classification.identifier': 'test', 'classification.type': 'test',
-                                                     'feed.code': 'oneshot',
+                                                     'feed.code': 'webinput',
                                                      'feed.provider': 'my-organization',
                                                      }]
 BOT_CONFIG = Dict39({
@@ -132,13 +132,14 @@ def test_bots_library():
     assert 'Bot initialization completed.' in result.data['log']
     del result.data['log']
     assert result.data == {'status': 'success',
+                           'notifications': [],
                            'messages': [EXAMPLE_DATA_URL[0] | {'source.fqdn': 'example',
                                                                'source.port': 80,
                                                                'source.urlpath': '/',
                                                                'protocol.application': 'http', 'protocol.transport': 'tcp',
                                                                'classification.taxonomy': 'other', 'classification.type': 'undetermined',
                                                                'classification.identifier': 'test',
-                                                               'feed.code': 'oneshot',
+                                                               'feed.code': 'webinput',
                                                                'feed.provider': 'my-organization',
                                                                }]}
 
@@ -160,7 +161,7 @@ def test_bots_library_time():
     del result.data['log']
     assert result.data == {'status': 'success',
                            'messages': [{'classification.identifier': 'test', 'classification.type': 'test',
-                                         'classification.taxonomy': 'test', 'feed.code': 'oneshot', 'feed.provider': 'my-organization',
+                                         'classification.taxonomy': 'test', 'feed.code': 'webinput', 'feed.provider': 'my-organization',
                                          'time.source': '2023-01-08T17:01:01+00:00'}]}
 
 

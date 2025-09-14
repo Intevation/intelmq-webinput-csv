@@ -24,10 +24,10 @@ CONFIG_SIMPLE = Dict39({
         "destination_pipeline_host": "intelmq-redis" if (Path('/.dockerenv').exists() and not environ.get('CI')) else "localhost",
         "destination_pipeline_port": 6379
     },
-    "destination_pipeline_queue": "taxonomy-expert-oneshot-queue",
+    "destination_pipeline_queue": "taxonomy-expert-webinput-queue",
     "prefix": "",
-    "mailgen_config_file": "/etc/intelmq/intelmq-mailgen-oneshot.conf",
-    "mailgen_temporary_template_name": "oneshot"
+    "mailgen_config_file": "/etc/intelmq/intelmq-mailgen-webinput.conf",
+    "mailgen_temporary_template_name": "webinput"
 })
 CONFIG = CONFIG_SIMPLE | Dict39({
     "constant_fields": {
@@ -35,8 +35,8 @@ CONFIG = CONFIG_SIMPLE | Dict39({
     },
     "custom_input_fields": {
         "classification.identifier": "test",
-        "feed.code": "oneshot",
-        "feed.name": "oneshot-csv",
+        "feed.code": "webinput",
+        "feed.name": "webinput-csv",
         "extra.template_prefix": ""
     },
     "required_fields": ["source.ip", "source.as_name"],
@@ -121,7 +121,7 @@ def test_constant_fields():
                                                                                                      })
         pipeline_mock.create.assert_called()
         assert mock.call().send('{"source.ip": "127.0.0.1", "source.asn": 1, "source.as_name": "Example AS", "feed.provider": "my-organization", '
-                                '"classification.type": "test", "classification.identifier": "test", "feed.code": "oneshot", '
+                                '"classification.type": "test", "classification.identifier": "test", "feed.code": "webinput", '
                                 '"time.observation": "1970-01-01T13:37:00+00:00", "__type": "Event"}') in pipeline_mock.create.mock_calls
     assert result.status == '200 OK'
     assert result.data['input_lines_invalid'] == 0

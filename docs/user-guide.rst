@@ -218,12 +218,12 @@ should ignore it, a rule similar to this example can be used:
        if context.section == "destination":
            return
        feed = context.get("feed.name")
-       if feed.startswith('oneshot-csv'):
-           context.logger.info('Oneshot detected!')
+       if feed.startswith('webinput-csv'):
+           context.logger.info('Webinput detected!')
            return True
        return
 
-In this example ``feed.name = 'oneshot-csv'`` is the ignore-criteria.
+In this example ``feed.name = 'webinput-csv'`` is the ignore-criteria.
 
 Using a differing IntelMQ Mailgen
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -246,7 +246,7 @@ for the one-shot data. Two features are useful for this:
 
    .. code::
 
-       > intelmqcbmail -c /etc/intelmq/intelmq-mailgen-oneshot.conf
+       > intelmqcbmail -c /etc/intelmq/intelmq-mailgen-webinput.conf
 
    See for more details: https://github.com/Intevation/intelmq-mailgen#user-content-configuration
 
@@ -256,7 +256,7 @@ for the one-shot data. Two features are useful for this:
 
    .. code:: json
 
-      "mailgen_config_file": "/etc/intelmq/intelmq-mailgen-oneshot.conf"
+      "mailgen_config_file": "/etc/intelmq/intelmq-mailgen-webinput.conf"
 2. The mailgen configuration parameter ``additional_directive_where``, adding
    additional conditions to the WHERE-clause of the SQL-statement for the
    directives:
@@ -284,7 +284,7 @@ other Mailgen scripts, for example:
 
 .. code:: json
 
-   "script_directory": "/opt/formats/oneshot"
+   "script_directory": "/opt/formats/webinput"
 
 In contrast to normal mailgen operation, webinput passes the assigned columns of
 the input to the script as default table format.
@@ -343,7 +343,7 @@ A rule of the CERT-Bund Contact rules expert may look like this:
 
    def determine_directives(context):
        ...
-       template = context.get("extra.template_prefix", "oneshot_fallback")
+       template = context.get("extra.template_prefix", "webinput_fallback")
        # Remove the field
        context.pop("extra.template_prefix", None)
        add_directives_to_context(context, msm, template)

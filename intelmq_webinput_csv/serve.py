@@ -233,7 +233,7 @@ def row_to_event(item: dict, body: dict,
     if 'classification.identifier' not in event:
         event.add('classification.identifier', 'test')
     if 'feed.code' not in event:
-        event.add('feed.code', 'oneshot')
+        event.add('feed.code', 'webinput')
     if 'time.observation' not in event:
         event.add('time.observation', time_observation, sanitize=False)
 
