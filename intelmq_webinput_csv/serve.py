@@ -278,11 +278,11 @@ def uploadCSV(body, request, response):
     bots = []
     for bot_id, bot_config in CONFIG.get('bots', {}).items() if body.get('validate_with_bots', False) else {}:
         try:
-            if bot_config['1module'] == 'intelmq_webinput_csv.sql_output':
+            if bot_config['module'] == 'intelmq_webinput_csv.sql_output':
                 bot = WebinputSQLOutputBot
                 kwargs = {'connection': conn}
             else:
-                module_name = get_bot_module_name()
+                module_name = get_bot_module_name(bot_config['module'])
                 bot = import_module(module_name).BOT
                 kwargs = {}
             bots.append((bot_id, bot(bot_id, **kwargs, settings=BotLibSettings | bot_config.get('parameters', {}))))

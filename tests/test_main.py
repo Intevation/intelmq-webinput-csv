@@ -10,13 +10,10 @@ from pathlib import Path
 from os import environ
 from hug import test
 
-from intelmq.lib.datatypes import Dict39
-
 import intelmq_webinput_csv.serve
 
 
-# to use the | operator to merge dicts in Python < 3.9, use this compatibility class
-CONFIG_SIMPLE = Dict39({
+CONFIG_SIMPLE = {
     "intelmq": {
         "destination_pipeline_db": 2,
         # autodetect if this script is running standalone (-> localhost) or GitHub Actions;
@@ -28,8 +25,8 @@ CONFIG_SIMPLE = Dict39({
     "prefix": "",
     "mailgen_config_file": "/etc/intelmq/intelmq-mailgen-webinput.conf",
     "mailgen_temporary_template_name": "webinput"
-})
-CONFIG = CONFIG_SIMPLE | Dict39({
+}
+CONFIG = CONFIG_SIMPLE | {
     "constant_fields": {
         "feed.provider": "my-organization"
     },
@@ -40,7 +37,7 @@ CONFIG = CONFIG_SIMPLE | Dict39({
         "extra.template_prefix": ""
     },
     "required_fields": ["source.ip", "source.as_name"],
-})
+}
 EXAMPLE_DATA = [
     {'source.ip': '127.0.0.1', 'source.asn': '1'},
 ]
