@@ -129,7 +129,7 @@
         Are you sure? This will delete the template file <strong><code>{{ templateToDelete.template_name }}</code></strong> from the server. It cannot be recovered unless you have a backup of it.
       </b-modal>
     </div>
-    <div v-if="loggedIn">
+    <div v-show="loggedIn">
       <div class="accordion" role="tablist">
         <b-overlay :show="overlay" opacity="0.5" @shown="parseCSV">
           <b-card no-body class="mb-1">
@@ -261,20 +261,26 @@
                     </b-form-group>
                     <b-form-group label-cols=4 label="Dryrun">
                       <b-form-checkbox
+                        ref="dryrunCheckbox"
                         v-model="dryrun"
                         switch
-                        v-b-tooltip.hover
-                        title="Override the values of classification.type and (if set as fallback value) classification.identifier with 'test'."
                       ></b-form-checkbox>
+                      <b-tooltip
+                        :target="$refs.dryrunCheckbox" triggers="manual" :show="showDryrunCheckboxTooltip"
+                        title="Override the values of classification.type and (if set as fallback value) classification.identifier with 'test'."
+                      ></b-tooltip>
                     </b-form-group>
                     <b-form-group label-cols=4 label="Use custom workflow">
                       <b-form-checkbox
+                        ref="customWorkflowCheckbox"
                         v-model="customWorkflow"
                         switch
                         :disabled="!botsAvailable.status"
-                        v-b-tooltip.hover
-                        :title="'Off: Submit data to standard IntelMQ workflow using existing templates for notifications.\nOn: Submit data to custom workflow.' + (!botsAvailable.status ? botsAvailable.reason : '')"
                       ></b-form-checkbox>
+                      <b-tooltip
+                        :target="$refs.customWorkflowCheckbox" triggers="manual" :show="showCustomWorkflowCheckboxTooltip"
+                        :title="'Off: Submit data to standard IntelMQ workflow using existing templates for notifications.\nOn: Submit data to custom workflow.' + (!botsAvailable.status ? botsAvailable.reason : '')"
+                      ></b-tooltip>
                     </b-form-group>
                     <b-form-group
                       :label="mailgenAvailableTargetGroups.tag_name || 'Target groups'"
@@ -859,7 +865,9 @@ export default ({
       mailgenTemplateValidationStatus: null,
       mailgenTemplatePrototype: null,
       validationNumErrors: null,
-      validatedCurrentData: false
+      validatedCurrentData: false,
+      showDryrunCheckboxTooltip: false,
+      showCustomWorkflowCheckboxTooltip: false
     }
   },
   computed: {
@@ -899,6 +907,23 @@ export default ({
     for (var j = 0; j < this.timezones.length; j++) {
         this.timezones[j] = this.timezones[j] + ':00';
     }
+    // Show tooltip only if the mouse is over the switch rather than anywhere within its "table cell".
+    // To accomplish this, we unfortunately need to rely on an implementation detail of b-form-checkbox: its label.
+    // FIXME: Implement our own checkbox so we can avoid this?
+    var dryrunCheckboxLabel = this.$refs.dryrunCheckbox.$el.querySelector('label');
+    dryrunCheckboxLabel.addEventListener('mouseenter', () => {
+      this.showDryrunCheckboxTooltip = true;
+    });
+    dryrunCheckboxLabel.addEventListener('mouseleave', () => {
+      this.showDryrunCheckboxTooltip = false;
+    });
+    var customWorkflowCheckboxLabel = this.$refs.customWorkflowCheckbox.$el.querySelector('label');
+    customWorkflowCheckboxLabel.addEventListener('mouseenter', () => {
+      this.showCustomWorkflowCheckboxTooltip = true;
+    });
+    customWorkflowCheckboxLabel.addEventListener('mouseleave', () => {
+      this.showCustomWorkflowCheckboxTooltip = false;
+    });
   },
   watch: {
     customWorkflowDefault: function (newCustomWorkflowDefault) {
