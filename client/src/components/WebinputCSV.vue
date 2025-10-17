@@ -130,8 +130,8 @@
       </b-modal>
     </div>
     <div v-show="loggedIn">
-      <div class="accordion" role="tablist">
-        <b-overlay :show="overlay" opacity="0.5" @shown="parseCSV">
+      <b-overlay :show="overlay" opacity="0.5" @shown="parseCSV">
+        <div class="accordion" role="tablist">
           <b-card no-body class="mb-1">
             <b-card-header header-tag="header" class="p-1" role="tab">
               <b-button block v-b-toggle.accordion-1 variant="info">CSV Content</b-button>
@@ -241,438 +241,316 @@
               </b-card-body>
             </b-collapse>
           </b-card>
-        </b-overlay>
 
-        <b-card no-body class="mb-1" style="overflow-x: visible;">
-          <b-card-header header-tag="header" class="p-1" role="tab">
-            <b-button :disabled="!csvFile && csvText === ''" block v-b-toggle.accordion-3 variant="info">Data Validation and Submission</b-button>
-          </b-card-header>
-          <b-collapse id="accordion-3" accordion="my-accordion" role="tabpanel">
-            <b-card-body>
-              <b-container fluid>
-                <b-row>
-                  <b-col>
-                    <label>CSV Parsing Result: {{ lines }} lines, {{ errors }} errors</label>
-                    <b-form-group label-cols=4 label="Timezone">
-                      <b-form-select
-                        v-model="timezone"
-                        :options="timezones"
-                      ></b-form-select>
-                    </b-form-group>
-                    <b-form-group label-cols=4 label="Dryrun">
-                      <b-form-checkbox
-                        ref="dryrunCheckbox"
-                        v-model="dryrun"
-                        switch
-                      ></b-form-checkbox>
-                      <b-tooltip
-                        :target="$refs.dryrunCheckbox" triggers="manual" :show="showDryrunCheckboxTooltip"
-                        title="Override the values of classification.type and (if set as fallback value) classification.identifier with 'test'."
-                      ></b-tooltip>
-                    </b-form-group>
-                    <b-form-group label-cols=4 label="Use custom workflow">
-                      <b-form-checkbox
-                        ref="customWorkflowCheckbox"
-                        v-model="customWorkflow"
-                        switch
-                        :disabled="!botsAvailable.status"
-                      ></b-form-checkbox>
-                      <b-tooltip
-                        :target="$refs.customWorkflowCheckbox" triggers="manual" :show="showCustomWorkflowCheckboxTooltip"
-                        :title="'Off: Submit data to standard IntelMQ workflow using existing templates for notifications.\nOn: Submit data to custom workflow.' + (!botsAvailable.status ? botsAvailable.reason : '')"
-                      ></b-tooltip>
-                    </b-form-group>
-                    <b-form-group
-                      :label="mailgenAvailableTargetGroups.tag_name || 'Target groups'"
-                      label-cols=4
-                      v-if="mailgenAvailable">
-                      <b-row
-                        v-if="mailgenAvailableTargetGroupsStatus === true && mailgenAvailableTargetGroups.tag_values && mailgenAvailableTargetGroups.tag_values.length">
-                        <b-col cols="9">
-                          <b-form-checkbox-group
-                            v-model="mailgenTargetGroups"
-                            :options="mailgenAvailableTargetGroups.tag_values"
-                            v-if="mailgenAvailableTargetGroupsStatus === true && mailgenAvailableTargetGroups.tag_values && mailgenAvailableTargetGroups.tag_values.length"
-                          ></b-form-checkbox-group>
-                        </b-col>
-                        <b-col>
-                          <b-row>
-                            <b-col style="margin-bottom: 2px;">
-                              <b-button @click="onTargetGroupsSelectAll" size="sm">
-                              Select all
-                              </b-button>
-                            </b-col>
-                            <b-col>
-                              <b-button @click="onTargetGroupsSelectNone" size="sm">
-                              Select none
-                              </b-button>
-                            </b-col>
-                          </b-row>
-                        </b-col>
-                      </b-row>
-                      <span
-                        v-if="mailgenAvailableTargetGroupsStatus === true && mailgenAvailableTargetGroups.tag_values && mailgenAvailableTargetGroups.tag_values.length == 0"
-                        >None defined
-                      </span>
-                      <span
-                        class="text-danger"
-                        v-else-if="mailgenAvailableTargetGroupsStatus !== true"
-                        >Error: {{ mailgenAvailableTargetGroupsStatus }}
-                      </span>
-                    </b-form-group>
-                    <b-container>
-                      <b-row>
-                        <b-col>
-                          <b-overlay
-                            :show="inProgress"
-                            rounded
-                            opacity="0.5"
-                            spinner-small
-                            spinner-variant="primary"
-                            class="d-inline-block"
-                          >
-                            <b-button @click="sendData(submit=false)" variant="info">Validate data</b-button>
-                          </b-overlay>
-                        </b-col>
-                        <b-col>
-                          <b-overlay
-                            :show="inProgress"
-                            rounded
-                            opacity="0.5"
-                            spinner-small
-                            spinner-variant="primary"
-                            class="d-inline-block"
-                          >
-                            <b-button @click="onSendData" variant="primary"
-                              :disabled="(!validatedCurrentData || validationNumErrors > 0) && allowValidationOverride == false"
-                              v-b-tooltip.hover
-                              :title="(!validatedCurrentData && allowValidationOverride == false) ? 'Data validation required before' : ((validationNumErrors > 0 && allowValidationOverride == false) ? 'Data validation failed' : '')"
-                              >Submit to {{ customWorkflow ? 'custom workflow' : 'standard workflow' }}</b-button>
-                          </b-overlay>
-                        </b-col>
-                        <b-col>
-                          <b-overlay
-                            :show="inProgress"
-                            rounded
-                            opacity="0.5"
-                            spinner-small
-                            spinner-variant="primary"
-                            class="d-inline-block"
-                          >
-                            <label style="margin-left: 10px;" :class="transferStatus">{{ transferred }}</label><br />
-                          </b-overlay>
-                        </b-col>
-                      </b-row>
-                      <b-row>
-                        <b-col>
-                          <label v-b-tooltip.hover title="These fields need to be present in the data. Data lines not containing them will not be submitted. Can be configured by the server administrator in the configuration.">
-                            Required fields:
-                            <span v-for="(field, index) in requiredFields" :key="index" style="margin-right: 3px">
-                              <span v-if="index !== 0">, </span>
-                              <code>{{ field }}</code>
-                            </span>
-                            <span v-if="!requiredFields.length">None</span>
-                          </label>
-                        </b-col>
-                      </b-row>
-                    </b-container>
-                  </b-col>
-                  <b-col>
-                    <h4>Fallback values</h4>
-                    <b-form-group label-cols=4 label="classification.type">
-                      <b-form-select
-                        v-model="classificationType"
-                        :options="classificationTypes"
-                        :disabled="dryrun"
-                      ></b-form-select>
-                    </b-form-group>
-                    <b-form-group v-for="field in customFieldsMapping" :key="field.key" :id="field.key" label-cols=4 :label="field.key">
-                      <b-form-input
-                        v-model="field.value"
-                        type="text"
-                        :disabled="field.key == 'classification.identifier' && dryrun"
-                        ></b-form-input>
-                    </b-form-group>
-                  </b-col>
-                </b-row>
-              </b-container>
-              <b-table sticky-header="600px"
-                ref="table"
-                striped
-                bordered
-                fixed
-                small
-                :current-page="currentPage"
-                :per-page="perPage"
-                :fields="tableHeader"
-                :items="tableData"
-              >
-                <template #head()="data">
-                  <v-select
-                    :id="data.field.key"
-                    :value="data.field"
-                    :options="harmonizationFields"
-                    v-if="data.label != 'Actions'"
-                    taggable
-                    autoscroll
-                    appendToBody
-                    @input="(fieldname) => updateTableHeader(data, fieldname)"
-                    @option:deselected="(fieldname) => updateTableHeader(data, null)"
-                  >
-                    <template #header>
-                      <div style="color: red" v-if="data.field.invalid">
-                        {{ data.field.invalid }}
-                      </div>
-                      <div style="color: orange" v-if="data.field.warning">
-                        {{ data.field.warning }}
-                      </div>
-                    </template>
-                  </v-select>
-                </template>
-                <template #cell(Actions)="row">
-                  <div :class="getTableActionCellClass(row)">
-                    <span v-b-tooltip.hover :title="getActionCellTooltip(row.index)">#{{ row.index + 1 }}</span>
-                    <b-overlay
-                              :show="rowModalInProgress"
+          <b-card no-body class="mb-1" style="overflow-x: visible;">
+            <b-card-header header-tag="header" class="p-1" role="tab">
+              <b-button :disabled="!csvFile && csvText === ''" block v-b-toggle.accordion-3 variant="info">Data Validation and Submission</b-button>
+            </b-card-header>
+            <b-collapse id="accordion-3" accordion="my-accordion" role="tabpanel">
+              <b-card-body>
+                <b-container fluid>
+                  <b-row>
+                    <b-col>
+                      <label>CSV Parsing Result: {{ lines }} lines, {{ errors }} errors</label>
+                      <b-form-group label-cols=4 label="Timezone">
+                        <b-form-select
+                          v-model="timezone"
+                          :options="timezones"
+                        ></b-form-select>
+                      </b-form-group>
+                      <b-form-group label-cols=4 label="Dryrun">
+                        <b-form-checkbox
+                          ref="dryrunCheckbox"
+                          v-model="dryrun"
+                          switch
+                        ></b-form-checkbox>
+                        <b-tooltip
+                          :target="$refs.dryrunCheckbox" triggers="manual" :show="showDryrunCheckboxTooltip"
+                          title="Override the values of classification.type and (if set as fallback value) classification.identifier with 'test'."
+                        ></b-tooltip>
+                      </b-form-group>
+                      <b-form-group label-cols=4 label="Use custom workflow">
+                        <b-form-checkbox
+                          ref="customWorkflowCheckbox"
+                          v-model="customWorkflow"
+                          switch
+                          :disabled="!botsAvailable.status"
+                        ></b-form-checkbox>
+                        <b-tooltip
+                          :target="$refs.customWorkflowCheckbox" triggers="manual" :show="showCustomWorkflowCheckboxTooltip"
+                          :title="'Off: Submit data to standard IntelMQ workflow using existing templates for notifications.\nOn: Submit data to custom workflow.' + (!botsAvailable.status ? botsAvailable.reason : '')"
+                        ></b-tooltip>
+                      </b-form-group>
+                      <b-form-group
+                        :label="mailgenAvailableTargetGroups.tag_name || 'Target groups'"
+                        label-cols=4
+                        v-if="mailgenAvailable">
+                        <b-row
+                          v-if="mailgenAvailableTargetGroupsStatus === true && mailgenAvailableTargetGroups.tag_values && mailgenAvailableTargetGroups.tag_values.length">
+                          <b-col cols="9">
+                            <b-form-checkbox-group
+                              v-model="mailgenTargetGroups"
+                              :options="mailgenAvailableTargetGroups.tag_values"
+                              v-if="mailgenAvailableTargetGroupsStatus === true && mailgenAvailableTargetGroups.tag_values && mailgenAvailableTargetGroups.tag_values.length"
+                            ></b-form-checkbox-group>
+                          </b-col>
+                          <b-col>
+                            <b-row>
+                              <b-col style="margin-bottom: 2px;">
+                                <b-button @click="onTargetGroupsSelectAll" size="sm">
+                                Select all
+                                </b-button>
+                              </b-col>
+                              <b-col>
+                                <b-button @click="onTargetGroupsSelectNone" size="sm">
+                                Select none
+                                </b-button>
+                              </b-col>
+                            </b-row>
+                          </b-col>
+                        </b-row>
+                        <span
+                          v-if="mailgenAvailableTargetGroupsStatus === true && mailgenAvailableTargetGroups.tag_values && mailgenAvailableTargetGroups.tag_values.length == 0"
+                          >None defined
+                        </span>
+                        <span
+                          class="text-danger"
+                          v-else-if="mailgenAvailableTargetGroupsStatus !== true"
+                          >Error: {{ mailgenAvailableTargetGroupsStatus }}
+                        </span>
+                      </b-form-group>
+                      <b-container>
+                        <b-row>
+                          <b-col>
+                            <b-overlay
+                              :show="inProgress"
                               rounded
                               opacity="0.5"
                               spinner-small
                               spinner-variant="primary"
                               class="d-inline-block"
                             >
-                      <b-button
-                        size="sm"
-                        @click="triggerShowRowModal(row)"
-                        variant="info"
-                      >🔎</b-button>
-                    </b-overlay>
-                  </div>
-                </template>
-                <template #cell()="row">
-                  <div :class="getTableCellClass(row)">
-                    <span v-b-tooltip.hover :title="getTooltip(row.index, row.field.key)">{{row.value}}</span>
-                  </div>
-                </template>
-                <template #foot(name)="data">
-                  <span class="text-danger">{{ data.label }}</span>
-                </template>
-                <template #foot()="data">
-                  <i>{{ data.label }}</i>
-                </template>
-              </b-table>
-              <b-modal
-                v-model="showRowModal"
-                title="Processed Row Data"
-                scrollable
-                size="xl"
-                ok-only>
-                <div v-if="rowModalData.notifications">
-                  <h5>Notifications ({{ rowModalData.notifications.length }}):</h5>
-                  <b-container v-for="notification in rowModalData.notifications" v-bind:key="notification.index">
-                    <h6>Subject: {{ notification[0] }}</h6>
-                    <h6>To: {{ notification[1] }}</h6>
-                    <h6>Content Type: {{ notification[3] }}</h6>
-                    <code><pre>{{ notification[2] }}</pre></code>
-                  </b-container>
-                </div>
-                <div v-if="rowModalData.messages">
-                  <h5>Messages ({{rowModalData.messages.length}}) after processing by bots (excluding output bots):</h5>
-                  <code><pre>{{rowModalData.messages}}</pre></code>
-                </div>
-                <div v-if="rowModalData.log">
-                  <h5>Log:</h5>
-                  <code><pre>{{rowModalData.log}}</pre></code>
-                </div>
-              </b-modal>
-              <b-container>
-                <b-row>
-                  <b-col>
-                    <b-form-group
-                      label="Per page"
-                      label-for="per-page-select"
-                      label-cols="6"
-                      label-size="sm"
-                      class="mb-0"
-                    >
-                      <b-form-select
-                        id="per-page-select"
-                        v-model="perPage"
-                        :options="pageOptions"
-                        size="sm"
-                      ></b-form-select>
-                    </b-form-group>
-                  </b-col>
-                  <b-col>
-                    <b-pagination
-                      v-model="currentPage"
-                      :total-rows="lines"
-                      :per-page="perPage"
-                      align="fill"
-                      size="sm"
-                      class="my-0"
-                    ></b-pagination>
-                  </b-col>
-                </b-row>
-              </b-container>
-            </b-card-body>
-          </b-collapse>
-        </b-card>
-        <b-card no-body class="mb-1" style="overflow-x: visible;">
-
-          <b-card-header header-tag="header" class="p-1" role="tab">
-            <b-button :disabled="!mailgenAvailable" block v-b-toggle.accordion-notifications variant="info" :title="mailgenAvailable ? 'Set Mailgen Templates and Start a Mailgen Run' : 'Mailgen is not installed/available'">Send Notifications</b-button>
-          </b-card-header>
-          <b-collapse id="accordion-notifications" visible accordion="my-accordion" role="tabpanel" @show="onShowNotificationAccordion">
-            <b-card-body>
-              <b-container fluid>
-                <b-row align-v="center">
-                  <b-col>
-                    <b-form-group
-                      label-cols="auto"
-                      label="Verbose Logs"
-                      v-b-tooltip.hover
-                      title="Activate verbose logging in Mailgen for more details on processing"
-                    >
-                      <b-form-checkbox
-                        v-model="mailgenVerbose"
-                        switch
-                      ></b-form-checkbox>
-                    </b-form-group>
-                    <b-form-group
-                      label-cols="auto"
-                      label="Simulate"
-                      v-b-tooltip.hover
-                      title="Only simulate Mailgen run, do not actually send notifications"
-                    >
-                      <b-form-checkbox
-                        v-model="mailgenDryRun"
-                        switch
-                      ></b-form-checkbox>
-                    </b-form-group>
-                  </b-col>
-                  <b-col>
-                    <b-overlay
-                        :show="mailgenInProgress"
-                        rounded
-                        opacity="0.5"
-                        spinner-small
-                        spinner-variant="primary"
-                        class="d-inline-block"
-                      >
-                        <b-button
-                          v-b-tooltip.hover
-                          @click="previewMailgenTemplate(showDialog=true)"
-                          variant="primary"
-                          :disabled="!mailgenAvailable || !mailgenTemplate"
-                          title="Template Preview"
-                          block
-                          >Show Template {{ (mailgenTemplateValidationStatus == 'text-danger') ? 'Log' : 'Preview' }}</b-button>
-                      </b-overlay>
-                  </b-col>
-                  <b-col>
-                    <b-overlay
-                      :show="mailgenInProgress"
-                      rounded
-                      opacity="0.5"
-                      spinner-small
-                      spinner-variant="primary"
-                      class="d-inline-block"
-                    >
-                      <b-button v-b-tooltip.hover @click="runMailgen" variant="primary" :disabled="!mailgenAvailable" :title="mailgenAvailable ? 'Start Mailgen' : 'Mailgen is not installed/available'">Start Mailgen</b-button>
-                    </b-overlay>
-                  </b-col>
-                  <b-col>
-                    <b-overlay
-                      :show="mailgenInProgress"
-                      rounded
-                      opacity="0.5"
-                      spinner-small
-                      spinner-variant="primary"
-                      class="d-inline-block"
-                    >
-                      <label style="margin-left: 10px;" :class="mailgenStatus">{{ mailgenResult }}</label><br />
-                      <b-button @click="showMailgenLog=true" v-b-modal.mailgenLog-popup v-if="mailgenLog && mailgenLog != mailgenResult">Show complete log</b-button>
-                    </b-overlay>
-                  </b-col>
-                </b-row>
-                <b-row v-if="!mailgenMultiTemplatesEnabled">
-                  <b-col>
-                    <h4>Template</h4>
-                  </b-col>
-                </b-row>
-                <b-row v-if="!mailgenMultiTemplatesEnabled">
-                  <b-col cols="3" style="text-align: left;">
-                    <p>
-                      The template given here is fixed for all notifications sent by this Mailgen run.
-                      The Template is not saved to disk.
-                    </p>
-                    <p>First line is the subject. Use <code>${fieldname}</code> to insert aggregated field names and <code>${events_as_csv}</code> for a CSV attachment.</p>
-                    <p>If the Template is empty, Mailgen uses its default templates.</p>
-                    <p>Mailgen started by other means (command line or automated jobs), uses the templates present on disk.</p>
-                  </b-col>
-                  <b-col>
-                    <b-row>
-                      <b-col>
-                        <span
-                          :class="mailgenTemplateValidationStatus"
-                          >{{mailgenTemplateValidationText}}
-                      </span>
-                      </b-col>
-                      <b-col>
-                        <b-form-group
-                          label="Replace text with existing template from disk:"
-                          label-cols="auto">
-                          <v-select
-                            :options="mailgenTemplateNames"
-                            v-model="mailgenTemplatePrototype"
-                            @input="onMailgenTemplatePrototypeSelected"
-                            width="100%"></v-select>
-                      </b-form-group>
-                      </b-col>
-                    </b-row>
-                    <b-row>
-                      <b-col>
-                        <b-form-group width="100%">
-                          <b-form-textarea
-                          id="template"
-                          v-model="mailgenTemplate"
-                          rows="10"
-                          width="100%"
-                          @input="validateMailgenTemplateContentDebounce"
-                        ></b-form-textarea>
-                        </b-form-group>
-                      </b-col>
-                    </b-row>
-                  </b-col>
-                </b-row>
-                <h4 v-if="mailgenMultiTemplatesEnabled">Templates:</h4>
-                <b-row align-h="center" style="margin-buttom: 30px" v-if="mailgenMultiTemplatesEnabled">
-                  <span style="max-width: 700px">
-                    Mailgen started via this interface (only) uses the templates shown here. It does not matter if the templates are saved to the file on the server.
-                    Templates not saved to disk are not retained and are only available in this session.
-                    Mailgen started by other means (command line or automated jobs), uses the templates present on disk.
-                  </span>
-                </b-row>
-                <b-container v-if="mailgenMultiTemplatesEnabled">
-                  <b-row v-for="(item, index) in mailgenTemplates" v-bind:key="index" class="item">
+                              <b-button @click="sendData(submit=false)" variant="info">Validate data</b-button>
+                            </b-overlay>
+                          </b-col>
+                          <b-col>
+                            <b-overlay
+                              :show="inProgress"
+                              rounded
+                              opacity="0.5"
+                              spinner-small
+                              spinner-variant="primary"
+                              class="d-inline-block"
+                            >
+                              <b-button @click="onSendData" variant="primary"
+                                :disabled="(!validatedCurrentData || validationNumErrors > 0) && allowValidationOverride == false"
+                                v-b-tooltip.hover
+                                :title="(!validatedCurrentData && allowValidationOverride == false) ? 'Data validation required before' : ((validationNumErrors > 0 && allowValidationOverride == false) ? 'Data validation failed' : '')"
+                                >Submit to {{ customWorkflow ? 'custom workflow' : 'standard workflow' }}</b-button>
+                            </b-overlay>
+                          </b-col>
+                          <b-col>
+                            <b-overlay
+                              :show="inProgress"
+                              rounded
+                              opacity="0.5"
+                              spinner-small
+                              spinner-variant="primary"
+                              class="d-inline-block"
+                            >
+                              <label style="margin-left: 10px;" :class="transferStatus">{{ transferred }}</label><br />
+                            </b-overlay>
+                          </b-col>
+                        </b-row>
+                        <b-row>
+                          <b-col>
+                            <label v-b-tooltip.hover title="These fields need to be present in the data. Data lines not containing them will not be submitted. Can be configured by the server administrator in the configuration.">
+                              Required fields:
+                              <span v-for="(field, index) in requiredFields" :key="index" style="margin-right: 3px">
+                                <span v-if="index !== 0">, </span>
+                                <code>{{ field }}</code>
+                              </span>
+                              <span v-if="!requiredFields.length">None</span>
+                            </label>
+                          </b-col>
+                        </b-row>
+                      </b-container>
+                    </b-col>
                     <b-col>
-                      <b-row>
-                        <b-form-group
-                          label="Template name"
-                          description="With an empty name, the template will be ignored"
-                          >
-                          <b-form-input
-                            v-model="item.name"
-                            @input="validateTemplateNameDebounced(index); validateTemplateContent(index)"
-                            :state="item.state"
+                      <h4>Fallback values</h4>
+                      <b-form-group label-cols=4 label="classification.type">
+                        <b-form-select
+                          v-model="classificationType"
+                          :options="classificationTypes"
+                          :disabled="dryrun"
+                        ></b-form-select>
+                      </b-form-group>
+                      <b-form-group v-for="field in customFieldsMapping" :key="field.key" :id="field.key" label-cols=4 :label="field.key">
+                        <b-form-input
+                          v-model="field.value"
+                          type="text"
+                          :disabled="field.key == 'classification.identifier' && dryrun"
                           ></b-form-input>
-                          <b-form-invalid-feedback :id="'template-name-feedback-' + index">
-                            Duplicate Template Name
-                          </b-form-invalid-feedback>
-                        </b-form-group>
-                      </b-row>
-                      <b-row>
-                        <b-overlay
+                      </b-form-group>
+                    </b-col>
+                  </b-row>
+                </b-container>
+                <b-table sticky-header="600px"
+                  ref="table"
+                  striped
+                  bordered
+                  fixed
+                  small
+                  :current-page="currentPage"
+                  :per-page="perPage"
+                  :fields="tableHeader"
+                  :items="tableData"
+                >
+                  <template #head()="data">
+                    <v-select
+                      :id="data.field.key"
+                      :value="data.field"
+                      :options="harmonizationFields"
+                      v-if="data.label != 'Actions'"
+                      taggable
+                      autoscroll
+                      appendToBody
+                      @input="(fieldname) => updateTableHeader(data, fieldname)"
+                      @option:deselected="(fieldname) => updateTableHeader(data, null)"
+                    >
+                      <template #header>
+                        <div style="color: red" v-if="data.field.invalid">
+                          {{ data.field.invalid }}
+                        </div>
+                        <div style="color: orange" v-if="data.field.warning">
+                          {{ data.field.warning }}
+                        </div>
+                      </template>
+                    </v-select>
+                  </template>
+                  <template #cell(Actions)="row">
+                    <div :class="getTableActionCellClass(row)">
+                      <span v-b-tooltip.hover :title="getActionCellTooltip(row.index)">#{{ row.index + 1 }}</span>
+                      <b-overlay
+                                :show="rowModalInProgress"
+                                rounded
+                                opacity="0.5"
+                                spinner-small
+                                spinner-variant="primary"
+                                class="d-inline-block"
+                              >
+                        <b-button
+                          size="sm"
+                          @click="triggerShowRowModal(row)"
+                          variant="info"
+                        >🔎</b-button>
+                      </b-overlay>
+                    </div>
+                  </template>
+                  <template #cell()="row">
+                    <div :class="getTableCellClass(row)">
+                      <span v-b-tooltip.hover :title="getTooltip(row.index, row.field.key)">{{row.value}}</span>
+                    </div>
+                  </template>
+                  <template #foot(name)="data">
+                    <span class="text-danger">{{ data.label }}</span>
+                  </template>
+                  <template #foot()="data">
+                    <i>{{ data.label }}</i>
+                  </template>
+                </b-table>
+                <b-modal
+                  v-model="showRowModal"
+                  title="Processed Row Data"
+                  scrollable
+                  size="xl"
+                  ok-only>
+                  <div v-if="rowModalData.notifications">
+                    <h5>Notifications ({{ rowModalData.notifications.length }}):</h5>
+                    <b-container v-for="notification in rowModalData.notifications" v-bind:key="notification.index">
+                      <h6>Subject: {{ notification[0] }}</h6>
+                      <h6>To: {{ notification[1] }}</h6>
+                      <h6>Content Type: {{ notification[3] }}</h6>
+                      <code><pre>{{ notification[2] }}</pre></code>
+                    </b-container>
+                  </div>
+                  <div v-if="rowModalData.messages">
+                    <h5>Messages ({{rowModalData.messages.length}}) after processing by bots (excluding output bots):</h5>
+                    <code><pre>{{rowModalData.messages}}</pre></code>
+                  </div>
+                  <div v-if="rowModalData.log">
+                    <h5>Log:</h5>
+                    <code><pre>{{rowModalData.log}}</pre></code>
+                  </div>
+                </b-modal>
+                <b-container>
+                  <b-row>
+                    <b-col>
+                      <b-form-group
+                        label="Per page"
+                        label-for="per-page-select"
+                        label-cols="6"
+                        label-size="sm"
+                        class="mb-0"
+                      >
+                        <b-form-select
+                          id="per-page-select"
+                          v-model="perPage"
+                          :options="pageOptions"
+                          size="sm"
+                        ></b-form-select>
+                      </b-form-group>
+                    </b-col>
+                    <b-col>
+                      <b-pagination
+                        v-model="currentPage"
+                        :total-rows="lines"
+                        :per-page="perPage"
+                        align="fill"
+                        size="sm"
+                        class="my-0"
+                      ></b-pagination>
+                    </b-col>
+                  </b-row>
+                </b-container>
+              </b-card-body>
+            </b-collapse>
+          </b-card>
+          <b-card no-body class="mb-1" style="overflow-x: visible;">
+
+            <b-card-header header-tag="header" class="p-1" role="tab">
+              <b-button :disabled="!mailgenAvailable" block v-b-toggle.accordion-notifications variant="info" :title="mailgenAvailable ? 'Set Mailgen Templates and Start a Mailgen Run' : 'Mailgen is not installed/available'">Send Notifications</b-button>
+            </b-card-header>
+            <b-collapse id="accordion-notifications" visible accordion="my-accordion" role="tabpanel" @show="onShowNotificationAccordion">
+              <b-card-body>
+                <b-container fluid>
+                  <b-row align-v="center">
+                    <b-col>
+                      <b-form-group
+                        label-cols="auto"
+                        label="Verbose Logs"
+                        v-b-tooltip.hover
+                        title="Activate verbose logging in Mailgen for more details on processing"
+                      >
+                        <b-form-checkbox
+                          v-model="mailgenVerbose"
+                          switch
+                        ></b-form-checkbox>
+                      </b-form-group>
+                      <b-form-group
+                        label-cols="auto"
+                        label="Simulate"
+                        v-b-tooltip.hover
+                        title="Only simulate Mailgen run, do not actually send notifications"
+                      >
+                        <b-form-checkbox
+                          v-model="mailgenDryRun"
+                          switch
+                        ></b-form-checkbox>
+                      </b-form-group>
+                    </b-col>
+                    <b-col>
+                      <b-overlay
                           :show="mailgenInProgress"
                           rounded
                           opacity="0.5"
@@ -682,111 +560,233 @@
                         >
                           <b-button
                             v-b-tooltip.hover
-                            @click="previewMailgen(index, showDialog=true)"
+                            @click="previewMailgenTemplate(showDialog=true)"
                             variant="primary"
-                            :disabled="!mailgenAvailable || !item.body"
-                            title="Preview this template"
+                            :disabled="!mailgenAvailable || !mailgenTemplate"
+                            title="Template Preview"
                             block
-                            >Show Template {{ (item.validationStatus == 'text-danger') ? 'Log' : 'Preview' }}</b-button>
+                            >Show Template {{ (mailgenTemplateValidationStatus == 'text-danger') ? 'Log' : 'Preview' }}</b-button>
                         </b-overlay>
+                    </b-col>
+                    <b-col>
+                      <b-overlay
+                        :show="mailgenInProgress"
+                        rounded
+                        opacity="0.5"
+                        spinner-small
+                        spinner-variant="primary"
+                        class="d-inline-block"
+                      >
+                        <b-button v-b-tooltip.hover @click="runMailgen" variant="primary" :disabled="!mailgenAvailable" :title="mailgenAvailable ? 'Start Mailgen' : 'Mailgen is not installed/available'">Start Mailgen</b-button>
+                      </b-overlay>
+                    </b-col>
+                    <b-col>
+                      <b-overlay
+                        :show="mailgenInProgress"
+                        rounded
+                        opacity="0.5"
+                        spinner-small
+                        spinner-variant="primary"
+                        class="d-inline-block"
+                      >
+                        <label style="margin-left: 10px;" :class="mailgenStatus">{{ mailgenResult }}</label><br />
+                        <b-button @click="showMailgenLog=true" v-b-modal.mailgenLog-popup v-if="mailgenLog && mailgenLog != mailgenResult">Show complete log</b-button>
+                      </b-overlay>
+                    </b-col>
+                  </b-row>
+                  <b-row v-if="!mailgenMultiTemplatesEnabled">
+                    <b-col>
+                      <h4>Template</h4>
+                    </b-col>
+                  </b-row>
+                  <b-row v-if="!mailgenMultiTemplatesEnabled">
+                    <b-col cols="3" style="text-align: left;">
+                      <p>
+                        The template given here is fixed for all notifications sent by this Mailgen run.
+                        The Template is not saved to disk.
+                      </p>
+                      <p>First line is the subject. Use <code>${fieldname}</code> to insert aggregated field names and <code>${events_as_csv}</code> for a CSV attachment.</p>
+                      <p>If the Template is empty, Mailgen uses its default templates.</p>
+                      <p>Mailgen started by other means (command line or automated jobs), uses the templates present on disk.</p>
+                    </b-col>
+                    <b-col>
+                      <b-row>
+                        <b-col>
+                          <span
+                            :class="mailgenTemplateValidationStatus"
+                            >{{mailgenTemplateValidationText}}
+                        </span>
+                        </b-col>
+                        <b-col>
+                          <b-form-group
+                            label="Replace text with existing template from disk:"
+                            label-cols="auto">
+                            <v-select
+                              :options="mailgenTemplateNames"
+                              v-model="mailgenTemplatePrototype"
+                              @input="onMailgenTemplatePrototypeSelected"
+                              width="100%"></v-select>
+                        </b-form-group>
+                        </b-col>
                       </b-row>
                       <b-row>
-                        <span
-                          style="color: green"
-                          v-if="mailgenTemplatesServer[index] && mailgenTemplatesServer[index].name == ''"
-                          title="This template does not exist on the server"
-                          >new</span>
-                        <span
-                          style="color: green"
-                          v-if="mailgenTemplatesServer[index] && item.name.trim() != mailgenTemplatesServer[index].name.trim() && mailgenTemplatesServer[index].name != ''"
-                          >modified
+                        <b-col>
+                          <b-form-group width="100%">
+                            <b-form-textarea
+                            id="template"
+                            v-model="mailgenTemplate"
+                            rows="10"
+                            width="100%"
+                            @input="validateMailgenTemplateContentDebounce"
+                          ></b-form-textarea>
+                          </b-form-group>
+                        </b-col>
+                      </b-row>
+                    </b-col>
+                  </b-row>
+                  <h4 v-if="mailgenMultiTemplatesEnabled">Templates:</h4>
+                  <b-row align-h="center" style="margin-buttom: 30px" v-if="mailgenMultiTemplatesEnabled">
+                    <span style="max-width: 700px">
+                      Mailgen started via this interface (only) uses the templates shown here. It does not matter if the templates are saved to the file on the server.
+                      Templates not saved to disk are not retained and are only available in this session.
+                      Mailgen started by other means (command line or automated jobs), uses the templates present on disk.
+                    </span>
+                  </b-row>
+                  <b-container v-if="mailgenMultiTemplatesEnabled">
+                    <b-row v-for="(item, index) in mailgenTemplates" v-bind:key="index" class="item">
+                      <b-col>
+                        <b-row>
+                          <b-form-group
+                            label="Template name"
+                            description="With an empty name, the template will be ignored"
+                            >
+                            <b-form-input
+                              v-model="item.name"
+                              @input="validateTemplateNameDebounced(index); validateTemplateContent(index)"
+                              :state="item.state"
+                            ></b-form-input>
+                            <b-form-invalid-feedback :id="'template-name-feedback-' + index">
+                              Duplicate Template Name
+                            </b-form-invalid-feedback>
+                          </b-form-group>
+                        </b-row>
+                        <b-row>
+                          <b-overlay
+                            :show="mailgenInProgress"
+                            rounded
+                            opacity="0.5"
+                            spinner-small
+                            spinner-variant="primary"
+                            class="d-inline-block"
+                          >
                             <b-button
-                              variant="info"
-                              size="sm"
-                              @click.prevent="item.name = mailgenTemplatesServer[index].name"
-                              title="Revert to the original state"
-                              style="margin-top: 10px"
-                              >↶
-                            </b-button>
-                          </span>
+                              v-b-tooltip.hover
+                              @click="previewMailgen(index, showDialog=true)"
+                              variant="primary"
+                              :disabled="!mailgenAvailable || !item.body"
+                              title="Preview this template"
+                              block
+                              >Show Template {{ (item.validationStatus == 'text-danger') ? 'Log' : 'Preview' }}</b-button>
+                          </b-overlay>
                         </b-row>
                         <b-row>
                           <span
-                            :class="item.validationStatus"
-                            >{{item.validationText}}
-                          </span>
-                        </b-row>
-                      </b-col>
-                      <b-col cols="8">
-                        <b-form-group
-                          label="Template content"
-                          description="First line is the subject. Use ${fieldname} to insert aggregated field names and ${events_as_csv} for a CSV attachment."
-                          >
-                          <b-form-textarea
-                            v-model="item.body"
-                            rows="10"
-                            @input="validateTemplateContent(index)"
-                          ></b-form-textarea>
-                        </b-form-group>
-                      </b-col>
-                      <b-col cols="1">
-                        <b-button
-                          block
-                          variant="info"
-                          size="sm"
-                          @click.prevent="deleteTemplateInput(index)"
-                          title="Remove this template input field. Does not remove it from the server."
-                          v-if="index != 0"
-                          style="font-size: 1.5em"
-                          >❌
-                        </b-button>
-                        <b-button
-                          block
-                          size="sm"
-                          variant="danger"
-                          :disabled="mailgenTemplatesServer[index] && item.name.trim() != mailgenTemplatesServer[index].name.trim()"
-                          @click.prevent="showTemplateDeletionModal(index, item.name)"
-                          title="Delete the template file from the server"
-                          style="font-size: 1.5em"
-                        >🗑️</b-button>
-                        <b-button
-                          block
-                          size="sm"
-                          variant="success"
-                          :disabled="mailgenTemplatesServer[index] && item.name.trim() == mailgenTemplatesServer[index].name.trim() && item.body.trim() == mailgenTemplatesServer[index].body.trim()"
-                          @click.prevent="saveTemplate(index, item.name, item.body)"
-                          title="Save the template file on the server"
-                          style="font-size: 1.5em"
-                        >💾</b-button>
-                        <span
-                          style="color: green"
-                          v-if="mailgenTemplatesServer[index] && item.body.trim() != mailgenTemplatesServer[index].body.trim() && mailgenTemplatesServer[index].name != ''"
-                          >modified
+                            style="color: green"
+                            v-if="mailgenTemplatesServer[index] && mailgenTemplatesServer[index].name == ''"
+                            title="This template does not exist on the server"
+                            >new</span>
+                          <span
+                            style="color: green"
+                            v-if="mailgenTemplatesServer[index] && item.name.trim() != mailgenTemplatesServer[index].name.trim() && mailgenTemplatesServer[index].name != ''"
+                            >modified
+                              <b-button
+                                variant="info"
+                                size="sm"
+                                @click.prevent="item.name = mailgenTemplatesServer[index].name"
+                                title="Revert to the original state"
+                                style="margin-top: 10px"
+                                >↶
+                              </b-button>
+                            </span>
+                          </b-row>
+                          <b-row>
+                            <span
+                              :class="item.validationStatus"
+                              >{{item.validationText}}
+                            </span>
+                          </b-row>
+                        </b-col>
+                        <b-col cols="8">
+                          <b-form-group
+                            label="Template content"
+                            description="First line is the subject. Use ${fieldname} to insert aggregated field names and ${events_as_csv} for a CSV attachment."
+                            >
+                            <b-form-textarea
+                              v-model="item.body"
+                              rows="10"
+                              @input="validateTemplateContent(index)"
+                            ></b-form-textarea>
+                          </b-form-group>
+                        </b-col>
+                        <b-col cols="1">
                           <b-button
+                            block
                             variant="info"
                             size="sm"
-                            @click.prevent="item.body = mailgenTemplatesServer[index].body"
-                            v-if="mailgenTemplatesServer[index] && item.body.trim() != mailgenTemplatesServer[index].body.trim()"
-                            title="Revert to the original state"
-                            style="margin-top: 10px"
-                            >↶
-                            </b-button>
-                        </span>
-                    </b-col>
-                  </b-row>
-                  <b-row>
-                    <b-button
-                      block
-                      @click="increaseTemplateCounter"
-                      variant="primary"
-                    >+</b-button>
-                  </b-row>
+                            @click.prevent="deleteTemplateInput(index)"
+                            title="Remove this template input field. Does not remove it from the server."
+                            v-if="index != 0"
+                            style="font-size: 1.5em"
+                            >❌
+                          </b-button>
+                          <b-button
+                            block
+                            size="sm"
+                            variant="danger"
+                            :disabled="mailgenTemplatesServer[index] && item.name.trim() != mailgenTemplatesServer[index].name.trim()"
+                            @click.prevent="showTemplateDeletionModal(index, item.name)"
+                            title="Delete the template file from the server"
+                            style="font-size: 1.5em"
+                          >🗑️</b-button>
+                          <b-button
+                            block
+                            size="sm"
+                            variant="success"
+                            :disabled="mailgenTemplatesServer[index] && item.name.trim() == mailgenTemplatesServer[index].name.trim() && item.body.trim() == mailgenTemplatesServer[index].body.trim()"
+                            @click.prevent="saveTemplate(index, item.name, item.body)"
+                            title="Save the template file on the server"
+                            style="font-size: 1.5em"
+                          >💾</b-button>
+                          <span
+                            style="color: green"
+                            v-if="mailgenTemplatesServer[index] && item.body.trim() != mailgenTemplatesServer[index].body.trim() && mailgenTemplatesServer[index].name != ''"
+                            >modified
+                            <b-button
+                              variant="info"
+                              size="sm"
+                              @click.prevent="item.body = mailgenTemplatesServer[index].body"
+                              v-if="mailgenTemplatesServer[index] && item.body.trim() != mailgenTemplatesServer[index].body.trim()"
+                              title="Revert to the original state"
+                              style="margin-top: 10px"
+                              >↶
+                              </b-button>
+                          </span>
+                      </b-col>
+                    </b-row>
+                    <b-row>
+                      <b-button
+                        block
+                        @click="increaseTemplateCounter"
+                        variant="primary"
+                      >+</b-button>
+                    </b-row>
+                  </b-container>
                 </b-container>
-              </b-container>
-            </b-card-body>
-          </b-collapse>
-        </b-card>
-      </div>
+              </b-card-body>
+            </b-collapse>
+          </b-card>
+        </div>
+      </b-overlay>
     </div>
   </div>
 </template>
