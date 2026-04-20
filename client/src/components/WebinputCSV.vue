@@ -698,6 +698,7 @@ import parse from 'papaparse';
 import { debounce } from 'lodash';
 import harmonizationFieldsTable from './HarmonizationFieldsTable.vue';
 import { parseMIME } from '../util/parseMIME.js';
+import { ip_regex, timestamp_regex } from '../util/formats.js';
 
 const prepare = (field, value) => {
   if (field === "extra") {
@@ -843,6 +844,19 @@ export default ({
     sendableDataOneRow() {
       return this.parsedData.slice(0, 1).map(row => rowToSendable(row, this.fieldsMap));
     },
+    dataCandidateTypes() {
+      var a = this.parsedData.slice(0, 200); // Only consider the first 200 rows for performance
+      if (a.length === 0) return [];
+      var cols = a[0].length;
+      var r = Array(cols);
+      for (let i = 0; i < cols; ++i) {
+        r[i] = {
+          ip: a.every(row => ip_regex.test(row[i])),
+          timestamp: a.every(row => timestamp_regex.test(row[i]))
+        };
+      }
+      return r;
+    },
     ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable', 'botsAvailable', 'mailgenAvailableTargetGroups', 'mailgenAvailableTargetGroupsStatus', 'backendVersion', 'mailgenTemplatesServer', 'mailgenTemplates', 'mailgenMultiTemplatesEnabled', 'mailgenTemplateDefaultTemplateName', 'customWorkflowDefault', 'allowValidationOverride']),
   },
   mounted() {
@@ -953,6 +967,10 @@ export default ({
           } else {
             this.fields = Array(fieldsCount).fill('');
             this.parsedData = inputRows;
+            const ipIndex = this.dataCandidateTypes.findIndex(el => el.ip);
+            if (ipIndex >= 0) this.fields[ipIndex] = 'source.ip';
+            const timestampIndex = this.dataCandidateTypes.findIndex(el => el.timestamp);
+            if (timestampIndex >= 0) this.fields[timestampIndex] = 'time.source';
           }
           this.dataErrors = [];
           this.errorHarmonizationFields = [];
