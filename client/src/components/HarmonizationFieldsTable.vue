@@ -6,10 +6,8 @@
       striped
       bordered
       small
-      :current-page="currentPage"
-      :per-page="perPage"
       :fields="tableHeader"
-      :items="dataRows"
+      :items="rowsOnShownPage"
     >
       <template #head(-1)="">
         Ac&shy;tions
@@ -26,14 +24,14 @@
       </template>
       <template #cell(-1)="data">
         <div
-          :class="getTableRowClass(data.item._intelmqwebinputcsv_row)"
+          :class="getTableRowClass(paginationOffset + data.index)"
           style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center; row-gap: 2px; font-variant-numeric: tabular-nums;"
         >
           <div
             v-b-tooltip.hover
-            :title="getTableRowTooltip(data.item._intelmqwebinputcsv_row)"
+            :title="getTableRowTooltip(paginationOffset + data.index)"
             style="padding: 0 2px;"
-          >#{{ data.item._intelmqwebinputcsv_row + 1 }}</div>
+          >#{{ paginationOffset + data.index + 1 }}</div>
           <div
             style="padding: 0 2px;"
           ><b-button
@@ -45,10 +43,10 @@
       </template>
       <template #cell()="data">
         <div
-          :class="getTableCellClass(data.item._intelmqwebinputcsv_row, data.field.key)"
+          :class="getTableCellClass(paginationOffset + data.index, data.field.key)"
         ><span
           v-b-tooltip.hover
-          :title="getTableCellTooltip(data.item._intelmqwebinputcsv_row, data.field.key)"
+          :title="getTableCellTooltip(paginationOffset + data.index, data.field.key)"
           style="overflow-wrap: break-word;"
         >{{ data.value }}</span></div>
       </template>
@@ -186,6 +184,12 @@ export default ({
         headerArray[i] = {key: String(i - 1)};
       }
       return headerArray;
+    },
+    paginationOffset() {
+      return ((this.currentPage || 1) - 1) * this.perPage;
+    },
+    rowsOnShownPage() {
+      return this.dataRows.slice(this.paginationOffset, this.paginationOffset + this.perPage);
     },
     isColumnMultipleFieldAssignment() {
       const f = this.internalHarmonizationFields;

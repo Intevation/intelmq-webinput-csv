@@ -987,7 +987,7 @@ export default ({
             return;
           }
           const row = results.data;
-          row._intelmqwebinputcsv_row = rowNum++;
+          /*row._intelmqwebinputcsv_row =*/ rowNum++;
           // "rowNum !== 0": Don't skip if this is the header row
           if (rowNum !== 0 && rowNum <= skipRows) return;
           if (fieldsCount === null) fieldsCount = row.length;
