@@ -399,10 +399,10 @@
                   </b-row>
                 </b-container>
                 <harmonization-fields-table
-                  :harmonizationFields="fields"
+                  :fieldAssignments="fieldAssignments"
                   :dataRows="parsedData"
                   :dataErrors="dataErrors"
-                  :errorHarmonizationFields="errorHarmonizationFields"
+                  :errorFieldAssignments="errorFieldAssignments"
                   :getRowPromise="getRowPromise"
                   :getFieldNameValidationPromise="getFieldNameValidationPromise"
                   @updateField="onUpdateField"
@@ -759,7 +759,7 @@ const resetProperties = obj => {
   obj['parsingInProgress'] = false;
   obj['parsedDataInputCsv'] = null; // The CSV data that was used as input for the last parse
   obj['parsedData'] = []; // The result of the last parse
-  obj['fields'] = [];
+  obj['fieldAssignments'] = [];
   obj['needsReparse'] = true; // false iff parsedData is up-to-date with newCsvData
   obj['uploadData'] = null;
   obj['uploadInProgress'] = false;
@@ -770,7 +770,7 @@ const resetProperties = obj => {
   obj['dryrun'] = true;
   obj['classificationType'] = 'test';
   obj['dataErrors'] = [];
-  obj['errorHarmonizationFields'] = [];
+  obj['errorFieldAssignments'] = [];
 };
 
 export default ({
@@ -821,7 +821,7 @@ export default ({
       return Object.fromEntries(this.mailgenTemplatesServer.map((template) => [template.name, template.body]))
     },
     assignedColumns() {
-      return this.fields.filter(field => field);
+      return this.fieldAssignments.filter(field => field);
     },
     newCsvData() {
       return this.csvSource === 1 ? this.csvText : this.csvFile;
@@ -832,8 +832,8 @@ export default ({
     },
     fieldsMap() {
       var r = [];
-      for (let i = 0; i < this.fields.length; ++i) {
-        const field = this.fields[i];
+      for (let i = 0; i < this.fieldAssignments.length; ++i) {
+        const field = this.fieldAssignments[i];
         if (field) r.push([field, i]);
       }
       return r;
@@ -962,18 +962,18 @@ export default ({
           this.$refs.parseErrorModal.show();
         } else {
           if (hasHeader) {
-            this.fields = sanitizeFieldList(inputRows[0], this.harmonizationFields || []);
+            this.fieldAssignments = sanitizeFieldList(inputRows[0], this.harmonizationFields || []);
             this.parsedData = inputRows.slice(1);
           } else {
-            this.fields = Array(fieldsCount).fill('');
+            this.fieldAssignments = Array(fieldsCount).fill('');
             this.parsedData = inputRows;
             const ipIndex = this.dataCandidateTypes.findIndex(el => el.ip);
-            if (ipIndex >= 0) this.fields[ipIndex] = 'source.ip';
+            if (ipIndex >= 0) this.fieldAssignments[ipIndex] = 'source.ip';
             const timestampIndex = this.dataCandidateTypes.findIndex(el => el.timestamp);
-            if (timestampIndex >= 0) this.fields[timestampIndex] = 'time.source';
+            if (timestampIndex >= 0) this.fieldAssignments[timestampIndex] = 'time.source';
           }
           this.dataErrors = [];
-          this.errorHarmonizationFields = [];
+          this.errorFieldAssignments = [];
           this.parsedDataValid = null;
           this.uploadStatusMessage = '';
           this.uploadSuccessful = false;
@@ -1027,14 +1027,14 @@ export default ({
     onUpdateField(e) {
       let {column, value} = e;
       column = Number(column);
-      if (!(0 <= column && column < this.fields.length)) return;
+      if (!(0 <= column && column < this.fieldAssignments.length)) return;
       if (value) {
         value = sanitizeFieldName(value);
         if (!value) return;
       } else {
         value = '';
       }
-      this.$set(this.fields, column, value);
+      this.$set(this.fieldAssignments, column, value);
     },
     sendDataNoSubmit() {
       this.sendData({}, false);
@@ -1068,7 +1068,7 @@ export default ({
       send['validate_with_bots'] = this.customWorkflow;
       send['assigned_columns'] = this.assignedColumns;
       const customWorkflow = this.customWorkflow;
-      const fields = this.fields;
+      const fieldAssignments = this.fieldAssignments;
       this.uploadData = send;
       this.uploadInProgress = true;
       this.$http.post('api/upload', send).then(response => {
@@ -1090,7 +1090,7 @@ export default ({
           this.uploadSuccessful = success;
           if (!submit) this.parsedDataValid = success;
           this.dataErrors = errors;
-          this.errorHarmonizationFields = fields;
+          this.errorFieldAssignments = fieldAssignments;
         }, (/*error*/) => {
           if (this.uploadData !== send) return;
           this.uploadInProgress = false;

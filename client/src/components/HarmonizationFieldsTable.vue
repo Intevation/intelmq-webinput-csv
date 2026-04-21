@@ -15,7 +15,7 @@
       <template #head()="data">
         <div style="resize: horizontal; overflow-x: auto;">
           <harmonization-field-select
-            :value="internalHarmonizationFields[data.column]"
+            :value="internalFieldAssignments[data.column]"
             @update="update(data.column, $event)"
           />
           <div v-if="columnValidityErrors[data.column]" style="color: red;">{{ columnValidityErrors[data.column] }}</div>
@@ -136,7 +136,7 @@ import { parseMIME } from '../util/parseMIME.js';
 export default ({
   name: 'HarmonizationFieldsTable',
   props: {
-    harmonizationFields: {
+    fieldAssignments: {
       type: Array,
       default: () => []
     },
@@ -148,8 +148,8 @@ export default ({
       type: [Object, Array],
       default: () => ({})
     },
-    errorHarmonizationFields: {
-      // The state of harmonizationFields when dataErrors was generated
+    errorFieldAssignments: {
+      // The state of fieldAssignments when dataErrors was generated
       type: Array,
       default: () => []
     },
@@ -164,7 +164,7 @@ export default ({
   components: {harmonizationFieldSelect},
   data() {
     return {
-      internalHarmonizationFieldsStr: JSON.stringify(this.harmonizationFields),
+      internalFieldAssignmentsStr: JSON.stringify(this.fieldAssignments),
       fieldNameValidationErrors: {},
       rowModalData: null,
       rowModalError: null,
@@ -174,11 +174,11 @@ export default ({
     };
   },
   computed: {
-    internalHarmonizationFields() {
-      return JSON.parse(this.internalHarmonizationFieldsStr);
+    internalFieldAssignments() {
+      return JSON.parse(this.internalFieldAssignmentsStr);
     },
     tableHeader() {
-      const count = this.internalHarmonizationFields.length + 1;
+      const count = this.internalFieldAssignments.length + 1;
       const headerArray = Array(count);
       for (let i = 0; i < count; ++i) {
         headerArray[i] = {key: String(i - 1)};
@@ -192,11 +192,11 @@ export default ({
       return this.dataRows.slice(this.paginationOffset, this.paginationOffset + this.perPage);
     },
     isColumnMultipleFieldAssignment() {
-      const f = this.internalHarmonizationFields;
+      const f = this.internalFieldAssignments;
       return f.map((cur, i) => cur && f.some((el, j) => j !== i && el === cur));
     },
     columnValidityErrors() {
-      return this.internalHarmonizationFields.map(name => this.fieldNameValidationErrors[name]);
+      return this.internalFieldAssignments.map(name => this.fieldNameValidationErrors[name]);
     },
     rowModalDataNotifications() {
       return (this.rowModalData || {}).notifications || [];
@@ -212,12 +212,12 @@ export default ({
     dataRows() {
       this.currentPage = 1;
     },
-    harmonizationFields(newHarmonizationFields) {
+    fieldAssignments(newFieldAssignments) {
       // If the assigned string is the same, this will not cause reactive updates
-      this.internalHarmonizationFieldsStr = JSON.stringify(newHarmonizationFields);
+      this.internalFieldAssignmentsStr = JSON.stringify(newFieldAssignments);
       const knownFields = Object.keys(this.fieldNameValidationErrors);
       const getter = this.getFieldNameValidationPromise;
-      for (const field of newHarmonizationFields) {
+      for (const field of newFieldAssignments) {
         if (!field) continue;
         if (knownFields.includes(field)) {
           const fieldError = this.fieldNameValidationErrors[field];
@@ -286,7 +286,7 @@ export default ({
       return this.getTableCellTooltip(row, col) ? 'table-danger' : this.dataErrors[row] ? 'table-warning' : '';
     },
     getTableCellTooltip(row, col) {
-      return ((this.dataErrors[row] || {})[this.errorHarmonizationFields[col]] || []).join(' • ');
+      return ((this.dataErrors[row] || {})[this.errorFieldAssignments[col]] || []).join(' • ');
     }
   }
 })
