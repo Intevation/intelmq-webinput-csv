@@ -400,7 +400,9 @@
                 </b-container>
                 <harmonization-fields-table
                   :fieldAssignments="fieldAssignments"
+                  :fieldOptions="harmonizationFields"
                   :dataRows="parsedData"
+                  :dataCandidateTypes="dataCandidateTypes"
                   :dataErrors="dataErrors"
                   :errorFieldAssignments="errorFieldAssignments"
                   :getRowPromise="getRowPromise"
