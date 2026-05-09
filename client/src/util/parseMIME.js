@@ -1,7 +1,7 @@
 // Code moved from
 // https://github.com/Intevation/intelmq-webinput-csv/blob/6f9444fa92e99e0a7130bc196fb3d8c449eff2ad/client/src/components/WebinputCSV.vue#L1399
 export const parseMIME = mime => {
-  const splitted = mime.split('\n');
+  const parts = mime.split('\n');
   let isHeader = true;
   let isMimeHeader = false;
   let isBody = false;
@@ -12,8 +12,8 @@ export const parseMIME = mime => {
   let previousHeader;
   let contentType;  // either 'multipart/signed' or 'text/plain'
   let contentCharset = 'utf-8';  // utf-8 is the current default of mailgen, we can assume it as default and fallback
-  for (var lineindex = 0; lineindex < splitted.length; lineindex++) {
-    line = splitted[lineindex];
+  for (var lineindex = 0; lineindex < parts.length; lineindex++) {
+    line = parts[lineindex];
     if (isHeader) {
       //console.log(line, 'is header');
       if (line == '\r') {
