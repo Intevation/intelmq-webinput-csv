@@ -16,7 +16,9 @@ fi
 echo "deb [signed-by=/etc/apt/trusted.gpg.d/sebix.asc] http://download.opensuse.org/repositories/home:/sebix:/intelmq/${os_repo_name}_${VERSION_ID}/ /" | sudo tee /etc/apt/sources.list.d/intelmq.list
 sudo wget -O /etc/apt/trusted.gpg.d/sebix.asc https://download.opensuse.org/repositories/home:sebix:intelmq/${os_repo_name}_${VERSION_ID}/Release.key
 echo "deb [signed-by=/etc/apt/trusted.gpg.d/nodesource.asc] https://deb.nodesource.com/node_14.x ${VERSION_CODENAME} main" | sudo tee /etc/apt/sources.list.d/nodesource.list
-sudo wget -O /etc/apt/trusted.gpg.d/nodesource.asc  https://deb.nodesource.com/gpgkey/nodesource.gpg.key
+#sudo wget -O /etc/apt/trusted.gpg.d/nodesource.asc  https://deb.nodesource.com/gpgkey/nodesource.gpg.key
+# https://github.com/nodesource/distributions/issues/1912
+sudo wget -O /etc/apt/trusted.gpg.d/nodesource.asc "https://pubkeys.intevation.de/pks/lookup?op=get&search=0x9fd3b784bc1c6fc31a8a0a1c1655a0ab68576280"
 echo "deb [signed-by=/etc/apt/trusted.gpg.d/yarn.asc] https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarnpkg.list
 sudo wget -O /etc/apt/trusted.gpg.d/yarn.asc https://dl.yarnpkg.com/debian/pubkey.gpg
 sudo apt-get update
