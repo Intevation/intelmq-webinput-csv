@@ -20,7 +20,7 @@
         </b-nav-item>
       </b-navbar-nav>
       <b-navbar-nav v-if="hasAuth" class="ml-auto">
-        <b-button v-if="!loggedIn" v-b-modal.login-popup size="sm" class="my-2 my-sm-0" type="submit">Login</b-button>
+        <b-button v-if="!loggedIn" v-b-modal.login-popup size="sm" class="my-2 my-sm-0">Login</b-button>
         <b-button v-if="loggedIn" size="sm" class="my-2 my-sm-0" @click="signOut">Logout</b-button>
       </b-navbar-nav>
     </b-navbar>
@@ -30,9 +30,9 @@
         <b-form>
           <div>
             <label for="username">Username</label>
-            <b-form-input v-model="username" type="text" id="username"  placeholder="Name" @keyup.enter="signIn"></b-form-input>
+            <b-form-input v-model="username" type="text" id="username" placeholder="Name" @keyup.enter="signIn"/>
             <label for="password">Password</label>
-            <b-form-input v-model="password" type="password" id="password"  placeholder="Password" @keyup.enter="signIn"></b-form-input>
+            <b-form-input v-model="password" type="password" id="password" placeholder="Password" @keyup.enter="signIn"/>
           </div>
         </b-form>
         <template #modal-footer>
@@ -46,14 +46,13 @@
             </b-button>
         </template>
       </b-modal>
-      <b-modal v-model="showAuthConfirm" id="authconfirm-popup" title="Confirm Authentication for Submission">
-        <label v-if="authConfirmErrorText" class="text-danger">{{ authConfirmErrorText }}</label>
+      <b-modal v-model="showAuthConfirm" id="authconfirm-popup" title="Confirm Authentication for Submission" @hide="usernameConfirm = '', passwordConfirm = ''">
         <b-form>
           <div>
-            <label for="username">Username</label>
-            <b-form-input v-model="username" type="text" id="username"  placeholder="Name"></b-form-input>
-            <label for="password">Password</label>
-            <b-form-input v-model="password" type="password" id="password"  placeholder="Password"></b-form-input>
+            <label for="usernameConfirm">Username</label>
+            <b-form-input v-model="usernameConfirm" type="text" id="usernameConfirm" placeholder="Name"/>
+            <label for="passwordConfirm">Password</label>
+            <b-form-input v-model="passwordConfirm" type="password" id="passwordConfirm" placeholder="Password"/>
           </div>
         </b-form>
         <template #modal-footer>
@@ -61,14 +60,14 @@
               variant="primary"
               size="sm"
               class="float-right"
-              @click="sendData(submit=true);"
+              @click="sendDataConfirmed"
             >
               Submit
             </b-button>
         </template>
       </b-modal>
       <b-modal v-model="showMailgenLog" scrollable centered size="xl" id="mailgenLog-popup" title="Mailgen Log">
-        <code class="text-black"><pre>{{ mailgenLog }}</pre></code>
+        <pre><code class="text-black">{{ mailgenLog }}</code></pre>
         <template #modal-footer>
           <b-button
             variant="primary"
@@ -84,7 +83,7 @@
         <h5 title="Subject" style="margin-top: 10px;">Subject: {{mailgenPreviewParsed.subject}}</h5>
         <h6 title="To">To: {{mailgenPreviewParsed.to}}</h6>
         <h6 title="Content-Type">Content Type: {{ mailgenPreviewParsed.contentType }}</h6>
-        <code class="text-black"><pre>{{ mailgenPreviewParsed.body }}</pre></code>
+        <pre><code class="text-black">{{ mailgenPreviewParsed.body }}</code></pre>
         <template #modal-footer>
           <b-button
             variant="secondary"
@@ -103,7 +102,7 @@
         </template>
       </b-modal>
       <b-modal v-model="showMailgenPreviewRaw" scrollable centered size="xl" id="mailgenPreviewRaw-popup" title="Mailgen Raw Email">
-        <code class="text-black"><pre>{{ mailgenPreview }}</pre></code>
+        <pre><code class="text-black">{{ mailgenPreview }}</code></pre>
         <template #modal-footer>
           <b-button
             variant="primary"
@@ -121,7 +120,7 @@
         size="xl"
         ok-only>
         <p>Error message:</p>
-        <code><pre>{{errorMessage}}</pre></code>
+        <pre><code>{{ errorMessage }}</code></pre>
       </b-modal>
       <b-modal v-model="templateDeletionModal" scrollable centered size="xl" id="templateDeletetion-popup" title="Are you sure?"
         @ok="dropTemplate"
@@ -130,58 +129,86 @@
       </b-modal>
     </div>
     <div v-show="loggedIn">
-      <b-overlay :show="overlay" opacity="0.5" @shown="parseCSV">
+      <b-overlay :show="parsingInProgress || uploadInProgress" opacity="0.5">
         <div class="accordion" role="tablist">
           <b-card no-body class="mb-1">
             <b-card-header header-tag="header" class="p-1" role="tab">
-              <b-button block v-b-toggle.accordion-1 variant="info">CSV Content</b-button>
+              <b-button block @click="accordionState = 1" variant="info">CSV Content</b-button>
             </b-card-header>
-            <b-collapse id="accordion-1" visible accordion="my-accordion" role="tabpanel">
+            <b-collapse :visible="accordionState === 1" accordion="main-accordion" role="tabpanel">
               <b-card-body>
                 <b-container fluid>
                   <b-row>
                     <b-col cols="11">
-                      <b-form-group >
+                      <b-form-group>
                         <b-form-file
                           v-model="csvFile"
-                          placeholder="Choose a file or drop it here..."
-                          drop-placeholder="Drop file here..."
-                          @input="readFromFile"
-                        ></b-form-file>
+                          :disabled="parsingInProgress"
+                          placeholder="Choose a file or drop it here…"
+                          drop-placeholder="Drop file here…"
+                          @input="csvSource = $event ? 2 : 1, csvText = '', needsReparse = true"
+                        />
                       </b-form-group>
                     </b-col>
                     <b-col>
-                      <b-button @click="reset">Clear</b-button>
+                      <b-button @click="csvSource = 1, csvText = '', csvFile = null, needsReparse = true, csvSource = 1">Clear</b-button>
                     </b-col>
                   </b-row>
                 </b-container>
                 <b-container fluid>
-                  <b-form-group >
+                  <b-form-group
+                    v-show="csvSource === 1"
+                    label="Or paste CSV data here"
+                    label-for="csv-textarea"
+                  >
                     <b-form-textarea
-                      v-if="!csvFile"
-                      id="textarea"
+                      id="csv-textarea"
                       v-model="csvText"
-                      placeholder="Or paste CSV data here"
+                      :disabled="parsingInProgress"
+                      placeholder="CSV data"
                       rows="5"
-                      @change="parseCSV"
-                    ></b-form-textarea>
+                      @input="csvSource = 1, csvFile = null, needsReparse = true"
+                    />
+                  </b-form-group>
+                  <b-form-group
+                    v-show="csvSource === 2"
+                    :label="'Preview of ' + csvFileName"
+                    label-for="csv-preview-textarea"
+                  >
                     <b-form-textarea
-                      v-if="!!csvFile"
-                      id="textareaPreview"
-                      v-model="csvPreviewText"
+                      id="csv-preview-textarea"
+                      v-model="csvFilePreview"
                       rows="5"
-                    ></b-form-textarea>
+                      readonly
+                    />
                   </b-form-group>
                 </b-container>
+                <b-modal
+                  ref="parseErrorModal"
+                  ok-only
+                  centered
+                >
+                  <div>
+                    <div v-if="parseError instanceof Array">
+                      <p>Got error(s) inside the CSV data:</p>
+                      <ul>
+                        <li v-for="(el, i) in parseError" :key="i">{{ el }}</li>
+                      </ul>
+                    </div>
+                    <div v-else>
+                      <p>Could not parse the CSV data: {{ parseError }}</p>
+                    </div>
+                  </div>
+                </b-modal>
                 <b-container fluid>
                   <b-row>
                     <b-col>
                       <b-form-group label-cols=7 label="Delimiter">
                         <b-form-select
                           v-model="delimiter"
-                          :options="delimiterOptions"
-                          @change="showOverlay"
-                        ></b-form-select>
+                          :options="[{value: ';', text: ';'}, {value: ',', text: ','}, {value: '#', text: '#'}]"
+                          @input="needsReparse = true"
+                        />
                       </b-form-group>
                     </b-col>
                     <b-col>
@@ -190,8 +217,8 @@
                           v-model="quoteChar"
                           type="text"
                           placeholder='"'
-                          @change="showOverlay"
-                        ></b-form-input>
+                          @input="needsReparse = true"
+                        />
                       </b-form-group>
                     </b-col>
                     <b-col>
@@ -200,16 +227,16 @@
                           v-model="escapeChar"
                           type="text"
                           placeholder="\"
-                          @change="showOverlay"
-                        ></b-form-input>
+                          @input="needsReparse = true"
+                        />
                       </b-form-group>
                     </b-col>
                     <b-col>
                       <b-form-group label-cols=7 label="Has Header">
                         <b-form-checkbox
                           v-model="hasHeader"
-                          @change="showOverlay"
-                        ></b-form-checkbox>
+                          @input="needsReparse = true"
+                        />
                       </b-form-group>
                       <small tabindex="-1" class="form-text text-muted">CSV data must not contain duplicate headers</small>
                     </b-col>
@@ -217,8 +244,8 @@
                       <b-form-group id="option1" label-cols=9 label="Skip initial Whitespace">
                         <b-form-checkbox
                           v-model="initialWhitespace"
-                          @change="showOverlay"
-                        ></b-form-checkbox>
+                          @input="needsReparse = true"
+                        />
                       </b-form-group>
                       <b-tooltip target="option1" triggers="hover">
                         When True, whitespace immediately following the delimiter is ignored.
@@ -229,8 +256,8 @@
                         <b-form-input
                           v-model="skipLines"
                           type="number"
-                          @change="showOverlay"
-                        ></b-form-input>
+                          @input="needsReparse = true"
+                        />
                       </b-form-group>
                       <b-tooltip target="option2" triggers="hover">
                         Skip initial N lines after the header.
@@ -244,30 +271,30 @@
 
           <b-card no-body class="mb-1" style="overflow-x: visible;">
             <b-card-header header-tag="header" class="p-1" role="tab">
-              <b-button :disabled="!csvFile && csvText === ''" block v-b-toggle.accordion-3 variant="info">Data Validation and Submission</b-button>
+              <b-button :disabled="!newCsvData" block @click="navigateToValidationAndSubmission" variant="info">Data Validation and Submission</b-button>
             </b-card-header>
-            <b-collapse id="accordion-3" accordion="my-accordion" role="tabpanel">
+            <b-collapse :visible="accordionState === 2" accordion="main-accordion" role="tabpanel">
               <b-card-body>
                 <b-container fluid>
                   <b-row>
                     <b-col>
-                      <label>CSV Parsing Result: {{ lines }} lines, {{ errors }} errors</label>
+                      <label>CSV Parsing Result: {{ parsedData.length }} lines</label>
                       <b-form-group label-cols=4 label="Timezone">
                         <b-form-select
                           v-model="timezone"
                           :options="timezones"
-                        ></b-form-select>
+                        />
                       </b-form-group>
                       <b-form-group label-cols=4 label="Dryrun">
                         <b-form-checkbox
                           ref="dryrunCheckbox"
                           v-model="dryrun"
                           switch
-                        ></b-form-checkbox>
+                        />
                         <b-tooltip
-                          :target="$refs.dryrunCheckbox" triggers="manual" :show="showDryrunCheckboxTooltip"
+                          v-if="$refs.dryrunCheckbox" :target="$refs.dryrunCheckbox" triggers="manual" :show="showDryrunCheckboxTooltip"
                           title="Override the values of classification.type and (if set as fallback value) classification.identifier with 'test'."
-                        ></b-tooltip>
+                        />
                       </b-form-group>
                       <b-form-group label-cols=4 label="Use custom workflow">
                         <b-form-checkbox
@@ -275,11 +302,11 @@
                           v-model="customWorkflow"
                           switch
                           :disabled="!botsAvailable.status"
-                        ></b-form-checkbox>
+                        />
                         <b-tooltip
-                          :target="$refs.customWorkflowCheckbox" triggers="manual" :show="showCustomWorkflowCheckboxTooltip"
+                          v-if="$refs.customWorkflowCheckbox" :target="$refs.customWorkflowCheckbox" triggers="manual" :show="showCustomWorkflowCheckboxTooltip"
                           :title="'Off: Submit data to standard IntelMQ workflow using existing templates for notifications.\nOn: Submit data to custom workflow.' + (!botsAvailable.status ? botsAvailable.reason : '')"
-                        ></b-tooltip>
+                        />
                       </b-form-group>
                       <b-form-group
                         :label="mailgenAvailableTargetGroups.tag_name || 'Target groups'"
@@ -292,7 +319,7 @@
                               v-model="mailgenTargetGroups"
                               :options="mailgenAvailableTargetGroups.tag_values"
                               v-if="mailgenAvailableTargetGroupsStatus === true && mailgenAvailableTargetGroups.tag_values && mailgenAvailableTargetGroups.tag_values.length"
-                            ></b-form-checkbox-group>
+                            />
                           </b-col>
                           <b-col>
                             <b-row>
@@ -322,44 +349,20 @@
                       <b-container>
                         <b-row>
                           <b-col>
-                            <b-overlay
-                              :show="inProgress"
-                              rounded
-                              opacity="0.5"
-                              spinner-small
-                              spinner-variant="primary"
-                              class="d-inline-block"
-                            >
-                              <b-button @click="sendData(submit=false)" variant="info">Validate data</b-button>
-                            </b-overlay>
+                            <b-button @click="sendDataNoSubmit" :disabled="uploadInProgress" variant="info">Validate data</b-button>
                           </b-col>
                           <b-col>
-                            <b-overlay
-                              :show="inProgress"
-                              rounded
-                              opacity="0.5"
-                              spinner-small
-                              spinner-variant="primary"
-                              class="d-inline-block"
-                            >
-                              <b-button @click="onSendData" variant="primary"
-                                :disabled="(!validatedCurrentData || validationNumErrors > 0) && allowValidationOverride == false"
-                                v-b-tooltip.hover
-                                :title="(!validatedCurrentData && allowValidationOverride == false) ? 'Data validation required before' : ((validationNumErrors > 0 && allowValidationOverride == false) ? 'Data validation failed' : '')"
-                                >Submit to {{ customWorkflow ? 'custom workflow' : 'standard workflow' }}</b-button>
-                            </b-overlay>
+                            <b-button
+                              @click="sendDataMaybeConfirm"
+                              :disabled="uploadInProgress || (allowValidationOverride == false && !parsedDataValid)"
+                              variant="primary"
+                              v-b-tooltip.hover
+                              :title="allowValidationOverride == false ? (parsedDataValid === null ? 'Data validation required' : dataVaild ? '' : 'Data validation failed') : ''"
+                              >Submit to {{ customWorkflow ? 'custom workflow' : 'standard workflow' }}</b-button>
                           </b-col>
                           <b-col>
-                            <b-overlay
-                              :show="inProgress"
-                              rounded
-                              opacity="0.5"
-                              spinner-small
-                              spinner-variant="primary"
-                              class="d-inline-block"
-                            >
-                              <label style="margin-left: 10px;" :class="transferStatus">{{ transferred }}</label><br />
-                            </b-overlay>
+                            <label style="margin-left: 10px;" v-show="uploadInProgress">In progress…</label>
+                            <label style="margin-left: 10px;" v-show="!uploadInProgress && uploadStatusMessage" :class="uploadSuccessful ? 'text-black' : 'text-danger'">{{ uploadStatusMessage }}</label>
                           </b-col>
                         </b-row>
                         <b-row>
@@ -383,145 +386,44 @@
                           v-model="classificationType"
                           :options="classificationTypes"
                           :disabled="dryrun"
-                        ></b-form-select>
+                        />
                       </b-form-group>
                       <b-form-group v-for="field in customFieldsMapping" :key="field.key" :id="field.key" label-cols=4 :label="field.key">
                         <b-form-input
                           v-model="field.value"
                           type="text"
                           :disabled="field.key == 'classification.identifier' && dryrun"
-                          ></b-form-input>
+                          />
                       </b-form-group>
                     </b-col>
                   </b-row>
                 </b-container>
-                <b-table sticky-header="600px"
-                  ref="table"
-                  striped
-                  bordered
-                  fixed
-                  small
-                  :current-page="currentPage"
-                  :per-page="perPage"
-                  :fields="tableHeader"
-                  :items="tableData"
-                >
-                  <template #head()="data">
-                    <v-select
-                      :id="data.field.key"
-                      :value="data.field"
-                      :options="harmonizationFields"
-                      v-if="data.label != 'Actions'"
-                      taggable
-                      autoscroll
-                      appendToBody
-                      @input="(fieldname) => updateTableHeader(data, fieldname)"
-                      @option:deselected="(fieldname) => updateTableHeader(data, null)"
-                    >
-                      <template #header>
-                        <div style="color: red" v-if="data.field.invalid">
-                          {{ data.field.invalid }}
-                        </div>
-                        <div style="color: orange" v-if="data.field.warning">
-                          {{ data.field.warning }}
-                        </div>
-                      </template>
-                    </v-select>
-                  </template>
-                  <template #cell(Actions)="row">
-                    <div :class="getTableActionCellClass(row)">
-                      <span v-b-tooltip.hover :title="getActionCellTooltip(row.index)">#{{ row.index + 1 }}</span>
-                      <b-overlay
-                                :show="rowModalInProgress"
-                                rounded
-                                opacity="0.5"
-                                spinner-small
-                                spinner-variant="primary"
-                                class="d-inline-block"
-                              >
-                        <b-button
-                          size="sm"
-                          @click="triggerShowRowModal(row)"
-                          variant="info"
-                        >🔎</b-button>
-                      </b-overlay>
-                    </div>
-                  </template>
-                  <template #cell()="row">
-                    <div :class="getTableCellClass(row)">
-                      <span v-b-tooltip.hover :title="getTooltip(row.index, row.field.key)">{{row.value}}</span>
-                    </div>
-                  </template>
-                  <template #foot(name)="data">
-                    <span class="text-danger">{{ data.label }}</span>
-                  </template>
-                  <template #foot()="data">
-                    <i>{{ data.label }}</i>
-                  </template>
-                </b-table>
-                <b-modal
-                  v-model="showRowModal"
-                  title="Processed Row Data"
-                  scrollable
-                  size="xl"
-                  ok-only>
-                  <div v-if="rowModalData.notifications">
-                    <h5>Notifications ({{ rowModalData.notifications.length }}):</h5>
-                    <b-container v-for="notification in rowModalData.notifications" v-bind:key="notification.index">
-                      <h6>Subject: {{ notification[0] }}</h6>
-                      <h6>To: {{ notification[1] }}</h6>
-                      <h6>Content Type: {{ notification[3] }}</h6>
-                      <code><pre>{{ notification[2] }}</pre></code>
-                    </b-container>
-                  </div>
-                  <div v-if="rowModalData.messages">
-                    <h5>Messages ({{rowModalData.messages.length}}) after processing by bots (excluding output bots):</h5>
-                    <code><pre>{{rowModalData.messages}}</pre></code>
-                  </div>
-                  <div v-if="rowModalData.log">
-                    <h5>Log:</h5>
-                    <code><pre>{{rowModalData.log}}</pre></code>
-                  </div>
-                </b-modal>
-                <b-container>
-                  <b-row>
-                    <b-col>
-                      <b-form-group
-                        label="Per page"
-                        label-for="per-page-select"
-                        label-cols="6"
-                        label-size="sm"
-                        class="mb-0"
-                      >
-                        <b-form-select
-                          id="per-page-select"
-                          v-model="perPage"
-                          :options="pageOptions"
-                          size="sm"
-                        ></b-form-select>
-                      </b-form-group>
-                    </b-col>
-                    <b-col>
-                      <b-pagination
-                        v-model="currentPage"
-                        :total-rows="lines"
-                        :per-page="perPage"
-                        align="fill"
-                        size="sm"
-                        class="my-0"
-                      ></b-pagination>
-                    </b-col>
-                  </b-row>
-                </b-container>
+                <harmonization-fields-table
+                  :fieldAssignments="fieldAssignments"
+                  :fieldOptions="harmonizationFields"
+                  :dataRows="parsedData"
+                  :dataCandidateTypes="dataCandidateTypes"
+                  :dataErrors="dataErrors"
+                  :errorFieldAssignments="errorFieldAssignments"
+                  :getRowPromise="getRowPromise"
+                  :getFieldNameValidationPromise="getFieldNameValidationPromise"
+                  @updateField="onUpdateField"
+                />
               </b-card-body>
             </b-collapse>
           </b-card>
-          <b-card no-body class="mb-1" style="overflow-x: visible;">
 
+          <b-card no-body class="mb-1" style="overflow-x: visible;">
             <b-card-header header-tag="header" class="p-1" role="tab">
-              <b-button :disabled="!mailgenAvailable" block v-b-toggle.accordion-notifications variant="info" :title="mailgenAvailable ? 'Set Mailgen Templates and Start a Mailgen Run' : 'Mailgen is not installed/available'">Send Notifications</b-button>
+              <b-button
+                :disabled="!mailgenAvailable || needsReparse"
+                block
+                @click="accordionState = 3"
+                variant="info"
+                :title="!mailgenAvailable ? 'Mailgen is not installed/available' : needsReparse ? 'Click on &quot;Data Validation and Submission&quot; first to parse the data' : 'Set Mailgen Templates and Start a Mailgen Run'"
+              >Send Notifications</b-button>
             </b-card-header>
-            <b-collapse id="accordion-notifications" visible accordion="my-accordion" role="tabpanel" @show="onShowNotificationAccordion">
+            <b-collapse :visible="accordionState === 3" accordion="main-accordion" role="tabpanel" @show="onShowNotificationAccordion">
               <b-card-body>
                 <b-container fluid>
                   <b-row align-v="center">
@@ -535,7 +437,7 @@
                         <b-form-checkbox
                           v-model="mailgenVerbose"
                           switch
-                        ></b-form-checkbox>
+                        />
                       </b-form-group>
                       <b-form-group
                         label-cols="auto"
@@ -546,7 +448,7 @@
                         <b-form-checkbox
                           v-model="mailgenDryRun"
                           switch
-                        ></b-form-checkbox>
+                        />
                       </b-form-group>
                     </b-col>
                     <b-col>
@@ -625,7 +527,8 @@
                               :options="mailgenTemplateNames"
                               v-model="mailgenTemplatePrototype"
                               @input="onMailgenTemplatePrototypeSelected"
-                              width="100%"></v-select>
+                              width="100%"
+                            />
                         </b-form-group>
                         </b-col>
                       </b-row>
@@ -633,12 +536,12 @@
                         <b-col>
                           <b-form-group width="100%">
                             <b-form-textarea
-                            id="template"
-                            v-model="mailgenTemplate"
-                            rows="10"
-                            width="100%"
-                            @input="validateMailgenTemplateContentDebounce"
-                          ></b-form-textarea>
+                              id="template"
+                              v-model="mailgenTemplate"
+                              rows="10"
+                              width="100%"
+                              @input="validateMailgenTemplateContentDebounce"
+                            />
                           </b-form-group>
                         </b-col>
                       </b-row>
@@ -664,7 +567,7 @@
                               v-model="item.name"
                               @input="validateTemplateNameDebounced(index); validateTemplateContent(index)"
                               :state="item.state"
-                            ></b-form-input>
+                            />
                             <b-form-invalid-feedback :id="'template-name-feedback-' + index">
                               Duplicate Template Name
                             </b-form-invalid-feedback>
@@ -725,7 +628,7 @@
                               v-model="item.body"
                               rows="10"
                               @input="validateTemplateContent(index)"
-                            ></b-form-textarea>
+                            />
                           </b-form-group>
                         </b-col>
                         <b-col cols="1">
@@ -795,50 +698,95 @@
 import { mapState } from 'vuex';
 import parse from 'papaparse';
 import { debounce } from 'lodash';
+import harmonizationFieldsTable from './HarmonizationFieldsTable.vue';
+import { parseMIME } from '../util/parseMIME.js';
+import { ip_regex, timestamp_regex } from '../util/formats.js';
+
+const prepare = (field, value) => {
+  if (field === "extra") {
+    try {
+      value = JSON.parse(value)
+    }
+    catch (e) {
+      return {data: value};
+    }
+    if (Array.isArray(value)) {
+      return {data: value};
+    }
+  }
+  return value;
+};
+
+const rowToSendable = (row, fieldsMap) => {
+  var r = {};
+  for (let [field, i] of fieldsMap) {
+    r[field] = prepare(field, row[i]);
+  }
+  return r;
+};
+
+const sanitizeFieldName = field =>
+  field ? field.trim().toLowerCase().replaceAll(/ /g, '_').replaceAll(/[^a-zA-Z0-9_.]+/g, '') : '';
+
+const sanitizeFieldList = (fields, allFields) => {
+  var r = Array(fields.length);
+  for (let i = 0; i < fields.length; ++i) {
+    let field = sanitizeFieldName(fields[i]);
+    if (allFields.includes(field)) {
+      r[i] = field;
+      continue;
+    }
+    if (!field.startsWith('extra.')) field = 'extra.' + field;
+    // Prevent duplicates
+    r[i] = r.includes(field) ? '' : field;
+  }
+  return r;
+};
+
+const resetProperties = obj => {
+  obj['username'] = '';
+  obj['password'] = '';
+  obj['usernameConfirm'] = '';
+  obj['passwordConfirm'] = '';
+  obj['accordionState'] = 1; // 0: none; 1: input CSV; 2: validation and submission; 3: send notifications
+  obj['delimiter'] = ',';
+  obj['quoteChar'] = '"';
+  obj['escapeChar'] = '\\';
+  obj['hasHeader'] = true;
+  obj['initialWhitespace'] = false;
+  obj['skipLines'] = 0;
+  obj['csvText'] = '';
+  obj['csvFile'] = null;
+  obj['csvSource'] = 1; // 1: text input; 2: file input
+  obj['parsingInProgress'] = false;
+  obj['parsedDataInputCsv'] = null; // The CSV data that was used as input for the last parse
+  obj['parsedData'] = []; // The result of the last parse
+  obj['fieldAssignments'] = [];
+  obj['needsReparse'] = true; // false iff parsedData is up-to-date with newCsvData
+  obj['uploadData'] = null;
+  obj['uploadInProgress'] = false;
+  obj['parsedDataValid'] = null;
+  obj['uploadStatusMessage'] = '';
+  obj['uploadSuccessful'] = false;
+  obj['timezone'] = '+00:00';
+  obj['dryrun'] = true;
+  obj['classificationType'] = 'test';
+  obj['dataErrors'] = [];
+  obj['errorFieldAssignments'] = [];
+};
+
 export default ({
   name: 'WebinputCSV',
-  data: () => {
-    return {
-      username: "",
-      password: "",
+  components: {harmonizationFieldsTable},
+  data() {
+    const o = {
       showLogin: false,
       showAuthConfirm: false,
       wrongCredentials: false,
-      overlay: false,
-      inProgress: false,
-      csvFile: null,
-      csvText: "",
-      csvPreviewText: "",
-      delimiter: ",",
-      delimiterOptions: [
-        {value: ";", text: ";"},
-        {value: ",", text: ","},
-        {value: "#", text: "#"}
-      ],
-      quoteChar: '"',
-      escapeChar: "\\",
-      hasHeader: true,
-      initialWhitespace: false,
-      skipLines: 0,
-      parserResult: {},
-      lines: 0,
-      errors: 0,
+      loginErrorText: '',
+      csvFilePreview: 'No data available',
+      parseError: null,
       timezones: [],
-      timezone: '+00:00',
-      dryrun: true,
-      classificationType: "test",
-      tableHeader: [],
-      tableHeaderMapping: {},
-      tableData: [],
-      currentPage: 1,
-      pageOptions: [5, 10, 25, 100],
-      perPage: 25,
-      totalRows: 1,
-      transferred: "",
-      transferStatus: "text-danger",
-      loginErrorText: "Wrong username or password",
-      dataErrors: [],
-      authConfirmErrorText: '',
       showMailgenLog: false,
       mailgenLog: '',
       mailgenStatus: '',
@@ -851,9 +799,6 @@ export default ({
       showMailgenPreviewRaw: false,
       mailgenPreviewParsed: {},
       customWorkflow: false,
-      showRowModal: false,
-      rowModalData: {},
-      rowModalInProgress: false,
       errorMessage: null,
       showErrorModal: false,
       mailgenTargetGroups: [],
@@ -864,11 +809,11 @@ export default ({
       mailgenTemplateValidationText: '',
       mailgenTemplateValidationStatus: null,
       mailgenTemplatePrototype: null,
-      validationNumErrors: null,
-      validatedCurrentData: false,
       showDryrunCheckboxTooltip: false,
       showCustomWorkflowCheckboxTooltip: false
-    }
+    };
+    resetProperties(o);
+    return o;
   },
   computed: {
     mailgenTemplateNames() {
@@ -877,9 +822,42 @@ export default ({
     mailgenTemplateMap() {
       return Object.fromEntries(this.mailgenTemplatesServer.map((template) => [template.name, template.body]))
     },
-    tableHeaderFlat() {
-      // returns only the names of assigned columns
-      return this.tableHeader.slice(1).map(header => header.field).filter(entry => entry)
+    assignedColumns() {
+      return this.fieldAssignments.filter(field => field);
+    },
+    newCsvData() {
+      return this.csvSource === 1 ? this.csvText : this.csvFile;
+    },
+    csvFileName() {
+      if (this.csvSource !== 2 || !this.csvFile) return '[error]';
+      return this.csvFile.name;
+    },
+    fieldsMap() {
+      var r = [];
+      for (let i = 0; i < this.fieldAssignments.length; ++i) {
+        const field = this.fieldAssignments[i];
+        if (field) r.push([field, i]);
+      }
+      return r;
+    },
+    sendableDataFull() { // data in format to be sent to backend
+      return this.parsedData.map(row => rowToSendable(row, this.fieldsMap));
+    },
+    sendableDataOneRow() {
+      return this.parsedData.slice(0, 1).map(row => rowToSendable(row, this.fieldsMap));
+    },
+    dataCandidateTypes() {
+      var a = this.parsedData.slice(0, 200); // Only consider the first 200 rows for performance
+      if (a.length === 0) return [];
+      var cols = a[0].length;
+      var r = Array(cols);
+      for (let i = 0; i < cols; ++i) {
+        r[i] = {
+          ip: a.every(row => ip_regex.test(row[i])),
+          timestamp: a.every(row => timestamp_regex.test(row[i]))
+        };
+      }
+      return r;
     },
     ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable', 'botsAvailable', 'mailgenAvailableTargetGroups', 'mailgenAvailableTargetGroupsStatus', 'backendVersion', 'mailgenTemplatesServer', 'mailgenTemplates', 'mailgenMultiTemplatesEnabled', 'mailgenTemplateDefaultTemplateName', 'customWorkflowDefault', 'allowValidationOverride']),
   },
@@ -926,213 +904,216 @@ export default ({
     });
   },
   watch: {
-    customWorkflowDefault: function (newCustomWorkflowDefault) {
+    customWorkflowDefault(newCustomWorkflowDefault) {
       this.customWorkflow = newCustomWorkflowDefault;
+    },
+    csvFile(newCsvFile) {
+      if (!newCsvFile) {
+        this.csvFilePreview = 'No data available';
+        return;
+      }
+      this.csvFilePreview = 'Loading…';
+      const truncated = newCsvFile.size > 10000;
+      const blob = truncated ? newCsvFile.slice(0, 10000) : newCsvFile;
+      blob.text().then(
+        text => {
+          if (this.csvFile !== newCsvFile) return; // file changed, our data is outdated
+          this.csvFilePreview = truncated ? text + '…' : text;
+        },
+        reason => {
+          if (this.csvFile !== newCsvFile) return;
+          this.csvFilePreview = 'Error: ' + reason;
+        }
+      );
     }
   },
   methods: {
-    csvToArray(maxRows=null) {
-      /**
-       * Converts the CSV input data (parser result) into an Array ready for submission to the backend
-       * Parameters:
-       *   maxRows (int): maximum number of rows to process: null (default) for all
-       */
-      if (this.parserResult.data === undefined)
-        return []
-
-      let data = [];
-      for (let [row, item] of this.parserResult.data.entries()) {
-        if (maxRows && row >= maxRows)
-          break;
-        let sendItem = {};
-        for (let ndx in this.tableHeader) {
-          // check for header in csv. data is array or object
-          // skip first column
-          if (this.tableHeader[ndx].field !== "" && ndx !== 0) {
-            let value;
-            if (this.hasHeader) {
-              value = item[this.tableHeader[ndx].key]
-            } else {
-              value = item[ndx-1];
-            }
-            sendItem[this.tableHeader[ndx].field] = this.prepare(this.tableHeader[ndx].field, value)
-          }
-        }
-        data.push(sendItem);
+    navigateToValidationAndSubmission() {
+      if (!this.needsReparse) {
+        this.accordionState = 2;
+        return;
       }
-      return data;
+      const newCsvData = this.newCsvData;
+      // This would need additional checks: a reparse is also required if e.g. the data is the same but hasHeader is different
+      /*if (newCsvData && newCsvData === this.parsedDataInputCsv) {
+        this.needsReparse = false;
+        this.accordionState = 2;
+        return;
+      }*/
+      // Reparse
+      const hasHeader = Boolean(this.hasHeader);
+      // skipLines: Skip the first n (nonempty) lines after the header.
+      const skipRows = +this.skipLines;
+      let fieldsCount = null;
+      let inputRows = [];
+      let error = null;
+      let finished = false;
+      const finish = () => {
+        if (finished) return;
+        finished = true;
+        if (this.newCsvData !== newCsvData) {
+          console.error('CSV data changed during parse');
+          return;
+        }
+        if (error === null && inputRows.length === 0) {
+          error = 'Got no rows in input';
+        }
+        if (error !== null) {
+          this.accordionState = 1; // Should already be this value
+          this.parseError = error;
+          this.$refs.parseErrorModal.show();
+        } else {
+          if (hasHeader) {
+            this.fieldAssignments = sanitizeFieldList(inputRows[0], this.harmonizationFields || []);
+            this.parsedData = inputRows.slice(1);
+          } else {
+            this.fieldAssignments = Array(fieldsCount).fill('');
+            this.parsedData = inputRows;
+            const ipIndex = this.dataCandidateTypes.findIndex(el => el.ip);
+            if (ipIndex >= 0) this.fieldAssignments[ipIndex] = 'source.ip';
+            const timestampIndex = this.dataCandidateTypes.findIndex(el => el.timestamp);
+            if (timestampIndex >= 0) this.fieldAssignments[timestampIndex] = 'time.source';
+          }
+          this.dataErrors = [];
+          this.errorFieldAssignments = [];
+          this.parsedDataValid = null;
+          this.uploadStatusMessage = '';
+          this.uploadSuccessful = false;
+          this.needsReparse = false;
+          this.accordionState = 2;
+        }
+        this.parsedDataInputCsv = newCsvData;
+        this.parsingInProgress = false;
+      };
+      if (!newCsvData) {
+        error = 'Got no input data';
+        finish();
+        return;
+      }
+      let rowNum = -hasHeader;
+      this.parsingInProgress = true;
+      parse.parse(newCsvData, {
+        delimiter: this.delimiter,
+        quoteChar: this.quoteChar,
+        escapeChar: this.escapeChar,
+        header: false, // We handle this ourselves (we want to get arrays, not keyed objects)
+        skipEmptyLines: true,
+        worker: true,
+        step: (results, parser) => {
+          if (results.errors.length > 0) {
+            error = results.errors;
+            parser.abort();
+            finish();
+            return;
+          }
+          const row = results.data;
+          /*row._intelmqwebinputcsv_row =*/ rowNum++;
+          // "rowNum !== 0": Don't skip if this is the header row
+          if (rowNum !== 0 && rowNum <= skipRows) return;
+          if (fieldsCount === null) fieldsCount = row.length;
+          else if (row.length !== fieldsCount) {
+            error = `Got row with different number of fields (expected ${fieldsCount}, got ${row.length})`;
+            parser.abort();
+            finish();
+            return;
+          }
+          inputRows.push(row);
+        },
+        complete: finish,
+        error: e => {
+          error = `Got error while reading from file: ${e}`;
+          finish();
+        }
+      });
+    },
+    onUpdateField(e) {
+      let {column, value} = e;
+      column = Number(column);
+      if (!(0 <= column && column < this.fieldAssignments.length)) return;
+      if (value) {
+        value = sanitizeFieldName(value);
+        if (!value) return;
+      } else {
+        value = '';
+      }
+      this.$set(this.fieldAssignments, column, value);
+    },
+    sendDataNoSubmit() {
+      this.sendData({}, false);
+    },
+    sendDataMaybeConfirm() {
+      if (this.dryrun) this.sendData({
+        dryrun: true,
+        // Dryruns still need authentification somehow (see serve.py)
+        username: this.username,
+        password: this.password
+      });
+      else this.showAuthConfirm = true;
+    },
+    sendDataConfirmed() {
+      this.sendData({
+        username: this.usernameConfirm,
+        password: this.passwordConfirm
+      });
+      this.showAuthConfirm = false;
+      this.usernameConfirm = '';
+      this.passwordConfirm = '';
     },
     /**
      * Prepare and aggregate data and send the post request.
      */
-    sendData: function(submit=true) {
-      this.inProgress = true;
-      this.transferred = "in progress..."
-      let custom = this.computeCustom();
-      let send = {
-        timezone: this.timezone,
-        data: this.csvToArray(),
-        custom: custom,
-        dryrun: this.dryrun,
-        submit: submit,
-        username: this.username,
-        password: this.password,
-        validate_with_bots: this.customWorkflow,
-        assigned_columns: this.tableHeaderFlat,
-      }
-      var me = this;
-      me.$bvModal.hide("authconfirm-popup");
-      this.$http.post('api/upload', send)
-        .then(response => {
-          // authentication was successful, auth errors are treated below (401)
-          me.authConfirmSubmit = false;
-          me.authConfirmErrorText = null;
-          if (response.status !== 200) {
-            me.transferStatus = "text-danger";
-            me.transferred = "Send failed!";
-            me.inProgress = false;
+    sendData(send, submit=true) {
+      send['submit'] = submit;
+      send['timezone'] = this.timezone;
+      send['data'] = this.sendableDataFull;
+      send['custom'] = this.computeCustom();
+      send['validate_with_bots'] = this.customWorkflow;
+      send['assigned_columns'] = this.assignedColumns;
+      const customWorkflow = this.customWorkflow;
+      const fieldAssignments = this.fieldAssignments;
+      this.uploadData = send;
+      this.uploadInProgress = true;
+      this.$http.post('api/upload', send).then(response => {
+        if (this.uploadData !== send) return;
+        response.json().then(data => {
+          if (this.uploadData !== send) return;
+          this.uploadInProgress = false;
+          if (data.status === 'error') {
+            this.errorMessage = data.log;
+            this.showErrorModal = true;
+            this.uploadStatusMessage = 'Server error';
+            this.uploadSuccessful = false;
             return;
           }
-          response.json().then(data => {
-            if (data.log && data.status == 'error') {
-              this.errorMessage = data.log;
-              this.showErrorModal = true;
-              me.inProgress = false;
-            }
-
-            this.validatedCurrentData = true;  // independent of the result, the data validation was run
-
-            this.validationNumErrors = Object.keys(data.errors).length;
-            me.transferred = (submit ? "Submitted " : "Validated ") + (data.input_lines) + " lines" + (submit ? (this.customWorkflow ? " to IntelMQ database" : " to IntelMQ processing queue") : "") + ". Of these, " + (data.input_lines - data.input_lines_invalid) + " were valid. This resulted in " + this.validationNumErrors + " validation errors and in total " + data.input_lines_invalid + " lines were invalid" + (submit ? ", these were not submitted" : "") + ".";
-            if (this.customWorkflow) {
-              me.transferred = me.transferred + " After bot validation the input data resulted in " + data.output_lines + " events and " + data.output_lines_invalid + " errors occured (invalid events).";
-            }
-            me.dataErrors = data.errors;
-            if (this.validationNumErrors) {
-              me.transferStatus = "text-danger";
-            } else {
-              me.transferStatus = "text-black";
-            }
-            me.inProgress = false;
-            console.log("Debug:", this.validatedCurrentData, this.validationNumErrors > 0, this.allowValidationOverride, this.allowValidationOverride == false, this.validationNumErrors > 0 && this.allowValidationOverride == false, (!this.validatedCurrentData || this.validationNumErrors > 0) && this.allowValidationOverride == false)
-          })
-        }, (response) => { // error
-            if (response.status == 401) {
-              // authentication error
-              me.authConfirmErrorText = response.body;
-            } else {
-              // other error
-              me.transferStatus = "text-danger";
-              me.transferred = response.body;
-              // auth was successful nevertheless, close the login and clear errors
-              me.authConfirmSubmit = false;
-              me.authConfirmErrorText = null;
-            }
-            me.inProgress = false;
-            return;
+          const errors = data.errors || {};
+          const numErrors = Object.keys(errors).length;
+          const success = numErrors === 0;
+          this.uploadStatusMessage = (submit ? `Submitted ${data.input_lines} lines to IntelMQ ${customWorkflow ? 'database' : 'processing queue'}.` : `Validated ${data.input_lines} lines.`) + ` Of these, ${data.input_lines - data.input_lines_invalid} were valid. This resulted in ${numErrors} validation errors and in total ${data.input_lines_invalid} lines were invalid${submit ? ', these were not submitted' : ''}.` + (customWorkflow ? ` After bot validation, the input data resulted in ${data.output_lines} events and ${data.output_lines_invalid} events occurred (invalid events).` : '');
+          this.uploadSuccessful = success;
+          if (!submit) this.parsedDataValid = success;
+          this.dataErrors = errors;
+          this.errorFieldAssignments = fieldAssignments;
+        }, (/*error*/) => {
+          if (this.uploadData !== send) return;
+          this.uploadInProgress = false;
+          this.uploadStatusMessage = 'Got invalid JSON in response';
+          this.uploadSuccessful = false;
         });
+      }, response => {
+        if (this.uploadData !== send) return;
+        this.uploadInProgress = false;
+        this.uploadStatusMessage = `${response.status === 401 ? 'Authentication error' : 'Error'}: ${response.bodyText}`;
+        console.log(response);
+        this.uploadSuccessful = false;
+      });
     },
-    /**
-     * Function to preprocess values.
-     */
-    prepare: function(field, value) {
-      if (field === "extra") {
-        try {
-          value = JSON.parse(value)
-        }
-        catch(e) {
-          return {data: value};
-        }
-        if (Array.isArray(value)) {
-          return {data: value};
-        }
-      }
-      return value;
-    },
-    reset: function() {
-      this.csvFile = null;
-      this.csvText = "";
-    },
-    /**
-     * Update the table header and refresh view.
-     */
-    updateTableHeader: function(data, newFieldName) {
-      // find the column number by the unique 'key'
-      let ndx = this.tableHeader.findIndex(item => {
-        if (item.key === data.field.key) {
-          return true;
-        }
-      })
-
-      if (newFieldName == null) {
-        newFieldName = "";
-        // After deleting the field name, it can't be a multiple field assignement
-        this.$set(this.tableHeader[ndx], 'warning', false);
-      } else {
-        // first remove encircling whitespace, then replace whitespace by _, then remove all unallowed characters
-        newFieldName = newFieldName.trim().toLowerCase().replaceAll(/ /g, '_').replaceAll(/[^a-z_0-9.]+/gi, '');
-
-        // check if the field name is already used elsewhere
-        for (let i in this.tableHeader) {
-          if (this.tableHeader[i].key === undefined || this.tableHeader[i].label == "" || this.tableHeader[i].key == data.column) {
-            // skip Actions columns, unassigned columns and this column
-          } else if (this.tableHeader[i].label == newFieldName) {
-            // Show the error message
-            this.$set(this.tableHeader[ndx], 'warning', 'Multiple field assignment!');
-            console.error('Multiple field assignment!');
-            break
-          } else {
-            this.$set(this.tableHeader[ndx], 'warning', false);
-          }
-        }
-
-        // check if the new field name is a valid IntelMQ field name
-        this.$http.post('api/harmonization/fieldname_validity', {'fieldname': newFieldName})
-          .then(response => {
-            if (response.status !== 200) {
-              this.$set(this.tableHeader[ndx], 'invalid', 'Validity check failed');
-              console.error('Field name validity check failed. Response code:', response.status, ' Content:', response.content)
-              return;
-            }
-            response.json().then(data => {
-              if (data.status == false) {
-                this.$set(this.tableHeader[ndx], 'invalid', 'Invalid field name');
-                console.error('Field name validity check. Result:', data)
-              }
-            })
-          }, (response) => { // error
-            this.$set(this.tableHeader[ndx], 'invalid', 'Validity check failed');
-            console.error('Field name validity check failed. Response code:', response.status, ' Content:', response.content)
-            return;
-          });
-      }
-
-      // if the field is valid, set invalid to false in case the field was previously invalid
-      this.$set(this.tableHeader[ndx], 'invalid', false);
-
-      // set the new field
-      this.tableHeader[ndx].label = newFieldName;
-      this.tableHeader[ndx].field = newFieldName;
-      this.$refs.table.refresh();
-
-      // refresh the field -> columnindex mapping
-      this.updateTableHeaderMapping();
-    },
-    /**
-     * Create a mapping of [CSV header key] -> [mapped field]
-     * used for the CSS class and tooltip selection of table cells
-     */
-    updateTableHeaderMapping: function() {
-      for (let i in this.tableHeader) {
-        if (!this.tableHeader[i].key)  // undefined or ""
-          continue;
-        this.tableHeaderMapping[this.tableHeader[i].key] = this.tableHeader[i].field;
-      }
+    getFieldNameValidationPromise(name) {
+      return this.$http.post('api/harmonization/fieldname_validity', {'fieldname': name});
     },
     /**
      * Trigger login.
      */
-    signIn: function () {
+    signIn() {
       this.$store.dispatch("login", {
         username: this.username,
         password: this.password
@@ -1158,207 +1139,12 @@ export default ({
         this.wrongCredentials = true
       })
     },
-    onInvalidFieldEnter(element, done, key) {
-      let ndx = this.tableHeader.findIndex(item => {
-        if (item.key === key) {
-          return true;
-        }
-      })
-      setTimeout(function() {done(); this.tableHeader[ndx].invalid = false;}.bind(this), 5000);
-    },
     /**
      * Trigger logout.
      */
-    signOut: function () {
-      this.username = "";
-      this.password = "";
-      this.wrongCredentials = false;
-      this.csvText = "";
-      this.csvFile = null;
-      this.csvPreviewText = "",
-      this.tableData = []
-      this.tableHeader = []
-      this.overlay = false;
-      this.inProgress = false;
-      this.transferred = "";
-      this.delimiter = ",";
-      this.quoteChar = '"';
-      this.escapeChar = "\\";
-      this.hasHeader = false;
-      this.initialWhitespace = false;
-      this.skipLines = 0;
-      this.parserResult = {};
-      this.timezone = '+00:00';
-      this.dryrun = true;
-      this.classificationType = "blacklist";
-      this.currentPage = 1;
-      this.perPage = 25;
-      this.$store.dispatch("logout")
-    },
-    /**
-     * Read the uploaded csv file and trigger parsing the content.
-     */
-    readFromFile() {
-      this.overlay = true;
-      if (!this.csvFile) {
-        this.csvText = "";
-        this.parseCSV();
-      }
-      const me = this;
-      return new Promise((resolve) => {
-        if (this.csvFile) {
-          var reader = new FileReader();
-          reader.onload = function(event) {
-            me.csvText = event.target.result;
-            me.csvPreviewText = event.target.result.substring(0, 2000) + "\n\u2026";
-            me.parseCSV();
-            resolve();
-          };
-          reader.readAsText(this.csvFile);
-        }
-      });
-    },
-    showOverlay() {
-      this.overlay = true;
-    },
-    /**
-     * Parse the csv data and apply user options.
-     */
-    parseCSV() {
-      this.validatedCurrentData = false;
-
-      if (this.csvText === "") {
-        this.overlay = false;
-      }
-      // Option to trim whitespaces.
-      if (this.initialWhitespace) {
-        var regEx = "\\s*" + this.delimiter + "\\s*";
-        var re = new RegExp(regEx,"g");
-        this.csvText = this.csvText.replace(re, this.delimiter);
-      }
-      let count = 0;
-      const me = this;
-      this.parserResult.data = [];
-      this.parserResult.errors = [];
-      parse.parse(this.csvText, {
-        delimiter: this.delimiter,
-        quoteChar: this.quoteChar,
-        escapeChar: this.escapeChar,
-        header: this.hasHeader,
-        skipEmptyLines: true,
-        step: function(row) {
-          if (me.skipLines > 0 && count < me.skipLines) {
-            count++
-            return;
-          }
-          me.parserResult.data.push(row.data);
-          me.parserResult.errors.concat(row.errors);
-          me.parserResult.meta = row.meta;
-          return;
-        }
-      });
-      if (this.parserResult.meta.aborted) {
-        this.overlay = false;
-        return;
-      }
-      if (this.parserResult.data.length === 0) {
-        this.overlay = false;
-        return;
-      }
-      this.lines = this.parserResult.data.length;
-      this.errors = this.parserResult.errors.length;
-      let columns;
-      if (this.hasHeader
-        && this.parserResult.meta.fields
-      ) {
-        columns = this.parserResult.meta.fields.map(function(i) {
-          return {
-            key: i,
-            label: i
-          }
-        });
-      } else  {
-        columns = Array.apply(null, { length: this.parserResult.data[0].length }).map(function(i, ndx) {
-          return {
-            key: ""+ndx,
-            label: ""
-          }
-        });
-      }
-      // construct tableHeader, mapping columns to field names
-      this.tableHeader.length = 0;
-      this.tableHeader.push('Actions')
-      for (let i in columns) {
-        let colname = "";
-        if (columns[i].label) {
-          // basic sanitiation of the label
-          let labelLower = columns[i].label.trim().toLowerCase();
-          // clean the headers from any non-allowed characters
-          let sanitizedHeader = "extra." + labelLower.replaceAll(/ /g, '_').replaceAll(/[^a-z_0-9.]+/gi, '');
-          console.log('types:', this.harmonizationFields);
-          if (this.harmonizationFields.indexOf(labelLower) !== -1) {
-            colname = labelLower;
-            // assert that the header is not yet used, to prevent duplicates
-          } else if (this.tableHeader.map(x => x.label).indexOf(sanitizedHeader) === -1) {
-            colname = sanitizedHeader;
-          } else {
-            colname = '';
-          }
-        }
-        this.tableHeader.push({
-          key: columns[i].key,  // must correspond to the key in this.parserResult.data
-          label: colname,  // displayed value
-          field: colname,  // actual value
-        })
-
-      }
-      this.tableData = this.parserResult.data;
-      this.overlay = false;
-
-      this.updateTableHeaderMapping();
-    },
-    getTableCellClass(row) {
-      if (this.dataErrors[row.index]) {
-        if (this.dataErrors[row.index][this.tableHeaderMapping[row.field.key]]) {
-          return "table-danger"; // add a danger class to the row
-        } else {
-          // row has an issue, but not this cell in particular
-          return "table-warning";
-        }
-      }
-      return ""; // return an empty string for other rows
-    },
-    getTooltip(rowIndex, fieldKey) {
-      if (this.dataErrors[rowIndex] && this.dataErrors[rowIndex][this.tableHeaderMapping[fieldKey]]) {
-        return this.dataErrors[rowIndex][this.tableHeaderMapping[fieldKey]].join('. ');
-      }
-      return "";
-    },
-    getTableActionCellClass(row) {
-      if (this.dataErrors[row.index] && this.dataErrors[row.index][-1]) {
-        return "table-danger"; // add a danger class to the row
-      }
-      return ""; // return an empty string for other rows
-    },
-    getActionCellTooltip(rowIndex) {
-      if (this.dataErrors[rowIndex] && this.dataErrors[rowIndex][-1]) {
-        return this.dataErrors[rowIndex][-1].join('. ');
-      }
-      return "";
-    },
-    /**
-     * when the user submits data, decide if login form is shown
-     * if dryrun is active, just submit
-     * ottherwise show the login form again
-     */
-    onSendData() {
-      if (this.dryrun) {
-        this.sendData();
-      } else {
-        // clear any previous error text
-        this.authConfirmErrorText = null;
-        this.showAuthConfirm = true;
-      }
+    signOut() {
+      resetProperties(this);
+      this.$store.dispatch('logout');
     },
     /**
      * Trigger a mailgen run
@@ -1369,7 +1155,7 @@ export default ({
       let data = {
         verbose: this.mailgenVerbose,
         dry_run: this.mailgenDryRun,
-        assigned_columns: this.tableHeaderFlat,
+        assigned_columns: this.assignedColumns,
       }
       if (this.mailgenMultiTemplatesEnabled) {
         data.templates = this.mailgenTemplates;
@@ -1397,119 +1183,6 @@ export default ({
         });
     },
     /**
-     * very basic MIME parser
-     * @param {str} mime: The email as string
-     */
-    parseMIME(mime) {
-      const splitted = mime.split('\n');
-      let isHeader = true;
-      let isMimeHeader = false;
-      let isBody = false;
-      let line;
-      let subject;
-      let to;
-      let body = '';
-      let previousHeader;
-      let contentType;  // either 'multipart/signed' or 'text/plain'
-      let contentCharset = 'utf-8';  // utf-8 is the current default of mailgen, we can assume it as default and fallback
-
-      for(var lineindex = 0; lineindex < splitted.length; lineindex++) {
-        line = splitted[lineindex];
-        if (isHeader) {
-          console.log(line, 'is header')
-          if (line == '\r') {
-            console.log('ends header')
-            isHeader = false;
-            if (contentType == 'text/plain') {
-              // for plain text messages, this is the start of the body. For MIME messages, we need to detect the MIME header first
-              isBody = true;
-            }
-          } else if (line.split(':')[0] == 'Subject') {
-            console.log('is subject')
-            subject = line.slice(9);
-            previousHeader = 'subject';
-          } else if (line.split(':')[0] == 'To') {
-            console.log('is to')
-            to = line.slice(4)
-            previousHeader = 'to';
-          } else if (line.split(':')[0] == 'Content-Type') {
-            contentType = line.split(' ')[1].replace(';', '')
-            console.log('is content type', contentType)
-            if (contentType == 'text/plain') {
-              // extract the content-type
-              let parsed = line.match(/^Content-Type:.*?charset="(.*?)"/);
-              if (parsed !== null) {
-                console.log('parsed line for charset detection', parsed);
-                contentCharset = parsed[1];
-              }
-            }
-          } else if (line.slice(0, 1) == ' ' && previousHeader !== undefined) {
-            console.log('is continuation of', previousHeader)
-            switch (previousHeader) {
-              case 'subject':
-                subject = subject + ' ' + line.slice(1);
-                break;
-              case 'to':
-                to = to + ' ' + line.slice(1);
-                break;
-            }
-          } else {
-            previousHeader = undefined;
-          }
-        } else if (isMimeHeader) {
-          if (line == '\r') {
-            console.log(line, 'starts MIME part body')
-            isMimeHeader = false;
-            isBody = true;
-          } else {
-            console.log(line, 'is MIME header')
-            // extract the content-type
-            let parsed = line.match(/^Content-Type:.*?charset="(.*?)"/);
-            if (parsed !== null) {
-              console.log('parsed line for charset detection', parsed);
-              contentCharset = parsed[1];
-            }
-            parsed = line.match(/Content-Type: *?application\/pgp-signature/);
-            if (parsed !== null) {
-              console.log('MIME part is PGP Signature, ignore it')
-              isBody = false;
-              isMimeHeader = false;
-            }
-          }
-        } else if (!isBody && contentType == 'multipart/signed') {
-          if (line.slice(0, 17) == '--===============') {
-            console.log(line, 'is MIME part start')
-            isMimeHeader = true;
-          }
-        } else if (isBody) {
-          console.log(line, 'is Body')
-          if (contentType == 'multipart/signed') {
-            if (line.slice(0, 17) == '--===============') {
-              isBody = false;
-              isMimeHeader = true;
-            } else {
-              body += line + '\n';
-            }
-          } else {
-            body += line + '\n';
-          }
-        }
-      }
-
-      // https://stackoverflow.com/a/75475328/2851664
-      // CC BY-SA https://stackoverflow.com/users/15702521/lukas
-      const dc = new TextDecoder(contentCharset);
-      let decodedBody = body.replace(/[\t\x20]$/gm, "").replace(/=(?:\r\n?|\n)/g, "").replace(/((?:=[a-fA-F0-9]{2})+)/g, (m) => {
-          const cd = m.substring(1).split('='), uArr=new Uint8Array(cd.length);
-          for (let i = 0; i < cd.length; i++) {
-              uArr[i] = parseInt(cd[i], 16);
-          }
-          return dc.decode(uArr);
-      });
-
-      return [subject, to, decodedBody, contentType]
-    },
-    /**
      * Show an Email Template preview with a list of templates (see mailgen_multi_templates_enabled in docs)
      */
     previewMailgen(template_index, showDialog=false) {
@@ -1522,21 +1195,21 @@ export default ({
             template_name: this.mailgenTemplates[template_index]['name'],
             verbose: this.mailgenVerbose,
             dry_run: this.mailgenDryRun,
-            assigned_columns: this.tableHeaderFlat,
-            data: this.csvToArray(1),
+            assigned_columns: this.assignedColumns,
+            data: this.sendableDataOneRow,
             })
         .then(response => {
           this.mailgenInProgress = false;
           response.json().then(data => {
-            console.log('no error and json')
+            console.log('no error and json');
             this.mailgenTemplates[template_index].validationStatus = "text-success";
             this.mailgenPreview = data.result;
             // clear the field, not used in case of success
             this.mailgenTemplates[template_index].validationText = 'Validated OK';
             this.mailgenLog = data.log;
 
-            let [subject, to, body, contentType] = this.parseMIME(this.mailgenPreview)
-            this.mailgenPreviewParsed = {subject: subject, to: to, body: body, contentType: contentType}
+            let [subject, to, body, contentType] = parseMIME(this.mailgenPreview);
+            this.mailgenPreviewParsed = {subject: subject, to: to, body: body, contentType: contentType};
             if (showDialog) {
               this.showMailgenPreview = true;
             }
@@ -1549,7 +1222,7 @@ export default ({
             if (showDialog) {
               this.showMailgenLog = true;
             }
-            this.mailgenInProgress;
+            this.mailgenInProgress = false;
         });
         }, (response) => { // error
           response.json().then(data => {
@@ -1581,14 +1254,14 @@ export default ({
     previewMailgenTemplate(showDialog=false) {
       this.mailgenInProgress = true;
       this.mailgenLog = '';
-      let previewData = this.csvToArray(1);
+      let previewData = this.sendableDataOneRow;
       previewData = previewData.length ? previewData[0] : {};
       this.$http.post('api/mailgen/preview',
           {
             template: this.mailgenTemplate,
             verbose: this.mailgenVerbose,
             dry_run: this.mailgenDryRun,
-            assigned_columns: this.tableHeaderFlat,
+            assigned_columns: this.assignedColumns,
             data: previewData,
             })
         .then(response => {
@@ -1601,7 +1274,7 @@ export default ({
             this.mailgenTemplateValidationText = 'Validated OK';
             this.mailgenLog = data.log;
 
-            let [subject, to, body, contentType] = this.parseMIME(this.mailgenPreview)
+            let [subject, to, body, contentType] = parseMIME(this.mailgenPreview)
             this.mailgenPreviewParsed = {subject: subject, to: to, body: body, contentType: contentType}
             if (showDialog) {
               this.showMailgenPreview = true;
@@ -1647,61 +1320,15 @@ export default ({
     validateMailgenTemplateContentDebounce: debounce(function () {
       this.previewMailgenTemplate(false)
     }, 1000),
-    triggerShowRowModal (row) {
-      this.rowModalInProgress = true;
-      let data = []
-      let item = this.parserResult.data[row.index];
-      let sendItem = {};
-      for (let ndx in this.tableHeader) {
-        // check for header in csv. data is array or object
-        // skip first column
-        if (this.tableHeader[ndx].field !== "" && ndx !== 0) {
-          let value;
-          if (this.hasHeader) {
-            value = item[this.tableHeader[ndx].key]
-          } else {
-            value = item[ndx-1];
-          }
-          sendItem[this.tableHeader[ndx].field] = this.prepare(this.tableHeader[ndx].field, value)
-        }
-      }
-      data.push(sendItem);
-      let post_data = {
-        data: data,
+    getRowPromise(row) {
+      return this.$http.post('api/bots/process', {
+        data: [rowToSendable(row, this.fieldsMap)],
         custom: this.computeCustom(),
         dryrun: this.dryrun,
         timezone: this.timezone,
-        assigned_columns: this.tableHeaderFlat,
-      }
-      if (this.mailgenMultiTemplatesEnabled) {
-        post_data.templates = this.mailgenTemplates;
-      } else {
-        post_data.template = this.mailgenTemplate;
-      }
-      this.$http.post('api/bots/process', post_data)
-        .then(response => {
-          response.json().then(data => {
-            this.rowModalData = data;
-
-            if (data.notifications) {
-              this.rowModalData.notifications = data.notifications.map(notification => this.parseMIME(notification))
-            }
-
-            this.showRowModal = true;
-            this.rowModalInProgress = false;
-          }).catch(err => {
-            // body was not JSON
-            this.errorMessage = err;
-            this.showErrorModal = true;
-            this.rowModalInProgress = false;
-        });
-        }, (response) => { // error
-          this.errorMessage = response.body;
-          this.showErrorModal = true;
-          this.rowModalInProgress = false;
-          //this.rowModalLog = response.body;
-          return;
-        });
+        assigned_columns: this.assignedColumns,
+        templates: this.mailgenMultiTemplatesEnabled ? this.mailgenTemplates : this.mailgenTemplate
+      });
     },
     computeCustom() {
       let custom = {};

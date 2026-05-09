@@ -238,7 +238,7 @@ def row_to_event(item: dict, body: dict,
         event.add('time.observation', time_observation, sanitize=False)
 
     # Ensure dryrun has priority, overwrite it at the end
-    if body['dryrun']:
+    if body.get('dryrun', False):
         event.add('classification.identifier', 'test', overwrite=True)
         event.add('classification.type', 'test', overwrite=True)
 
@@ -247,8 +247,11 @@ def row_to_event(item: dict, body: dict,
 
 @hug.post(ENDPOINT_PREFIX + '/api/upload', requires=session.token_authentication)
 def uploadCSV(body, request, response):
+    submit = body.get('submit', True)
+    dryrun = body.get('dryrun', False)
+    validate_with_bots = body.get('validate_with_bots', False)
     # additional authentication is required for this call
-    if body.get('submit', True) and session.session_store is not None:
+    if submit and session.session_store is not None:
         username = body.get('username')
         password = body.get('password')
         known = session.session_store.verify_user(username, password)
@@ -276,19 +279,20 @@ def uploadCSV(body, request, response):
         conn = open_db_connection(mailgen_config, connection_factory=RealDictConnection)
 
     bots = []
-    for bot_id, bot_config in CONFIG.get('bots', {}).items() if body.get('validate_with_bots', False) else {}:
-        try:
-            if bot_config['module'] == 'intelmq_webinput_csv.sql_output':
-                bot = WebinputSQLOutputBot
-                kwargs = {'connection': conn}
-            else:
-                module_name = get_bot_module_name(bot_config['module'])
-                bot = import_module(module_name).BOT
-                kwargs = {}
-            bots.append((bot_id, bot(bot_id, **kwargs, settings=BotLibSettings | bot_config.get('parameters', {}))))
-        except Exception:
-            return {'status': 'error',
-                    'log': traceback.format_exc()}
+    if validate_with_bots:
+        for bot_id, bot_config in CONFIG.get('bots', {}).items():
+            try:
+                if bot_config['module'] == 'intelmq_webinput_csv.sql_output':
+                    bot = WebinputSQLOutputBot
+                    kwargs = {'connection': conn}
+                else:
+                    module_name = get_bot_module_name(bot_config['module'])
+                    bot = import_module(module_name).BOT
+                    kwargs = {}
+                bots.append((bot_id, bot(bot_id, **kwargs, settings=BotLibSettings | bot_config.get('parameters', {}))))
+            except Exception:
+                return {'status': 'error',
+                        'log': traceback.format_exc()}
 
     tracebacks = []
     input_lines_invalid = 0
@@ -304,8 +308,9 @@ def uploadCSV(body, request, response):
             input_lines_invalid += 1
             continue
 
-        bots_input = [event]
+        bots_output = [event]
         for bot_id, bot in bots:
+            bots_input = bots_output
             bot_raised_errors = False
             if bot.bottype is not BotType.OUTPUT:
                 bots_output = []
@@ -324,12 +329,9 @@ def uploadCSV(body, request, response):
                 retval[lineno][-1].append(f"Bot {bot_id} raised an error. Please inspect the details with the magnifier symbol on the left.")
                 input_line_valid = False
                 break
-            bots_input = bots_output
-        if not bots:
-            bots_output = [event]
         output_lines += len(bots_output)
 
-        if not body.get('validate_with_bots', False):
+        if not validate_with_bots:
             for event in bots_output:
                 try:
                     if CONFIG.get('destination_pipeline_queue_formatted', False):
@@ -349,7 +351,7 @@ def uploadCSV(body, request, response):
                 # if 'raw' not in event:
                 #     event.add('raw', ''.join(raw_header + [handle_rewindable.current_line]))
                 raw_message = MessageFactory.serialize(event)
-                if body.get('submit', True) and input_line_valid:
+                if submit and input_line_valid:
                     destination_pipeline.send(raw_message)
 
         # if line was valid, increment the counter by 1
@@ -360,10 +362,11 @@ def uploadCSV(body, request, response):
 
     output_lines_invalid = len(tracebacks)
 
-    if body['dryrun'] and cb:
-        conn.rollback()
-    elif cb:
-        conn.commit()
+    if cb:
+        if dryrun:
+            conn.rollback()
+        else:
+            conn.commit()
 
     # lineno is the index, for the number of lines add one
     total_lines = lineno + 1 if data else 0
