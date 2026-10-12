@@ -343,7 +343,7 @@
                         <span
                           class="text-danger"
                           v-else-if="mailgenAvailableTargetGroupsStatus !== true"
-                          >Error: {{ mailgenAvailableTargetGroupsStatus }}
+                          >Error: {{ JSON.stringify(mailgenAvailableTargetGroupsStatus) }}
                         </span>
                       </b-form-group>
                       <b-container>
@@ -514,10 +514,14 @@
                     <b-col>
                       <b-row>
                         <b-col>
-                          <span
-                            :class="mailgenTemplateValidationStatus"
-                            >{{mailgenTemplateValidationText}}
-                        </span>
+                          <div style="display: flex; flex-direction: row; justify-content: center;">
+                            <div style="width: fit-content; text-align: left;">
+                              <span
+                                style="white-space: pre;"
+                                :class="mailgenTemplateValidationStatus"
+                                >{{mailgenTemplateValidationText}}</span>
+                            </div>
+                          </div>
                         </b-col>
                         <b-col>
                           <b-form-group
