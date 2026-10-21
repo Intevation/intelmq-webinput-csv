@@ -17,7 +17,7 @@
           <harmonization-field-select
             :value="internalFieldAssignments[data.column]"
             :options="fieldOptions"
-            :candidateInfo="dataCandidateTypes[data.column] || {}"
+            :typeStats="dataTypeStats[data.column] || {}"
             @update="update(data.column, $event)"
           />
           <div v-if="columnValidityErrors[data.column]" style="color: red;">{{ columnValidityErrors[data.column] }}</div>
@@ -150,7 +150,7 @@ export default ({
       type: Array,
       default: () => []
     },
-    dataCandidateTypes: {
+    dataTypeStats: {
       type: Array,
       default: () => []
     },

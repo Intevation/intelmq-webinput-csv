@@ -402,7 +402,7 @@
                   :fieldAssignments="fieldAssignments"
                   :fieldOptions="harmonizationFields"
                   :dataRows="parsedData"
-                  :dataCandidateTypes="dataCandidateTypes"
+                  :dataTypeStats="dataTypeStats"
                   :dataErrors="dataErrors"
                   :errorFieldAssignments="errorFieldAssignments"
                   :getRowPromise="getRowPromise"
@@ -747,6 +747,26 @@ const sanitizeFieldList = (fields, allFields) => {
   return r;
 };
 
+const typeStatsForColumn = (arr, col) => {
+  if (arr.length === 0) return {nonEmpty: 0, ip: 0, timestamp: 0};
+  var nonEmpty = 0;
+  var ip = 0;
+  var timestamp = 0;
+  for (const el of arr) {
+    const val = el[col];
+    if (!val) continue;
+    ++nonEmpty;
+    if (ip_regex.test(val)) ++ip;
+    if (timestamp_regex.test(val)) ++timestamp;
+  }
+  if (nonEmpty === 0) return {nonEmpty: 0, ip: 0, timestamp: 0};
+  return {
+    nonEmpty: nonEmpty / arr.length,
+    ip: ip / nonEmpty,
+    timestamp: timestamp / nonEmpty
+  };
+};
+
 const resetProperties = obj => {
   obj['username'] = '';
   obj['password'] = '';
@@ -850,18 +870,10 @@ export default ({
     sendableDataOneRow() {
       return this.parsedData.slice(0, 1).map(row => rowToSendable(row, this.fieldsMap));
     },
-    dataCandidateTypes() {
-      var a = this.parsedData.slice(0, 200); // Only consider the first 200 rows for performance
+    dataTypeStats() {
+      var a = this.parsedData.slice(0, 100); // Only consider the first 100 rows for performance
       if (a.length === 0) return [];
-      var cols = a[0].length;
-      var r = Array(cols);
-      for (let i = 0; i < cols; ++i) {
-        r[i] = {
-          ip: a.every(row => ip_regex.test(row[i])),
-          timestamp: a.every(row => timestamp_regex.test(row[i]))
-        };
-      }
-      return r;
+      return a[0].map((el, i) => typeStatsForColumn(a, i));
     },
     ...mapState(['user', 'loggedIn', 'hasAuth', 'classificationTypes', 'harmonizationFields', 'customFieldsMapping', 'requiredFields', 'mailgenAvailable', 'botsAvailable', 'mailgenAvailableTargetGroups', 'mailgenAvailableTargetGroupsStatus', 'backendVersion', 'mailgenTemplatesServer', 'mailgenTemplates', 'mailgenMultiTemplatesEnabled', 'mailgenTemplateDefaultTemplateName', 'customWorkflowDefault', 'allowValidationOverride']),
   },
@@ -973,9 +985,9 @@ export default ({
           } else {
             this.fieldAssignments = Array(fieldsCount).fill('');
             this.parsedData = inputRows;
-            const ipIndex = this.dataCandidateTypes.findIndex(el => el.ip);
+            const ipIndex = this.dataTypeStats.findIndex(el => el.nonEmpty >= 0.5 && el.ip >= 0.9);
             if (ipIndex >= 0) this.fieldAssignments[ipIndex] = 'source.ip';
-            const timestampIndex = this.dataCandidateTypes.findIndex(el => el.timestamp);
+            const timestampIndex = this.dataTypeStats.findIndex(el => el.nonEmpty >= 0.5 && el.timestamp >= 0.9);
             if (timestampIndex >= 0) this.fieldAssignments[timestampIndex] = 'time.source';
           }
           this.dataErrors = [];

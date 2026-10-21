@@ -113,7 +113,7 @@ export default ({
       type: Array,
       default: () => []
     },
-    candidateInfo: {
+    typeStats: {
       type: Object,
       default: () => ({})
     }
@@ -133,6 +133,15 @@ export default ({
       // Most sanitization is done in WebinputCSV.vue
       return this.modalValue.trim();
     },
+    typeStatsNonEmpty() {
+      return this.typeStats['nonEmpty'] || 0;
+    },
+    typeStatsIp() {
+      return this.typeStats['ip'] || 0;
+    },
+    typeStatsTimestamp() {
+      return this.typeStats['timestamp'] || 0;
+    },
     possibleIpSuggestions() {
       return [
         'destination.ip',
@@ -150,7 +159,7 @@ export default ({
       ].filter(el => this.options.includes(el));
     },
     suggestions() {
-      return (this.candidateInfo['ip'] ? this.possibleIpSuggestions : []).concat(this.candidateInfo['timestamp'] ? this.possibleDatetimeSuggestions : []);
+      return (this.typeStatsIp >= 0.9 ? this.possibleIpSuggestions : []).concat(this.typeStatsTimestamp >= 0.9 ? this.possibleDatetimeSuggestions : []);
     },
     searchPattern() {
       const s = this.sanitizedModalValue;
